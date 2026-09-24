@@ -1,0 +1,18 @@
+{
+ "module": "STARRYNI",
+ "format": "dib",
+ "bitmaps": {
+  "meteor": {
+   "w": 32,
+   "h": 64,
+   "id": 101,
+   "file": "meteor.png"
+  }
+ },
+ "text": [
+  "BITMAP 101: the shooting star, two 32x32 frames - falling right, then falling left. Black is transparent.",
+  "The number of buildings can be varied from 0 to 100.",
+  "The maximum height of the buildings can be varied from 5% to 95% of the monitor height.",
+  "The 'flasher' is a flashing red light which, if enabled, will appear atop the tallest building."
+ ]
+}

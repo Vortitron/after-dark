@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Globe Screensaver | After Dark in the Browser</title>
+	<meta name="description" content="After Dark's Globe, running in the browser: the original 16-colour world map from the install wrapped round a turning sphere, rebuilt from GLOBE.AD.">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" href="../img/favicon.png?v=51f8108-260924185530">
+	<link rel="stylesheet" href="base.css?v=51f8108-260924185530">
+	<style>
+		html, body { height: 100%; }
+		body { background: #000; margin: 0; overflow: hidden; }
+		after-dark-globe { position: absolute; inset: 0; display: block; }
+	</style>
+</head>
+<body>
+	<h1 class="visuallyhidden">Globe Screensaver - After Dark in the Browser</h1>
+
+	<after-dark-globe art="art/globe" map="earth" speed="medium" tilt="23"></after-dark-globe>
+
+	<script src="ad.js?v=51f8108-260924185530"></script>
+	<script src="modules/globe.js?v=51f8108-260924185530"></script>
+</body>
+</html>

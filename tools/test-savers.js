@@ -31,6 +31,9 @@ function stubDom() {
 		setting: function () { return null; },
 		flag: function () { return false; },
 		Screen: function () {},
+		choice: function () { return 0; },
+		define: function () {},
+		desktop: function () { return null; },
 		load: function () { return Promise.reject(new Error('no art in tests')); }
 	};
 }
@@ -207,6 +210,100 @@ function testSpheres() {
 	assert.ok(egg.ry < egg.rx);
 }
 
+function testHardRain() {
+	loadModule('hardrain');
+	var HardRain = global.AfterDarkHardRain;
+	[1, 2, 7, 30].forEach(function (r) {
+		var pts = HardRain.circle(r);
+		var seen = {};
+		for (var i = 0; i < pts.length; i += 2) {
+			var key = pts[i] + ',' + pts[i + 1];
+			assert.ok(!seen[key], 'radius ' + r + ' visits ' + key + ' once');
+			seen[key] = true;
+			assert.ok(Math.abs(Math.hypot(pts[i], pts[i + 1]) - r) < 1, 'on the circle');
+		}
+	});
+	/* XOR twice is where you started: the ripples leave the desktop alone. */
+	var sim = new HardRain();
+	sim.bw = 64;
+	sim.bh = 64;
+	sim.image = { data: new Uint8ClampedArray(64 * 64 * 4) };
+	for (var k = 0; k < sim.image.data.length; k += 1) { sim.image.data[k] = (k * 37) & 255; }
+	var before = Array.from(sim.image.data);
+	sim.xor(30, 30, 20, [255, 85, 85]);
+	assert.notDeepStrictEqual(Array.from(sim.image.data), before);
+	sim.xor(30, 30, 20, [255, 85, 85]);
+	assert.deepStrictEqual(Array.from(sim.image.data), before);
+}
+
+function testStringTheory() {
+	loadModule('string');
+	var edge = global.AfterDarkStringTheory.edge;
+	assert.deepStrictEqual(edge(0, 100, 50), { x: 0, y: 0 });
+	assert.deepStrictEqual(edge(100, 100, 50), { x: 99, y: 0 });
+	assert.deepStrictEqual(edge(125, 100, 50), { x: 99, y: 25 });
+	assert.deepStrictEqual(edge(300, 100, 50), edge(0, 100, 50), 'once round is back to the start');
+	assert.deepStrictEqual(edge(-1, 100, 50), edge(299, 100, 50));
+}
+
+function testMandelbrot() {
+	loadModule('mandelbrot');
+	var escape = global.AfterDarkMandelbrot.escape;
+	assert.strictEqual(escape(0, 0, 100), -1, 'the origin is in the set');
+	assert.strictEqual(escape(-1, 0, 100), -1, 'so is -1');
+	assert.ok(escape(2, 2, 100) <= 1, 'far outside escapes at once');
+	assert.ok(escape(-0.75, 0.1, 1000) > 10, 'near the neck it takes a while');
+}
+
+function testMessages() {
+	loadModule('messages');
+	var Messages = global.AfterDarkMessages;
+	assert.strictEqual(Messages.MESSAGES.length, 8, 'MESG_AD3.DAT holds eight');
+	assert.strictEqual(Messages.pick('out to lunch').pt, 36);
+	assert.strictEqual(Messages.pick('3').text, 'I Quit!');
+	assert.ok(Messages.pick('temporarily comatose').underline);
+	assert.ok(Messages.pick('after dark - the ultimate screen saver collection').center);
+	var own = Messages.pick('Back in 5');
+	assert.strictEqual(own.text, 'Back in 5', 'anything else is your own message');
+	assert.strictEqual(own.face, 'System');
+	assert.strictEqual(Messages.pick(null).text, 'OUT TO LUNCH');
+}
+
+function testGlobe() {
+	loadModule('globe');
+	var project = global.AfterDarkGlobe.project;
+	var flat = project(40, 0);
+	var mid = 40 * flat.size + 40;
+	assert.ok(flat.inside[mid]);
+	assert.ok(Math.abs(flat.v[mid] - 0.5) < 0.02, 'no tilt: the middle is the equator');
+	assert.ok(!flat.inside[0], 'the corner is off the globe');
+	var top = 1 * flat.size + 40;
+	assert.ok(flat.v[top] < 0.2, 'north is up');
+	var pole = project(40, 90);
+	assert.ok(pole.v[mid] < 0.02, 'tilted right over, the pole faces you');
+}
+
+function testStarryNight() {
+	loadModule('starry-night');
+	var skyline = global.AfterDarkStarryNight.skyline;
+	var city = skyline(640, 480, 30, 0.3);
+	assert.strictEqual(city.length, 30, 'Buildings is a count, 0 to 100');
+	city.forEach(function (b) {
+		assert.strictEqual(b.y + b.h, 480, 'buildings stand on the bottom');
+		assert.ok(b.h <= 480 * 0.3 + 1, 'no taller than the height setting');
+	});
+	assert.strictEqual(skyline(640, 480, 0, 0.3).length, 0);
+}
+
+function testWarp() {
+	loadModule('warp');
+	var Warp = global.AfterDarkWarp;
+	assert.strictEqual(Warp.SPEEDS.length, 8);
+	Warp.SPEEDS.forEach(function (s, i) {
+		assert.ok(/ in$/.test(s) ? Warp.VELOCITY[i] > 0 : Warp.VELOCITY[i] < 0, s + ' goes the right way');
+	});
+}
+
 stubDom();
 testGravity();
 testSnake();
@@ -217,4 +314,12 @@ testRainforest();
 testDraino();
 testShapes();
 testSpheres();
-console.log('ok — gravity, snake, zot, bogglins, om, fish-world, rainforest, draino, shapes, spheres');
+testHardRain();
+testStringTheory();
+testMandelbrot();
+testMessages();
+testGlobe();
+testStarryNight();
+testWarp();
+console.log('ok — gravity, snake, zot, bogglins, om, fish-world, rainforest, draino, shapes, spheres, ' +
+	'hard rain, string theory, mandelbrot, messages, globe, starry night, warp');

@@ -1,0 +1,27 @@
+{
+ "module": "GLOBE",
+ "format": "dib",
+ "bitmaps": {
+  "earth": {
+   "w": 322,
+   "h": 156,
+   "file": "earth.png",
+   "source": "BITMAPS/EARTH.BMP"
+  },
+  "after dark": {
+   "w": 220,
+   "h": 106,
+   "file": "after-dark.png",
+   "source": "BITMAPS/ADLOGO.BMP"
+  },
+  "toaster": {
+   "w": 141,
+   "h": 94,
+   "file": "toaster.png",
+   "source": "BITMAPS/TOASTVGA.BMP"
+  }
+ },
+ "text": [
+  "The maps Globe offered out of the box: the BITMAPS folder After Dark 3.x installed beside its modules."
+ ]
+}

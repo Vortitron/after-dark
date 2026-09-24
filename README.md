@@ -104,6 +104,21 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-draino>` | `modules/draino.js` | `speed` = slow / medium / fast, `direction` = clockwise / inward / counter, `drops` and `show-drain` are flags. No artwork |
 | `<after-dark-shapes>` | `modules/shapes.js` | `color` and `clear-screen` are flags. No artwork |
 | `<after-dark-spheres>` | `modules/spheres.js` | `max-size` = 20 / 50 / 80 / 100, `offset` = 0 / 10 / 30 / 60, `clear-every` = 20 / 50 / 100 / 200, `clear-screen` is a flag. No artwork |
+| `<after-dark-starry-night>` | `modules/starry-night.js` | `buildings` = none / few / some / many / lots, `height` = low / medium / tall / skyscrapers, `flasher` is a flag. The engine's own fallback, `STARRYNI.AD`; its shooting star is the module's one bitmap |
+| `<after-dark-warp>` | `modules/warp.js` | `speed` = fast in / medium in / slow in / impulse in / impulse out / slow out / medium out / fast out, `stars` = few / some / many / lots, `size` = small / big / both, `color` is a flag |
+| `<after-dark-hard-rain>` | `modules/hardrain.js` | `drops` = few / some / many / lots, `drop-size` = small / medium / large, `clear-screen` is a flag (off rains on the desktop) |
+| `<after-dark-globe>` | `modules/globe.js` | `map` = earth / after dark / toaster (the bitmaps the install shipped), `speed` = slowest / slow / medium / fast / fastest, `tilt` = 0 / 23 / 45 / 90 |
+| `<after-dark-messages>` | `modules/messages.js` | `message` = any of the eight it shipped with (out to lunch, coffee break, i quit!, …) or your own text, `move` = popping / floating / sliding, `speed` = sluggish / slow / medium / moving / quick / flying / zoom! |
+| `<after-dark-mandelbrot>` | `modules/mandelbrot.js` | `delay` = 0 sec / 5 sec / 15 sec / 30 sec / 1 min, `colors` = earth / air / fire / water / random, `blockiness` = 1 / 2 / 4 / 8 / 16 |
+| `<after-dark-rose>` | `modules/rose.js` | `speed` = lethargic / slow / moving / fast / swift / quick, `trail-length` = shortest / short / medium / long / longest, `big-dots` is a flag |
+| `<after-dark-spiral-gyra>` | `modules/spiral.js` | `max-lines` = 25 / 50 / 100 / 200, `min-lines` = 1 / 10 / 25 / 50, `color-cycling` = none / slow / medium / fast |
+| `<after-dark-string-theory>` | `modules/string.js` | `groups` = 1–4, `strings` = 10 / 30 / 60 / 100 / 150 / infinite, `color-speed` = slow / medium / fast, `clear-screen` is a flag |
+| `<after-dark-tunnel>` | `modules/tunnel.js` | `direction` = in / out, `shape` = rect / r-rect / random. Caps Lock turns it round, as it did |
+| `<after-dark-zoom>` | `modules/zoom.js` | `colors` = smooth / saw / ramped / electric / crest / rainbows / sine / cycloid / oscillate / banded / random, `speed` = slowest … zooommmin, `delay` = shortest … longest |
+| `<after-dark-spotlight>` | `modules/spot.js` | `size` = random / 30 / 50 / 80 / 100 / 150 / 200, `speed` = slow / medium / fast, `spots` = 1–4 |
+| `<after-dark-punch-out>` | `modules/punch.js` | `shape` = circle / oval / square / rectangle / random, `size` = small / medium / large, `speed` = slow / medium / fast |
+| `<after-dark-puzzle>` | `modules/puzzle.js` | `size` = small / medium / large, `speed` = slow / medium / fast / very fast!, `invert-screen` is a flag |
+| `<after-dark-worms>` | `modules/worms.js` | `wiggle` = straight / weavy / crawly / wiggly, `segments` = 5 / 10 / 20 / 40, `worms` = 1 / 3 / 6 / 10 / 20, `eat-screen` is a flag |
 | `<after-dark-aqua>` | `modules/aqua.js` | `creatures` and `seaweed` are counts, `sea-floor` is a flag |
 | `<after-dark-marbles-40>` | `modules/marbles-40.js` | `count` = a few / a pouch full / a jar full / a box full, `pattern` |
 | `<after-dark-fishpro>` | `modules/fishpro.js` | `fish` = solo / study group / class / school / university, `sea-floor` = none / static / animated, `select-fish` = a comma-separated list of species |
@@ -117,6 +132,15 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-bungee>` | `modules/bungee.js` | `jumper` = daredevil / cow / fish / random, `jumps` = one / few / many / droves / whole bunches / hundreds, `equipment` = safe / reliable / used / so - so / purfikt |
 
 The option names are the module's own, read out of its `TYPE_1000` control-panel strings.
+
+Spotlight, Punch Out, Puzzle and Can of Worms work on "your desktop", and so do
+Hard Rain and String Theory with Clear Screen First off. A page cannot read the
+pixels of whatever is behind it, so `ad.js` paints a Windows 95 desktop for them
+to shine a light on, punch, shuffle and eat.
+
+The front page takes a saver's page name after a `#`, so
+`index.html#starry-night` opens with Starry Night in the monitor; the arrow keys
+move through the list.
 
 Every option also works as a query string, so a saver page is linkable with its settings set and no copy of the files needed:
 

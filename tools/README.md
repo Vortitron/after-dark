@@ -13,7 +13,8 @@ AD40/**/*.AD  ──adextract.py──▶  raw resources
 ```
 
 `node tools/test-savers.js` checks Gravity, Snake, Zot!, Bogglins, Om
-Appliances, Fish World, Rainforest, Down the Drain, Shapes and Spheres
+Appliances, Fish World, Rainforest, Down the Drain, Shapes, Spheres, Hard
+Rain, String Theory, Mandelbrot, Messages, Globe, Starry Night and Warp!
 without a browser.
 
 There are two artwork formats, and which one a module uses does not follow from
@@ -165,10 +166,41 @@ decode to grey noise because neither a CTAB nor a module PAL turns up for it,
 and a capture says what the colours should be.
 
 The 45 modules with no artwork at all draw themselves, so porting one means
-writing the drawing. Gravity, Snake, Zot!, Down the Drain, Shapes and Spheres
-are the ones of those that run in the browser so far: Newtonian balls, a maze
-the snake solves, lightning, a vortex into a plughole, geometric stamps, and
-shaded orbs.
+writing the drawing. Twenty-one of those run in the browser so far:
+
+| | |
+| --- | --- |
+| Physics and mazes | Gravity, Snake, Zot!, Down the Drain |
+| Stamps and lines | Shapes, Spheres, Rose, Spiral Gyra, String Theory |
+| Flying through something | Warp!, Tunnel, Zooommm! |
+| Pictures | Starry Night, Mandelbrot, Hard Rain, Messages, Globe |
+| Eating the desktop | Spotlight, Punch Out, Puzzle, Can of Worms |
+
+What each one does comes from its own description string and control panel.
+There is no capture to check them against: all but Starry Night are 16-bit
+modules, which will not paint under Wine (below), and Starry Night - 32-bit,
+and the engine's own fallback, so it does paint - was ported after the Wine
+sandbox had gone. It is the one worth capturing next time one is set up.
+
+Three of them are less code-only than "no artwork" suggests, and it pays to
+look beside a module before guessing:
+
+- **Starry Night** keeps its description as RTF, in `TYPE_2000` id 40, once per
+  language. It says what the sliders mean - Buildings is a count from 0 to 100,
+  height is 5% to 95% of the screen, and the flasher is one light on the
+  tallest building. Its one `BITMAP`, 101, is the shooting star: a fireball in
+  two 32x32 frames, in `all/art/starryni/`.
+- **Globe** wraps a bitmap round its sphere, and the ones it shipped with sit in
+  `CLASSIC/BITMAPS/`. `EARTH.BMP` is in `all/art/globe/` as it came.
+- **Messages** keeps its eight default messages, with their faces, sizes,
+  colours and styles, in `MESG_AD3.DAT`: 246-byte records, which
+  `all/modules/messages.js` carries over.
+
+Still to do among the code-drawn ones: Clocks, Confetti Factory's factory,
+Daredevil Dan, Dominoes, DOS Shell, Einstein, Fractal Forest, Frost and Fire,
+GeoBounce, Meadow, Modern Art, Mountains, Nirvana, Nocturnes, Photon, Satori,
+Spin Brush, Stained Glass, Strange Attractors, Sunburst, Vertigo and the
+game-show and puzzle modules.
 
 ## adrun.sh — running the originals
 

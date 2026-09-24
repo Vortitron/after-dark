@@ -6,7 +6,7 @@
   <title>After Dark in the Browser</title>
   <meta name="description" content="After Dark screensavers running in the browser — the CSS recreations, plus new ones built from artwork decoded straight out of the original Windows modules.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/favicon.png?v=bc21638-260826172024" />
+  <link rel="shortcut icon" href="img/favicon.png?v=51f8108-260924185530" />
   <style>
     /* ------------------------------------------------------------------
        Windows 95 Display Properties, which is where After Dark 4.0 for
@@ -357,7 +357,7 @@
 
   <div class="window">
     <div class="titlebar">
-      <img src="img/after-dark-icon.png?v=bc21638-260826172024" alt="" width="16" height="16">
+      <img src="img/after-dark-icon.png?v=51f8108-260924185530" alt="" width="16" height="16">
       <span class="grow">Display Properties</span>
       <span class="btn out" aria-hidden="true">_</span>
       <span class="btn out" aria-hidden="true">&#9633;</span>
@@ -437,7 +437,7 @@
 
   <div class="taskbar">
     <a class="start" href="https://github.com/Vortitron/after-dark-css">
-      <img src="img/favicon.png?v=bc21638-260826172024" alt="" width="14" height="14"> Source
+      <img src="img/favicon.png?v=51f8108-260924185530" alt="" width="14" height="14"> Source
     </a>
     <span>After Dark &copy; 1989&ndash;1998 Berkeley Systems</span>
     <span class="tray" id="build" title="Build stamp — bumps when GitHub Pages is updated">…</span>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ad-build -->
-  <script>window.AFTER_DARK_BUILD = {"rev": "bc21638", "time": "2026-08-26T17:20:24Z", "label": "26 Aug 17:20 UTC", "v": "bc21638-260826172024"};</script>
+  <script>window.AFTER_DARK_BUILD = {"rev": "51f8108", "time": "2026-09-24T18:55:30Z", "label": "24 Sep 18:55 UTC", "v": "51f8108-260924185530"};</script>
   <!-- /ad-build -->
 
   <script>
@@ -481,6 +481,36 @@
         js: 'shapes', el: 'after-dark-shapes', attrs: 'color clear-screen' },
       { name: 'Spheres',         file: 'all/spheres.html',         kind: 'ripped', tag: 'SPHERES.AD 3.x',
         js: 'spheres', el: 'after-dark-spheres', attrs: 'max-size="50" offset="10" clear-every="100" clear-screen' },
+      { name: 'Starry Night',    file: 'all/starry-night.html',    kind: 'ripped', tag: 'STARRYNI.AD 4.0',
+        js: 'starry-night', el: 'after-dark-starry-night', attrs: 'art="all/art/starryni" buildings="some" height="medium" flasher' },
+      { name: 'Warp!',           file: 'all/warp-ad.html',         kind: 'ripped', tag: 'WARP.AD 3.x',
+        js: 'warp', el: 'after-dark-warp', attrs: 'speed="medium in" stars="some" size="both" color' },
+      { name: 'Hard Rain',       file: 'all/hardrain.html',        kind: 'ripped', tag: 'RAIN.AD 3.x',
+        js: 'hardrain', el: 'after-dark-hard-rain', attrs: 'drops="some" drop-size="medium" clear-screen' },
+      { name: 'Globe',           file: 'all/globe-ad.html',        kind: 'ripped', tag: 'GLOBE.AD 3.x',
+        js: 'globe', el: 'after-dark-globe', attrs: 'art="all/art/globe" map="earth" speed="medium" tilt="23"' },
+      { name: 'Messages',        file: 'all/messages-ad.html',     kind: 'ripped', tag: 'MESSAGE3.AD 3.x',
+        js: 'messages', el: 'after-dark-messages', attrs: 'message="out to lunch" move="floating" speed="medium"' },
+      { name: 'Mandelbrot',      file: 'all/mandelbrot.html',      kind: 'ripped', tag: 'MANDELBR.AD 3.x',
+        js: 'mandelbrot', el: 'after-dark-mandelbrot', attrs: 'delay="5 sec" colors="random" blockiness="2"' },
+      { name: 'Rose',            file: 'all/rose.html',            kind: 'ripped', tag: 'ROSE.AD 3.x',
+        js: 'rose', el: 'after-dark-rose', attrs: 'speed="moving" trail-length="medium"' },
+      { name: 'Spiral Gyra',     file: 'all/spiral.html',          kind: 'ripped', tag: 'SPIRAL.AD 3.x',
+        js: 'spiral', el: 'after-dark-spiral-gyra', attrs: 'max-lines="100" min-lines="10" color-cycling="medium"' },
+      { name: 'String Theory',   file: 'all/string.html',          kind: 'ripped', tag: 'STRING.AD 3.x',
+        js: 'string', el: 'after-dark-string-theory', attrs: 'groups="2" strings="60" color-speed="medium" clear-screen' },
+      { name: 'Tunnel',          file: 'all/tunnel.html',          kind: 'ripped', tag: 'TUNNEL.AD 3.x',
+        js: 'tunnel', el: 'after-dark-tunnel', attrs: 'direction="in" shape="rect"' },
+      { name: 'Zooommm!',        file: 'all/zoom.html',            kind: 'ripped', tag: 'ZOOM.AD 3.x',
+        js: 'zoom', el: 'after-dark-zoom', attrs: 'colors="random" speed="medium" delay="short"' },
+      { name: 'Spotlight',       file: 'all/spot.html',            kind: 'ripped', tag: 'SPOT.AD 3.x',
+        js: 'spot', el: 'after-dark-spotlight', attrs: 'size="100" speed="medium" spots="1"' },
+      { name: 'Punch Out',       file: 'all/punch.html',           kind: 'ripped', tag: 'PUNCH.AD 3.x',
+        js: 'punch', el: 'after-dark-punch-out', attrs: 'shape="random" size="medium" speed="medium"' },
+      { name: 'Puzzle',          file: 'all/puzzle.html',          kind: 'ripped', tag: 'PUZZLE.AD 3.x',
+        js: 'puzzle', el: 'after-dark-puzzle', attrs: 'size="medium" speed="medium"' },
+      { name: 'Can of Worms',    file: 'all/worms.html',           kind: 'ripped', tag: 'WORMS.AD 3.x',
+        js: 'worms', el: 'after-dark-worms', attrs: 'wiggle="crawly" segments="20" worms="6" eat-screen' },
       { name: 'Aquatic Realm',   file: 'all/aqua.html',            kind: 'ripped', tag: 'Aqua.ad',
         js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6"' },
       { name: 'Fish Pro',        file: 'all/fishpro.html',         kind: 'ripped', tag: 'FISHPRO.AD 1994',
@@ -687,6 +717,97 @@
                    'grape', 'banana', 'lemon-lime', 'rainbow splash', 'bubble gum',
                    'cinnamon', 'mint'] }
       ],
+      'starry-night': [
+        { name: 'buildings', label: 'Buildings', values: ['some', 'none', 'few', 'many', 'lots'] },
+        { name: 'height', label: 'Bldg Height', values: ['medium', 'low', 'tall', 'skyscrapers'] },
+        { name: 'flasher', label: 'Flasher', check: true, on: true }
+      ],
+      warp: [
+        { name: 'speed', label: 'Speed',
+          values: ['medium in', 'fast in', 'slow in', 'impulse in',
+                   'impulse out', 'slow out', 'medium out', 'fast out'] },
+        { name: 'stars', label: 'Number of Stars', values: ['some', 'few', 'many', 'lots'] },
+        { name: 'size', label: 'Size', values: ['both', 'small', 'big'] },
+        { name: 'color', label: 'Color', check: true, on: true }
+      ],
+      hardrain: [
+        { name: 'drops', label: '# of Drops', values: ['some', 'few', 'many', 'lots'] },
+        { name: 'drop-size', label: 'Drop Size', values: ['medium', 'small', 'large'] },
+        { name: 'clear-screen', label: 'Clear Screen First', check: true, on: true }
+      ],
+      globe: [
+        { name: 'map', label: 'Map', values: ['earth', 'after dark', 'toaster'] },
+        { name: 'speed', label: 'Speed', values: ['medium', 'slowest', 'slow', 'fast', 'fastest'] },
+        { name: 'tilt', label: 'Tilt (degrees)', values: ['23', '0', '45', '90'] }
+      ],
+      messages: [
+        { name: 'message', label: 'Message',
+          values: ['out to lunch', 'coffee break', 'i quit!', 'why are you staring at my computer?',
+                   'gone for the day', 'after dark - the ultimate screen saver collection',
+                   'temporarily comatose', 'equal rights for silicon intelligences!'] },
+        { name: 'move', label: 'Move', values: ['floating', 'popping', 'sliding'] },
+        { name: 'speed', label: 'Speed',
+          values: ['medium', 'sluggish', 'slow', 'moving', 'quick', 'flying', 'zoom!'] }
+      ],
+      mandelbrot: [
+        { name: 'delay', label: 'Delay', values: ['5 sec', '0 sec', '15 sec', '30 sec', '1 min'] },
+        { name: 'colors', label: 'Colors', values: ['random', 'earth', 'air', 'fire', 'water'] },
+        { name: 'blockiness', label: 'Blockiness', values: ['2', '1', '4', '8', '16'] }
+      ],
+      rose: [
+        { name: 'speed', label: 'Speed',
+          values: ['moving', 'lethargic', 'slow', 'fast', 'swift', 'quick'] },
+        { name: 'trail-length', label: 'Trail Length',
+          values: ['medium', 'shortest', 'short', 'long', 'longest'] },
+        { name: 'big-dots', label: 'Big Dots', check: true }
+      ],
+      spiral: [
+        { name: 'max-lines', label: 'Max Lines', values: ['100', '25', '50', '200'] },
+        { name: 'min-lines', label: 'Min Lines', values: ['10', '1', '25', '50'] },
+        { name: 'color-cycling', label: 'Color Cycling', values: ['medium', 'none', 'slow', 'fast'] }
+      ],
+      string: [
+        { name: 'groups', label: 'String Groups', values: ['2', '1', '3', '4'] },
+        { name: 'strings', label: 'Strings',
+          values: ['60', '10', '30', '100', '150', 'infinite'] },
+        { name: 'color-speed', label: 'Color Speed', values: ['medium', 'slow', 'fast'] },
+        { name: 'clear-screen', label: 'Clear Screen First', check: true, on: true }
+      ],
+      tunnel: [
+        { name: 'direction', label: 'Direction', values: ['in', 'out'] },
+        { name: 'shape', label: 'Shape', values: ['rect', 'r-rect', 'random'] }
+      ],
+      zoom: [
+        { name: 'colors', label: 'Colors',
+          values: ['random', 'smooth', 'saw', 'ramped', 'electric', 'crest', 'rainbows',
+                   'sine', 'cycloid', 'oscillate', 'banded'] },
+        { name: 'speed', label: 'Speed',
+          values: ['medium', 'slowest', 'slow', 'fast', 'faster', 'zooommmin'] },
+        { name: 'delay', label: 'Delay',
+          values: ['short', 'shortest', 'medium', 'long', 'longer', 'longest'] }
+      ],
+      spot: [
+        { name: 'size', label: 'Size', values: ['100', 'random', '30', '50', '80', '150', '200'] },
+        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast'] },
+        { name: 'spots', label: 'Spots', values: ['1', '2', '3', '4'] }
+      ],
+      punch: [
+        { name: 'shape', label: 'Shape',
+          values: ['random', 'circle', 'oval', 'square', 'rectangle'] },
+        { name: 'size', label: 'Size', values: ['medium', 'small', 'large'] },
+        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast'] }
+      ],
+      puzzle: [
+        { name: 'size', label: 'Size', values: ['medium', 'small', 'large'] },
+        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast', 'very fast!'] },
+        { name: 'invert-screen', label: 'Invert Screen', check: true }
+      ],
+      worms: [
+        { name: 'wiggle', label: 'Wiggle', values: ['crawly', 'straight', 'weavy', 'wiggly'] },
+        { name: 'segments', label: 'Segments', values: ['20', '5', '10', '40'] },
+        { name: 'worms', label: 'Worms', values: ['6', '1', '3', '10', '20'] },
+        { name: 'eat-screen', label: 'Eat Screen', check: true, on: true }
+      ],
       bungee: [
         { name: 'jumper', label: 'Jumper',
           values: ['random', 'daredevil', 'cow', 'chicken', 'fish'] },
@@ -770,28 +891,69 @@
         b.className = saver.kind;
         b.setAttribute('role', 'option');
         b.setAttribute('aria-current', String(saver === current));
+        /* One stop in the tab order; the arrows move within the list. */
+        b.tabIndex = saver === current || (!current && i === 0) ? 0 : -1;
         b.appendChild(el('span', 'dot'));
         b.appendChild(el('span', 'name', saver.name));
-        if (saver.tag) { b.appendChild(el('span', 'tag', saver.tag)); }
+        /* Several of the CSS ones share a name with a decoded one. */
+        var tag = saver.tag || (saver.kind === 'css' ? 'CSS' : '');
+        if (tag) { b.appendChild(el('span', 'tag', tag)); }
         b.onclick = function () { select(i); };
         list.appendChild(b);
       });
     }
+
+    list.addEventListener('keydown', function (e) {
+      var i = shown.indexOf(current), last = shown.length - 1, to = null;
+      if (e.key === 'ArrowDown') { to = Math.min(last, i + 1); }
+      if (e.key === 'ArrowUp') { to = Math.max(0, i - 1); }
+      if (e.key === 'Home') { to = 0; }
+      if (e.key === 'End') { to = last; }
+      if (to === null || to === i) { return; }
+      e.preventDefault();
+      select(to);
+      list.children[to].focus();
+    });
 
     function setEnabled(on) {
       [full, newtab, again, embed].forEach(function (b) { b.disabled = !on; });
       opts.disabled = !on || !optionsFor(current);
     }
 
+    /* Each saver's page name is its address here too: index.html#warp-ad. */
+    function slug(saver) {
+      return saver.file.replace(/^.*\//, '').replace(/\.html$/, '');
+    }
+
     function select(i) {
       current = shown[i];
       Array.prototype.forEach.call(list.children, function (node, j) {
         node.setAttribute('aria-current', j === i ? 'true' : 'false');
+        node.tabIndex = j === i ? 0 : -1;
       });
+      if (list.children[i] && list.children[i].scrollIntoView) {
+        list.children[i].scrollIntoView({ block: 'nearest' });
+      }
       off.style.display = 'none';
       glass.src = urlFor(current);
       setEnabled(true);
+      if (history.replaceState) { history.replaceState(null, '', '#' + slug(current)); }
     }
+
+    /** Select the saver the address names, if it names one. */
+    function fromHash() {
+      var want = decodeURIComponent(location.hash.slice(1));
+      var saver = SAVERS.filter(function (s) { return slug(s) === want; })[0];
+      if (!saver) { return false; }
+      if (saver.kind === 'css' && !showcss.checked) {
+        showcss.checked = true;
+        credit.hidden = false;
+        render();
+      }
+      if (saver !== current) { select(shown.indexOf(saver)); }
+      return true;
+    }
+    window.addEventListener('hashchange', fromHash);
 
     function clearScreen() {
       current = null;
@@ -800,6 +962,7 @@
       Array.prototype.forEach.call(list.children, function (node) {
         node.setAttribute('aria-current', 'false');
       });
+      if (history.replaceState) { history.replaceState(null, '', location.pathname + location.search); }
       setEnabled(false);
     }
 
@@ -1144,7 +1307,7 @@
     }());
 
     render();
-    select(0);
+    if (!fromHash()) { select(0); }
   </script>
 </body>
 
