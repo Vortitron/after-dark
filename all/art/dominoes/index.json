@@ -1,0 +1,136 @@
+{
+ "module": "DOMINOES",
+ "format": "dib",
+ "bitmaps": {
+  "wood-pip": {
+   "w": 11,
+   "h": 11,
+   "file": "wood-pip.png",
+   "id": 128
+  },
+  "wood-backh": {
+   "w": 117,
+   "h": 60,
+   "file": "wood-backh.png",
+   "id": 129
+  },
+  "wood-backv": {
+   "w": 60,
+   "h": 115,
+   "file": "wood-backv.png",
+   "id": 130
+  },
+  "wood-faceh": {
+   "w": 119,
+   "h": 61,
+   "file": "wood-faceh.png",
+   "id": 131
+  },
+  "wood-facev": {
+   "w": 61,
+   "h": 119,
+   "file": "wood-facev.png",
+   "id": 132
+  },
+  "wood-edgeh": {
+   "w": 138,
+   "h": 40,
+   "file": "wood-edgeh.png",
+   "id": 133
+  },
+  "wood-edgev": {
+   "w": 40,
+   "h": 138,
+   "file": "wood-edgev.png",
+   "id": 134
+  },
+  "ivory-pip": {
+   "w": 11,
+   "h": 11,
+   "file": "ivory-pip.png",
+   "id": 135
+  },
+  "ivory-backh": {
+   "w": 119,
+   "h": 61,
+   "file": "ivory-backh.png",
+   "id": 136
+  },
+  "ivory-backv": {
+   "w": 61,
+   "h": 119,
+   "file": "ivory-backv.png",
+   "id": 137
+  },
+  "ivory-faceh": {
+   "w": 119,
+   "h": 61,
+   "file": "ivory-faceh.png",
+   "id": 138
+  },
+  "ivory-facev": {
+   "w": 61,
+   "h": 119,
+   "file": "ivory-facev.png",
+   "id": 139
+  },
+  "ivory-edgeh": {
+   "w": 135,
+   "h": 41,
+   "file": "ivory-edgeh.png",
+   "id": 140
+  },
+  "ivory-edgev": {
+   "w": 41,
+   "h": 135,
+   "file": "ivory-edgev.png",
+   "id": 141
+  },
+  "bw-pip": {
+   "w": 10,
+   "h": 10,
+   "file": "bw-pip.png",
+   "id": 142
+  },
+  "bw-backh": {
+   "w": 113,
+   "h": 59,
+   "file": "bw-backh.png",
+   "id": 143
+  },
+  "bw-backv": {
+   "w": 59,
+   "h": 113,
+   "file": "bw-backv.png",
+   "id": 144
+  },
+  "bw-faceh": {
+   "w": 118,
+   "h": 60,
+   "file": "bw-faceh.png",
+   "id": 145
+  },
+  "bw-facev": {
+   "w": 60,
+   "h": 118,
+   "file": "bw-facev.png",
+   "id": 146
+  },
+  "bw-edgeh": {
+   "w": 138,
+   "h": 37,
+   "file": "bw-edgeh.png",
+   "id": 147
+  },
+  "bw-edgev": {
+   "w": 37,
+   "h": 138,
+   "file": "bw-edgev.png",
+   "id": 148
+  }
+ },
+ "text": [
+  "Three sets, wood 128-134, ivory 135-141, black and white 142-148: pip, back (across, upright), blank face with its divider (across, upright), and standing on edge (across, upright). Each is cut out by its mask, the same id + 1000; white is outside.",
+  "DOMINO_METRIC (type 32514, BHMET BVMET IHMET IVMET WHMET WVMET): a tile across is 119x61, its face 113x55 inset 3 from the top left; upright is the same turned."
+ ]
+}

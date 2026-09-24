@@ -134,6 +134,14 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-spin-brush>` | `modules/spin.js` | `switch-every` = 15 sec. … never, `thickness` = 1–4 / variable, `spin` = spin / spiral / star / stretch / random, `use-screen` is a flag |
 | `<after-dark-boris>` | `modules/boris.js` | `cats` = 1–4, `butterfly` = never / rarely / seldom / occasionally / frequently / always, `color` is a flag |
 | `<after-dark-mowin-man>` | `modules/mowin.js` | `speed` = pokey / normal / hurried / menace, `mow-every` = always / day / 2 days … week, `growth-rate` = none / slow / medium / fast, `clear-screen` is a flag (off grows the lawn over the desktop) |
+| `<after-dark-clocks>` | `modules/clocks.js` | `type` = melting digital / classic / modern / art deco / mutating, `drift-speed` = glacial / slow / medium / fast, `mutation-rate` = 1 min. … 1 sec. / genx |
+| `<after-dark-dominoes>` | `modules/dominoes.js` | `speed` = slow / medium / fast, `type` = wood / ivory / b&w / random |
+| `<after-dark-modern-art>` | `modules/modern.js` | `style` = griddy / fuzzy / splotchy / random |
+| `<after-dark-slideshow>` | `modules/slide.js` | `slides` = pictures / bitmaps (the catalogue it shipped), `effect` = any of its 30 transitions or random, `delay` = no delay … 5 min. |
+| `<after-dark-artist>` | `modules/artist.js` | `medium` = aquarelle / chalk / pastel / felt-tip / \ -- \| / random, `detail` = abstract / coarse / fine, `delay`, `image` = desktop / window / icons / pictures / all |
+| `<after-dark-mountains>` | `modules/mountains.js` | `view` = boundaries / webs / mountains / constructions / highlands / random, `water` = frame / shell / sheet / surface / solid / random, `planet` = mercury … pluto / random, `complexity` and `zoom` |
+| `<after-dark-fractal-forest>` | `modules/fractal.js` | `trees` = one / few / some / many, `type` = maple / elm / pine / poplar / sapling / random, `season`, `seasons-last` |
+| `<after-dark-nirvana>` | `modules/nirvana.js` | `color` = smooth / stripes / contrast / rainbow / metal / lines / enamel / random, `redraw-every`, `activity` = serene … frenetic, `change-color` = never … always |
 | `<after-dark-satori>` | `modules/satori.js` | `display` = fields / pools / rays / waves / leaves / mix / random, `colors` = arizona / siberia / tijuana / pacific / hawaii / nile / louisiana / camelot / colorado / atlantis / outback / ithaca / oz / random, `end-clarity` = 1x1 … 16x16, `knots` = 1–8 |
 | `<after-dark-aqua>` | `modules/aqua.js` | `creatures` and `seaweed` are counts, `sea-floor` is a flag |
 | `<after-dark-marbles-40>` | `modules/marbles-40.js` | `count` = a few / a pouch full / a jar full / a box full, `pattern` |

@@ -1,0 +1,107 @@
+{
+ "module": "SLIDE",
+ "format": "dib",
+ "bitmaps": {
+  "baby-bottle": {
+   "w": 317,
+   "h": 225,
+   "file": "baby-bottle.png",
+   "title": "Baby Bottle"
+  },
+  "bad-dog": {
+   "w": 178,
+   "h": 225,
+   "file": "bad-dog.png",
+   "title": "Bad Dog"
+  },
+  "fishies": {
+   "w": 250,
+   "h": 225,
+   "file": "fishies.png",
+   "title": "Fishies"
+  },
+  "flying-toaster": {
+   "w": 225,
+   "h": 225,
+   "file": "flying-toaster.png",
+   "title": "Flying Toaster"
+  },
+  "guernsey-madness": {
+   "w": 297,
+   "h": 225,
+   "file": "guernsey-madness.png",
+   "title": "Guernsey Madness"
+  },
+  "hula-girl": {
+   "w": 367,
+   "h": 225,
+   "file": "hula-girl.png",
+   "title": "Hula Girl"
+  },
+  "marbles": {
+   "w": 289,
+   "h": 225,
+   "file": "marbles.png",
+   "title": "Marbles!"
+  },
+  "out-n-about": {
+   "w": 170,
+   "h": 225,
+   "file": "out-n-about.png",
+   "title": "Out 'n About"
+  },
+  "rps": {
+   "w": 264,
+   "h": 225,
+   "file": "rps.png",
+   "title": "RPS"
+  },
+  "rodger-dodger": {
+   "w": 225,
+   "h": 225,
+   "file": "rodger-dodger.png",
+   "title": "Rodger Dodger"
+  },
+  "super-guy": {
+   "w": 288,
+   "h": 225,
+   "file": "super-guy.png",
+   "title": "Super Guy"
+  },
+  "adlogo": {
+   "w": 220,
+   "h": 106,
+   "file": "adlogo.png",
+   "title": "ADLOGO.BMP"
+  },
+  "toastvga": {
+   "w": 141,
+   "h": 94,
+   "file": "toastvga.png",
+   "title": "TOASTVGA.BMP"
+  }
+ },
+ "text": [
+  "Two catalogues. \"bitmaps\" is BITMAPS.ADC as shipped: adlogo.bmp and toastvga.bmp from the BITMAPS folder, In Order.",
+  "\"pictures\" is the PICTURES folder beside SLIDE.AD in the 10th-anniversary set."
+ ],
+ "catalogs": {
+  "bitmaps": [
+   "adlogo",
+   "toastvga"
+  ],
+  "pictures": [
+   "baby-bottle",
+   "bad-dog",
+   "fishies",
+   "flying-toaster",
+   "guernsey-madness",
+   "hula-girl",
+   "marbles",
+   "out-n-about",
+   "rps",
+   "rodger-dodger",
+   "super-guy"
+  ]
+ }
+}

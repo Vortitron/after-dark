@@ -224,12 +224,31 @@ python3 tools/adtext.py nonsense AD40/CLASSIC/NONSENSE.AD -o all/art/nonsense
 python3 tools/adtext.py strings AD40/CLASSIC/ANYTHING.AD     # any string table
 ```
 
-Still to do among these: Fractal Forest (its `TREEDATA` is six 24-word records,
-one per tree, not yet understood), Mountains, Nirvana, Ray (its `TRACES`
-folder holds the pre-rendered scenes), DrawMorph (`MORPH*.DAT`), Slide Show
-and Artist. Then the sprite modules that need staging rather than drawing -
-Clocks, Dominoes, Modern Art, Confetti Factory, Daredevil Dan, Rat Race, You
-Bet Your Head and Lunatic Fringe.
+Also done since: Clocks, Dominoes, Modern Art, SlideShow, Artist, Mountains,
+Nirvana and Fractal Forest - see each module's header for what came from the
+module and what was filled in. Worth knowing:
+
+- **SlideShow** reads catalogue files; the one it shipped, `BITMAPS.ADC`, lists
+  just `adlogo.bmp` and `toastvga.bmp`. The 10th-anniversary set put a
+  `PICTURES` folder beside it, which is the other catalogue here.
+- **Clocks**' Melting Digital is `PICT 4000`, one 47x5250 strip: the ten
+  digits, then five-frame melts 9>0, 0>1 ... 8>9, blank>1, 1>blank and 5>0.
+- **Modern Art**'s shaded splotch (`2101`) uses indices 1-12 for its shades,
+  and the `RED8`/`BLUE8`/... palettes recolour it; the `*DRIP8` ones do the
+  same for the drip (`2102`).
+- **Dominoes**' `DOMINO_METRIC` resources give the face inset (3, 3) and size
+  (113x55) on a 119x61 tile. One of its 16-colour bitmaps (`235`) is
+  truncated; `adclassic.py` now skips such bitmaps instead of stopping.
+- **Artist**'s own pictures are not in this install - only their names, in its
+  string table - so it paints the desktop and the SlideShow pictures.
+- **Fractal Forest**'s `TREEDATA` is read as branching parameters. That is a
+  guess from how the six records differ, not from the code.
+
+Still to do: Ray (its `TRACES/*.TRC` are pre-rendered scenes in a packed span
+format, not yet decoded - the module also carries an easter-egg cat that runs
+and explodes), DrawMorph (`MORPH*.DAT`), and the staged scenes and games:
+Confetti Factory, Daredevil Dan, Rat Race, You Bet Your Head and Lunatic
+Fringe.
 
 Boris and Mowin' Man are done, and both keep more than one set of pictures,
 chosen by colour depth in the module's `RESINFO` table (type 32515):

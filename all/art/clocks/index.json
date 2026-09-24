@@ -1,0 +1,101 @@
+{
+ "module": "CLOCKS3",
+ "format": "dib",
+ "bitmaps": {
+  "classic": {
+   "w": 200,
+   "h": 200,
+   "file": "classic.png",
+   "source": "SICT-1000"
+  },
+  "deco": {
+   "w": 189,
+   "h": 162,
+   "file": "deco.png",
+   "source": "SICT-2000"
+  },
+  "modern": {
+   "w": 183,
+   "h": 183,
+   "file": "modern.png",
+   "source": "SICT-3000"
+  },
+  "numerals": {
+   "w": 143,
+   "h": 147,
+   "file": "numerals.png",
+   "source": "SICT-5100"
+  },
+  "object5000": {
+   "w": 164,
+   "h": 168,
+   "file": "object5000.png",
+   "source": "SICT 5000"
+  },
+  "object5010": {
+   "w": 188,
+   "h": 170,
+   "file": "object5010.png",
+   "source": "SICT 5010"
+  },
+  "object5020": {
+   "w": 120,
+   "h": 155,
+   "file": "object5020.png",
+   "source": "SICT 5020"
+  },
+  "object5030": {
+   "w": 189,
+   "h": 165,
+   "file": "object5030.png",
+   "source": "SICT 5030"
+  },
+  "object5040": {
+   "w": 165,
+   "h": 158,
+   "file": "object5040.png",
+   "source": "SICT 5040"
+  },
+  "object5050": {
+   "w": 167,
+   "h": 164,
+   "file": "object5050.png",
+   "source": "SICT 5050"
+  },
+  "object5060": {
+   "w": 165,
+   "h": 165,
+   "file": "object5060.png",
+   "source": "SICT 5060"
+  },
+  "object5070": {
+   "w": 185,
+   "h": 157,
+   "file": "object5070.png",
+   "source": "SICT 5070"
+  },
+  "object5080": {
+   "w": 188,
+   "h": 165,
+   "file": "object5080.png",
+   "source": "SICT 5080"
+  },
+  "object5090": {
+   "w": 108,
+   "h": 190,
+   "file": "object5090.png",
+   "source": "SICT 5090"
+  },
+  "digits": {
+   "w": 47,
+   "h": 5250,
+   "file": "digits.png",
+   "source": "PICT 4000"
+  }
+ },
+ "text": [
+  "classic (SICT 1000), deco (2000), modern (3000): the analogue faces; the hands are drawn.",
+  "mutating: 5000-5090 are what the Mutating clock is painted on, with the numerals 5100 (cut out by MICT 5100) over them.",
+  "digits: PICT 4000, 47x70 a frame, 75 frames: 0-9, then five-frame melts 9>0, 0>1, 1>2 ... 8>9, blank>1, 1>blank, 5>0. White on black, black made transparent here."
+ ]
+}

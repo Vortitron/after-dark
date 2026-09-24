@@ -175,7 +175,13 @@ def export(path, outdir, keep=None):
         upper = name.upper()
         if upper in mask_names:
             continue                                  # this one is a mask
-        im = to_rgba(data, masks.get(upper))
+        try:
+            im = to_rgba(data, masks.get(upper))
+        except (ValueError, OSError) as err:
+            # A few are cut short in the module itself (Boris 15201, one in
+            # Dominoes); skip those rather than lose the rest.
+            print("  skipping %s: %s" % (name, err), file=sys.stderr)
+            continue
         key = name.lower()
         im.save(os.path.join(outdir, "%s.png" % key))
         index["bitmaps"][key] = {"w": im.width, "h": im.height,

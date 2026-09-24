@@ -1,0 +1,60 @@
+{
+ "module": "MODERN",
+ "format": "dib",
+ "bitmaps": {
+  "splotch-red": {
+   "w": 256,
+   "h": 206,
+   "file": "splotch-red.png"
+  },
+  "drip-red": {
+   "w": 12,
+   "h": 8,
+   "file": "drip-red.png"
+  },
+  "splotch-blue": {
+   "w": 256,
+   "h": 206,
+   "file": "splotch-blue.png"
+  },
+  "drip-blue": {
+   "w": 12,
+   "h": 8,
+   "file": "drip-blue.png"
+  },
+  "splotch-orange": {
+   "w": 256,
+   "h": 206,
+   "file": "splotch-orange.png"
+  },
+  "drip-orange": {
+   "w": 12,
+   "h": 8,
+   "file": "drip-orange.png"
+  },
+  "splotch-purple": {
+   "w": 256,
+   "h": 206,
+   "file": "splotch-purple.png"
+  },
+  "drip-purple": {
+   "w": 12,
+   "h": 8,
+   "file": "drip-purple.png"
+  },
+  "splotch-green": {
+   "w": 256,
+   "h": 206,
+   "file": "splotch-green.png"
+  },
+  "drip-green": {
+   "w": 12,
+   "h": 8,
+   "file": "drip-green.png"
+  }
+ },
+ "text": [
+  "splotch-*: DIB 2101, the shaded 256-colour splotch, through PAL RED8 / BLUE8 / ORANGE8 / PURPLE8 / GREEN8 (its indices 1-12 are the shades), cut out by 2111.",
+  "drip-*: DIB 2102 through the matching *DRIP8 palette, cut out by 2112."
+ ]
+}

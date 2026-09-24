@@ -6,7 +6,7 @@
   <title>After Dark in the Browser</title>
   <meta name="description" content="After Dark screensavers running in the browser — the CSS recreations, plus new ones built from artwork decoded straight out of the original Windows modules.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/favicon.png?v=3dd4393-260924194341" />
+  <link rel="shortcut icon" href="img/favicon.png?v=84a7b91-260924202337" />
   <style>
     /* ------------------------------------------------------------------
        Windows 95 Display Properties, which is where After Dark 4.0 for
@@ -357,7 +357,7 @@
 
   <div class="window">
     <div class="titlebar">
-      <img src="img/after-dark-icon.png?v=3dd4393-260924194341" alt="" width="16" height="16">
+      <img src="img/after-dark-icon.png?v=84a7b91-260924202337" alt="" width="16" height="16">
       <span class="grow">Display Properties</span>
       <span class="btn out" aria-hidden="true">_</span>
       <span class="btn out" aria-hidden="true">&#9633;</span>
@@ -437,7 +437,7 @@
 
   <div class="taskbar">
     <a class="start" href="https://github.com/Vortitron/after-dark-css">
-      <img src="img/favicon.png?v=3dd4393-260924194341" alt="" width="14" height="14"> Source
+      <img src="img/favicon.png?v=84a7b91-260924202337" alt="" width="14" height="14"> Source
     </a>
     <span>After Dark &copy; 1989&ndash;1998 Berkeley Systems</span>
     <span class="tray" id="build" title="Build stamp — bumps when GitHub Pages is updated">…</span>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ad-build -->
-  <script>window.AFTER_DARK_BUILD = {"rev": "3dd4393", "time": "2026-09-24T19:43:41Z", "label": "24 Sep 19:43 UTC", "v": "3dd4393-260924194341"};</script>
+  <script>window.AFTER_DARK_BUILD = {"rev": "84a7b91", "time": "2026-09-24T20:23:37Z", "label": "24 Sep 20:23 UTC", "v": "84a7b91-260924202337"};</script>
   <!-- /ad-build -->
 
   <script>
@@ -543,6 +543,22 @@
         js: 'boris', el: 'after-dark-boris', attrs: 'art="all/art/boris" cats="1" butterfly="occasionally" color' },
       { name: 'Mowin’ Man',  file: 'all/mowin.html',           kind: 'ripped', tag: 'MOWIN.AD 1993',
         js: 'mowin', el: 'after-dark-mowin-man', attrs: 'art="all/art/mowin" speed="normal" mow-every="always" growth-rate="medium" clear-screen' },
+      { name: 'Clocks',          file: 'all/clocks.html',          kind: 'ripped', tag: 'CLOCKS3.AD 1994',
+        js: 'clocks', el: 'after-dark-clocks', attrs: 'art="all/art/clocks" type="classic" drift-speed="slow" mutation-rate="10 secs."' },
+      { name: 'Dominoes',        file: 'all/dominoes.html',        kind: 'ripped', tag: 'DOMINOES.AD 1993',
+        js: 'dominoes', el: 'after-dark-dominoes', attrs: 'art="all/art/dominoes" speed="medium" type="random"' },
+      { name: 'Modern Art',      file: 'all/modern.html',          kind: 'ripped', tag: 'MODERN.AD 1993',
+        js: 'modern', el: 'after-dark-modern-art', attrs: 'art="all/art/modern" style="random"' },
+      { name: 'SlideShow',       file: 'all/slide.html',           kind: 'ripped', tag: 'SLIDE.AD 1994',
+        js: 'slide', el: 'after-dark-slideshow', attrs: 'art="all/art/slide" slides="pictures" effect="random" delay="5 sec."' },
+      { name: 'Artist',          file: 'all/artist.html',          kind: 'ripped', tag: 'ARTIST.AD 1994',
+        js: 'artist', el: 'after-dark-artist', attrs: 'pictures="all/art/slide" medium="random" detail="coarse" delay="10 seconds" image="desktop"' },
+      { name: 'Mountains',       file: 'all/mountains.html',       kind: 'ripped', tag: 'MOUNTAIN.AD 3.x',
+        js: 'mountains', el: 'after-dark-mountains', attrs: 'view="mountains" water="surface" planet="earth" complexity="medium" zoom="medium"' },
+      { name: 'Fractal Forest',  file: 'all/fractal.html',         kind: 'ripped', tag: 'FRACTAL.AD 3.x',
+        js: 'fractal', el: 'after-dark-fractal-forest', attrs: 'art="all/art/fractal" trees="some" type="random" season="spring" seasons-last="1 min."' },
+      { name: 'Nirvana',         file: 'all/nirvana.html',         kind: 'ripped', tag: 'NIRVANA.AD 1994',
+        js: 'nirvana', el: 'after-dark-nirvana', attrs: 'color="random" redraw-every="5 min" activity="calm" change-color="often"' },
       { name: 'Aquatic Realm',   file: 'all/aqua.html',            kind: 'ripped', tag: 'Aqua.ad',
         js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6"' },
       { name: 'Fish Pro',        file: 'all/fishpro.html',         kind: 'ripped', tag: 'FISHPRO.AD 1994',
@@ -937,6 +953,63 @@
           values: ['always', 'day', '2 days', '3 days', '4 days', '5 days', '6 days', 'week'] },
         { name: 'clear-screen', label: 'Clear Screen First', check: true, on: true },
         { name: 'growth-rate', label: 'Growth Rate', values: ['medium', 'none', 'slow', 'fast'] }
+      ],
+      clocks: [
+        { name: 'type', label: 'Type', values: ['classic', 'melting digital', 'modern', 'art deco', 'mutating'] },
+        { name: 'drift-speed', label: 'Drift Speed', values: ['slow', 'glacial', 'medium', 'fast'] },
+        { name: 'mutation-rate', label: 'Mutation Rate',
+          values: ['10 secs.', '1 min.', '30 secs.', '15 secs.', '5 secs.', '1 sec.', 'genx'] }
+      ],
+      dominoes: [
+        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast'] },
+        { name: 'type', label: 'Type', values: ['random', 'wood', 'ivory', 'b&w'] }
+      ],
+      modern: [
+        { name: 'style', label: 'Style', values: ['random', 'griddy', 'fuzzy', 'splotchy'] }
+      ],
+      slide: [
+        { name: 'slides', label: 'Slides', values: ['pictures', 'bitmaps'] },
+        { name: 'effect', label: 'Effect',
+          values: ['random', 'blink', 'radial cw', 'radial ccw', 'wipe horizontal', 'wipe vertical',
+                   'split horiz in', 'split horiz out', 'split vert in', 'split vert out',
+                   'iris round in', 'iris round out', 'iris square in', 'iris square out',
+                   'iris diamond in', 'iris diamond out', 'blinds horiz', 'blinds vert',
+                   'tetris horiz', 'tetris vert', 'rain', 'spiral', 'bars', 'dissolve',
+                   'reveal checkers', 'reveal row', 'reveal column',
+                   'reveal box ul', 'reveal box ur', 'reveal box ll', 'reveal box lr'] },
+        { name: 'delay', label: 'Delay',
+          values: ['5 sec.', 'no delay', '10 sec.', '30 sec.', '1 min.', '2 min.', '5 min.'] }
+      ],
+      artist: [
+        { name: 'medium', label: 'Medium',
+          values: ['random', 'aquarelle', 'chalk', 'pastel', 'felt-tip /', 'felt-tip \\', 'felt-tip --', 'felt-tip |'] },
+        { name: 'detail', label: 'Detail', values: ['coarse', 'abstract', 'fine'] },
+        { name: 'delay', label: 'Delay',
+          values: ['10 seconds', 'no delay', '5 seconds', '15 seconds', '30 seconds', '1 minute', '5 minutes'] },
+        { name: 'image', label: 'Select Image', values: ['desktop', 'window', 'icons', 'pictures', 'all'] }
+      ],
+      mountains: [
+        { name: 'view', label: 'View',
+          values: ['mountains', 'boundaries', 'webs', 'constructions', 'highlands', 'random'] },
+        { name: 'water', label: 'Water Image', values: ['surface', 'frame', 'shell', 'sheet', 'solid', 'random'] },
+        { name: 'planet', label: 'Planet',
+          values: ['earth', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'random'] },
+        { name: 'complexity', label: 'Complexity', values: ['medium', 'low', 'high'] },
+        { name: 'zoom', label: 'Zoom', values: ['medium', 'far', 'near'] }
+      ],
+      fractal: [
+        { name: 'trees', label: 'Num. of Trees', values: ['some', 'one', 'few', 'many'] },
+        { name: 'type', label: 'Type', values: ['random', 'maple', 'elm', 'pine', 'poplar', 'sapling'] },
+        { name: 'season', label: 'Season', values: ['spring', 'summer', 'fall', 'winter'] },
+        { name: 'seasons-last', label: 'Seasons Last',
+          values: ['1 min.', '10 sec.', '30 sec.', '5 min.', '10 min.', '30 min.', '1 hour', '1 day', '1 week', 'forever'] }
+      ],
+      nirvana: [
+        { name: 'color', label: 'Color',
+          values: ['random', 'smooth', 'stripes', 'contrast', 'rainbow', 'metal', 'lines', 'enamel'] },
+        { name: 'redraw-every', label: 'Redraw Every', values: ['5 min', '3 min', '10 min', '30 min', '60 min'] },
+        { name: 'activity', label: 'Activity', values: ['calm', 'serene', 'alert', 'busy', 'frenetic'] },
+        { name: 'change-color', label: 'Change Color', values: ['often', 'never', 'rarely', 'always'] }
       ],
       bungee: [
         { name: 'jumper', label: 'Jumper',
