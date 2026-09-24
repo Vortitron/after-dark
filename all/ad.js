@@ -274,6 +274,14 @@
     global.removeEventListener('resize', this._onResize);
   };
 
+  /** The index.json of an art folder that holds data rather than pictures. */
+  function data(base) {
+    return fetch(bust(base.replace(/\/$/, '') + '/index.json'), { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) { throw new Error('no data at ' + base); }
+      return r.json();
+    });
+  }
+
   /**
    * Which of `values` a list setting names, as an index into it. Anything
    * unrecognised - or nothing at all - is `fallback`, which is a value too.
@@ -534,6 +542,6 @@
   global.AfterDark = {
     load: load, Screen: Screen, Sequence: Sequence, Bitmap: Bitmap,
     setting: setting, flag: flag, bust: bust, buildId: buildId,
-    choice: choice, define: define, desktop: desktop
+    choice: choice, define: define, desktop: desktop, data: data
   };
 }(window));

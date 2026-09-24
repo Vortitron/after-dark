@@ -304,6 +304,61 @@ function testWarp() {
 	});
 }
 
+function testNonsense() {
+	loadModule('nonsense');
+	var words = JSON.parse(fs.readFileSync(path.join(root, 'all/art/nonsense/index.json'), 'utf8'));
+	assert.strictEqual(words.nouns.length, 136, 'NONSENSE.AD has 136 nouns');
+	assert.strictEqual(words.verbs.length, 76);
+	assert.ok(words.names.indexOf('Elvis') >= 0, 'the names come from NONSENSE.TXT');
+	var g = new global.AfterDarkNonsense.Grammar(words);
+	assert.strictEqual(g.plural(['mouse', 'mice']), 'mice');
+	assert.strictEqual(g.plural(['church', '']), 'churches');
+	assert.strictEqual(g.plural(['baby', '']), 'babies');
+	assert.strictEqual(g.article('a', 'onion'), 'an');
+	for (var i = 0; i < 200; i += 1) {
+		var line = g.sentence();
+		assert.ok(/^[A-Z]/.test(line), 'starts with a capital: ' + line);
+		assert.ok(/[.!]$/.test(line), 'ends a sentence: ' + line);
+		assert.ok(!/\s\s|undefined/.test(line), 'no gaps or holes: ' + line);
+	}
+}
+
+function testEinstein() {
+	loadModule('einstein');
+	var font = JSON.parse(fs.readFileSync(path.join(root, 'all/art/einstein/index.json'), 'utf8'));
+	assert.strictEqual(font.lines.length, 50);
+	assert.strictEqual(font.equations.length, 15);
+	assert.ok(font.lines.indexOf('I will not waste chalk.') >= 0);
+	var sim = new global.AfterDarkEinstein();
+	sim.font = font;
+	var a = sim.glyph(97);
+	assert.ok(a.steps.length > 10 && a.advance > 0, "'a' is a pen path");
+	for (var i = 2; i < a.steps.length; i += 2) {
+		assert.ok(Math.abs(a.steps[i]) <= 127 && Math.abs(a.steps[i + 1]) <= 127);
+	}
+	var dollar = sim.glyph(36);
+	assert.ok(dollar.steps.length > sim.glyph(83).steps.length, '$ is an S with a bar');
+	assert.ok(sim.width('I will not waste chalk.') > 100);
+}
+
+function testGeoBounce() {
+	loadModule('geobounce');
+	var solid = global.AfterDarkGeoBounce.solid;
+	[['tetrahedron', 4, 4, 3], ['cube', 8, 6, 4], ['octahedron', 6, 8, 3], ['dodecahedron', 20, 12, 5],
+		['icosahedron', 12, 20, 3]].forEach(function (t) {
+		var s = solid(t[0]);
+		assert.strictEqual(s.v.length, t[1], t[0] + ' vertices');
+		assert.strictEqual(s.faces.length, t[2], t[0] + ' faces');
+		s.faces.forEach(function (f) { assert.strictEqual(f.length, t[3], t[0] + ' face sides'); });
+	});
+}
+
+function testStrange() {
+	loadModule('strange');
+	var p = global.AfterDarkStrange.find();
+	assert.ok(p.box.w > 0 && p.box.h > 0, 'the attractor covers some ground');
+}
+
 stubDom();
 testGravity();
 testSnake();
@@ -321,5 +376,10 @@ testMessages();
 testGlobe();
 testStarryNight();
 testWarp();
+testNonsense();
+testEinstein();
+testGeoBounce();
+testStrange();
 console.log('ok — gravity, snake, zot, bogglins, om, fish-world, rainforest, draino, shapes, spheres, ' +
-	'hard rain, string theory, mandelbrot, messages, globe, starry night, warp');
+	'hard rain, string theory, mandelbrot, messages, globe, starry night, warp, nonsense, einstein, ' +
+	'geobounce, strange attractors');

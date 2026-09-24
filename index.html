@@ -6,7 +6,7 @@
   <title>After Dark in the Browser</title>
   <meta name="description" content="After Dark screensavers running in the browser — the CSS recreations, plus new ones built from artwork decoded straight out of the original Windows modules.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/favicon.png?v=51f8108-260924185530" />
+  <link rel="shortcut icon" href="img/favicon.png?v=ceda69a-260924192419" />
   <style>
     /* ------------------------------------------------------------------
        Windows 95 Display Properties, which is where After Dark 4.0 for
@@ -357,7 +357,7 @@
 
   <div class="window">
     <div class="titlebar">
-      <img src="img/after-dark-icon.png?v=51f8108-260924185530" alt="" width="16" height="16">
+      <img src="img/after-dark-icon.png?v=ceda69a-260924192419" alt="" width="16" height="16">
       <span class="grow">Display Properties</span>
       <span class="btn out" aria-hidden="true">_</span>
       <span class="btn out" aria-hidden="true">&#9633;</span>
@@ -437,7 +437,7 @@
 
   <div class="taskbar">
     <a class="start" href="https://github.com/Vortitron/after-dark-css">
-      <img src="img/favicon.png?v=51f8108-260924185530" alt="" width="14" height="14"> Source
+      <img src="img/favicon.png?v=ceda69a-260924192419" alt="" width="14" height="14"> Source
     </a>
     <span>After Dark &copy; 1989&ndash;1998 Berkeley Systems</span>
     <span class="tray" id="build" title="Build stamp — bumps when GitHub Pages is updated">…</span>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ad-build -->
-  <script>window.AFTER_DARK_BUILD = {"rev": "51f8108", "time": "2026-09-24T18:55:30Z", "label": "24 Sep 18:55 UTC", "v": "51f8108-260924185530"};</script>
+  <script>window.AFTER_DARK_BUILD = {"rev": "ceda69a", "time": "2026-09-24T19:24:19Z", "label": "24 Sep 19:24 UTC", "v": "ceda69a-260924192419"};</script>
   <!-- /ad-build -->
 
   <script>
@@ -502,7 +502,7 @@
       { name: 'Tunnel',          file: 'all/tunnel.html',          kind: 'ripped', tag: 'TUNNEL.AD 3.x',
         js: 'tunnel', el: 'after-dark-tunnel', attrs: 'direction="in" shape="rect"' },
       { name: 'Zooommm!',        file: 'all/zoom.html',            kind: 'ripped', tag: 'ZOOM.AD 3.x',
-        js: 'zoom', el: 'after-dark-zoom', attrs: 'colors="random" speed="medium" delay="short"' },
+        js: 'zoom', el: 'after-dark-zoom', attrs: 'palettes="all/art/frost" colors="random" speed="medium" delay="short"' },
       { name: 'Spotlight',       file: 'all/spot.html',            kind: 'ripped', tag: 'SPOT.AD 3.x',
         js: 'spot', el: 'after-dark-spotlight', attrs: 'size="100" speed="medium" spots="1"' },
       { name: 'Punch Out',       file: 'all/punch.html',           kind: 'ripped', tag: 'PUNCH.AD 3.x',
@@ -511,6 +511,34 @@
         js: 'puzzle', el: 'after-dark-puzzle', attrs: 'size="medium" speed="medium"' },
       { name: 'Can of Worms',    file: 'all/worms.html',           kind: 'ripped', tag: 'WORMS.AD 3.x',
         js: 'worms', el: 'after-dark-worms', attrs: 'wiggle="crawly" segments="20" worms="6" eat-screen' },
+      { name: 'Einstein',        file: 'all/einstein.html',        kind: 'ripped', tag: 'EINSTEIN.AD 3.x',
+        js: 'einstein', el: 'after-dark-einstein', attrs: 'art="all/art/einstein" errors="seldom" neatness="not very" lines="10"' },
+      { name: 'Nonsense',        file: 'all/nonsense.html',        kind: 'ripped', tag: 'NONSENSE.AD 3.x',
+        js: 'nonsense', el: 'after-dark-nonsense', attrs: 'art="all/art/nonsense" how-many="sagacious" delay="medium" colored-background' },
+      { name: 'DOS Shell',       file: 'all/dosshell.html',        kind: 'ripped', tag: 'DOSSHELL.AD 3.x',
+        js: 'dosshell', el: 'after-dark-dos-shell', attrs: 'color="amber" speed="normal" accuracy="medium"' },
+      { name: 'Nocturnes',       file: 'all/nocturne.html',        kind: 'ripped', tag: 'NOCTURNE.AD 3.x',
+        js: 'nocturne', el: 'after-dark-nocturnes', attrs: 'art="all/art/nocturne" density="a bunch" color' },
+      { name: 'Meadow',          file: 'all/meadow.html',          kind: 'ripped', tag: 'MEADOW.AD 3.x',
+        js: 'meadow', el: 'after-dark-meadow', attrs: 'art="all/art/meadow" season="spring" seasons-last="1 minute"' },
+      { name: 'Frost and Fire',  file: 'all/frost.html',           kind: 'ripped', tag: 'FROST.AD 3.x',
+        js: 'frost', el: 'after-dark-frost', attrs: 'art="all/art/frost" size="medium" palette="random"' },
+      { name: 'Photon',          file: 'all/photon.html',          kind: 'ripped', tag: 'PHOTON.AD 3.x',
+        js: 'photon', el: 'after-dark-photon', attrs: 'length="16" burst-delay="1 sec." burst="mixed"' },
+      { name: 'Sunburst',        file: 'all/sunburst.html',        kind: 'ripped', tag: 'SUNBURST.AD 3.x',
+        js: 'sunburst', el: 'after-dark-sunburst', attrs: 'delay="medium"' },
+      { name: 'Vertigo',         file: 'all/vertigo.html',         kind: 'ripped', tag: 'VERTIGO.AD 3.x',
+        js: 'vertigo', el: 'after-dark-vertigo', attrs: 'palette="smooth" pitch="medium" color-speed="medium" delay="20 secs"' },
+      { name: 'Stained Glass',   file: 'all/stained.html',         kind: 'ripped', tag: 'STAINED.AD 3.x',
+        js: 'stained', el: 'after-dark-stained-glass', attrs: 'complexity="medium" duplication="some" color="medium"' },
+      { name: 'Strange Attractors', file: 'all/strange.html',      kind: 'ripped', tag: 'STRANGE.AD 3.x',
+        js: 'strange', el: 'after-dark-strange-attractors', attrs: 'duration="1 minute" color-speed="normal"' },
+      { name: 'GeoBounce',       file: 'all/geobounce.html',       kind: 'ripped', tag: 'GEOBOUNC.AD 3.x',
+        js: 'geobounce', el: 'after-dark-geobounce', attrs: 'shape="random" size="medium" speed="medium" faces="both"' },
+      { name: 'Spin Brush',      file: 'all/spin.html',            kind: 'ripped', tag: 'SPIN.AD 3.x',
+        js: 'spin', el: 'after-dark-spin-brush', attrs: 'art="all/art/spin" switch-every="1 min." thickness="3" spin="random"' },
+      { name: 'Satori',          file: 'all/satori.html',          kind: 'ripped', tag: 'SATORI.AD 3.x',
+        js: 'satori', el: 'after-dark-satori', attrs: 'display="mix" colors="random" end-clarity="2x2" knots="4"' },
       { name: 'Aquatic Realm',   file: 'all/aqua.html',            kind: 'ripped', tag: 'Aqua.ad',
         js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6"' },
       { name: 'Fish Pro',        file: 'all/fishpro.html',         kind: 'ripped', tag: 'FISHPRO.AD 1994',
@@ -779,8 +807,8 @@
       ],
       zoom: [
         { name: 'colors', label: 'Colors',
-          values: ['random', 'smooth', 'saw', 'ramped', 'electric', 'crest', 'rainbows',
-                   'sine', 'cycloid', 'oscillate', 'banded'] },
+          values: ['random', 'smooth', 'saw', 'ramped', 'ramped2', 'electric', 'crest', 'rainbows',
+                   'sine', 'cycloid', 'icycloid', 'oscillate', 'banded'] },
         { name: 'speed', label: 'Speed',
           values: ['medium', 'slowest', 'slow', 'fast', 'faster', 'zooommmin'] },
         { name: 'delay', label: 'Delay',
@@ -807,6 +835,91 @@
         { name: 'segments', label: 'Segments', values: ['20', '5', '10', '40'] },
         { name: 'worms', label: 'Worms', values: ['6', '1', '3', '10', '20'] },
         { name: 'eat-screen', label: 'Eat Screen', check: true, on: true }
+      ],
+      einstein: [
+        { name: 'errors', label: 'Errors',
+          values: ['seldom', 'never', 'rarely', 'occasionally', 'frequently', 'almost always'] },
+        { name: 'neatness', label: 'Neatness',
+          values: ['not very', 'very', 'pretty bad', 'really bad', 'ugly ugly ugly', 'chalk disaster'] },
+        { name: 'lines', label: '# of Lines', values: ['10', '1', '5', '20', 'fill screen'] }
+      ],
+      nonsense: [
+        { name: 'how-many', label: 'How Many',
+          values: ['sagacious', 'curt', 'laconic', 'proverbial', 'loquacious', 'tennysonian'] },
+        { name: 'delay', label: 'Delay', values: ['medium', 'very short', 'short', 'long', 'very long'] },
+        { name: 'colored-background', label: 'Colored Background', check: true, on: true }
+      ],
+      dosshell: [
+        { name: 'color', label: 'Color', values: ['amber', 'green', 'mono', 'programmer', 'random'] },
+        { name: 'speed', label: 'Speed', values: ['normal', 'pokey', 'fast', 'demon'] },
+        { name: 'accuracy', label: 'Accuracy', values: ['medium', 'low', 'high', 'perfect'] }
+      ],
+      nocturne: [
+        { name: 'density', label: 'Density', values: ['a bunch', 'sparse', 'a few', 'lots'] },
+        { name: 'color', label: 'Color', check: true, on: true }
+      ],
+      meadow: [
+        { name: 'season', label: 'Season', values: ['spring', 'summer', 'fall', 'winter'] },
+        { name: 'seasons-last', label: 'Seasons Last',
+          values: ['1 minute', '10 seconds', '30 seconds', '5 minutes', '10 minutes', '30 minutes',
+                   '1 hour', '1 day', '1 week', 'forever'] }
+      ],
+      frost: [
+        { name: 'size', label: 'Size', values: ['medium', 'small', 'large', 'huge'] },
+        { name: 'palette', label: 'Palette',
+          values: ['random', 'cycloid', 'icycloid', 'electric', 'rainbows', 'ramped2', 'sine', 'gray scale'] },
+        { name: 'maximize-speed', label: 'Maximize Speed', check: true }
+      ],
+      photon: [
+        { name: 'length', label: 'Length', values: ['16', '1', '2', '4', '8', '12', '24', '32'] },
+        { name: 'burst-delay', label: 'Burst Delay',
+          values: ['1 sec.', 'none', '1/2 sec.', '2 sec.', '5 sec.', '10 sec.', '30 sec.'] },
+        { name: 'always-centered', label: 'Always Centered', check: true },
+        { name: 'burst', label: 'Burst', values: ['mixed', 'photon', 'electron', 'proton', 'neutrino'] }
+      ],
+      sunburst: [
+        { name: 'delay', label: 'Delay', values: ['medium', 'slowest', 'slow', 'fast', 'fastest'] }
+      ],
+      vertigo: [
+        { name: 'palette', label: 'Palette', values: ['smooth', 'random', 'stingray'] },
+        { name: 'pitch', label: 'Spiral Pitch', values: ['medium', 'loose', 'tight'] },
+        { name: 'color-speed', label: 'Color Speed', values: ['medium', 'slow', 'fast'] },
+        { name: 'delay', label: 'Delay', values: ['20 secs', '5 secs', '10 secs', '30 secs', '1 minute'] }
+      ],
+      stained: [
+        { name: 'complexity', label: 'Complexity', values: ['medium', 'low', 'high'] },
+        { name: 'duplication', label: 'Duplication', values: ['some', 'none', 'lots'] },
+        { name: 'color', label: 'Color', values: ['medium', 'few', 'lots'] }
+      ],
+      strange: [
+        { name: 'duration', label: 'Duration',
+          values: ['1 minute', '5 seconds', '10 seconds', '15 seconds', '30 seconds', '2 minutes',
+                   '5 minutes', '10 minutes', '30 minutes', '1 hour'] },
+        { name: 'color-speed', label: 'Color Speed',
+          values: ['normal', 'none', 'slowest', 'slower', 'slow', 'fast', 'faster', 'fastest'] }
+      ],
+      geobounce: [
+        { name: 'shape', label: 'Shape',
+          values: ['random', 'tetrahedron', 'cube', 'octahedron', 'dodecahedron', 'icosahedron'] },
+        { name: 'size', label: 'Size', values: ['medium', 'small', 'large'] },
+        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast'] },
+        { name: 'faces', label: 'Faces', values: ['both', 'shading', 'colors'] }
+      ],
+      spin: [
+        { name: 'switch-every', label: 'Switch Every',
+          values: ['1 min.', '15 sec.', '30 sec.', '2 min.', '5 min.', '10 min.', '30 min.', 'never'] },
+        { name: 'thickness', label: 'Thickness', values: ['3', '1', '2', '4', 'variable'] },
+        { name: 'use-screen', label: 'Use Screen', check: true },
+        { name: 'spin', label: 'Spin', values: ['random', 'spin', 'spiral', 'star', 'stretch'] }
+      ],
+      satori: [
+        { name: 'display', label: 'Display',
+          values: ['mix', 'fields', 'pools', 'rays', 'waves', 'leaves', 'random'] },
+        { name: 'colors', label: 'Colors',
+          values: ['random', 'arizona', 'siberia', 'tijuana', 'pacific', 'hawaii', 'nile', 'louisiana',
+                   'camelot', 'colorado', 'atlantis', 'outback', 'ithaca', 'oz'] },
+        { name: 'end-clarity', label: 'End Clarity', values: ['2x2', '1x1', '4x4', '8x8', '16x16'] },
+        { name: 'knots', label: 'Knots', values: ['4', '1', '2', '3', '5', '6', '8'] }
       ],
       bungee: [
         { name: 'jumper', label: 'Jumper',
@@ -1103,7 +1216,7 @@
                 '<script src="all/modules/' + s.js + '.js"><\/script>\n' +
                 '<' + s.el + ' ' + attrsFor(s) + '\n' +
                 '  style="display:block;width:640px;height:480px"></' + s.el + '>',
-          note: s.attrs && /(?:^|\s)art=/.test(s.attrs)
+          note: s.attrs && /(?:^|\s)(?:art|palettes)=/.test(s.attrs)
             ? ('Needs ad.js, modules/' + s.js + '.js and all/art/ copied across, ' +
                'and the page served over http — the artwork is fetched, so file:// will not do.')
             : ('Needs ad.js and modules/' + s.js + '.js copied across.')

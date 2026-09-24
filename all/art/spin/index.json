@@ -1,0 +1,45 @@
+{
+ "module": "SPIN",
+ "format": "dib",
+ "bitmaps": {
+  "100": {
+   "w": 64,
+   "h": 64,
+   "file": "100.png",
+   "source": "BITMAP 100"
+  },
+  "103": {
+   "w": 64,
+   "h": 64,
+   "file": "103.png",
+   "source": "BITMAP 103"
+  },
+  "200": {
+   "w": 64,
+   "h": 64,
+   "file": "200.png",
+   "source": "BITMAP 200"
+  },
+  "203": {
+   "w": 32,
+   "h": 32,
+   "file": "203.png",
+   "source": "BITMAP 203"
+  },
+  "204": {
+   "w": 64,
+   "h": 64,
+   "file": "204.png",
+   "source": "BITMAP 204"
+  },
+  "205": {
+   "w": 64,
+   "h": 64,
+   "file": "205.png",
+   "source": "BITMAP 205"
+  }
+ },
+ "text": [
+  "The patterns Spin Brush smears when Use Screen is off."
+ ]
+}

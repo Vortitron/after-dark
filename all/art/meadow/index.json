@@ -1,0 +1,15 @@
+{
+ "module": "MEADOW",
+ "format": "dib",
+ "bitmaps": {
+  "flowers": {
+   "w": 196,
+   "h": 37,
+   "file": "flowers.png",
+   "source": "BITMAP 102 masked by BITMAP 101"
+  }
+ },
+ "text": [
+  "Six flowers, 196x37 in all, masked by BITMAP 101."
+ ]
+}

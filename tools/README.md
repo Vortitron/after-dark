@@ -1,6 +1,6 @@
 # After Dark pipeline
 
-Five tools that turn the original screensaver modules in `../AD40/` into
+Six tools that turn the original screensaver modules in `../AD40/` into
 something a browser can use. They only need Python 3 + Pillow, except
 `adrun.sh`, which needs a 32-bit Wine.
 
@@ -9,13 +9,15 @@ AD40/**/*.AD  ──adextract.py──▶  raw resources
               ──adart.py─────▶  decoded sprite sheets (PNG)
               ──adweb.py─────▶  all/art/<module>/  (strips + index.json)
               ──adclassic.py─▶  all/art/<module>/  (the 3.x modules, see below)
+              ──adtext.py────▶  all/art/<module>/  (text, chalk and grammar)
               ──adrun.sh─────▶  the real thing running under Wine (reference)
 ```
 
 `node tools/test-savers.js` checks Gravity, Snake, Zot!, Bogglins, Om
 Appliances, Fish World, Rainforest, Down the Drain, Shapes, Spheres, Hard
-Rain, String Theory, Mandelbrot, Messages, Globe, Starry Night and Warp!
-without a browser.
+Rain, String Theory, Mandelbrot, Messages, Globe, Starry Night, Warp!,
+Nonsense, Einstein's chalk, GeoBounce's solids and Strange Attractors without
+a browser.
 
 There are two artwork formats, and which one a module uses does not follow from
 whether it is 16-bit or 32-bit. Run both tools and see which bites.
@@ -166,15 +168,17 @@ decode to grey noise because neither a CTAB nor a module PAL turns up for it,
 and a capture says what the colours should be.
 
 The 45 modules with no artwork at all draw themselves, so porting one means
-writing the drawing. Twenty-one of those run in the browser so far:
+writing the drawing. Thirty-five of those run in the browser so far:
 
 | | |
 | --- | --- |
-| Physics and mazes | Gravity, Snake, Zot!, Down the Drain |
-| Stamps and lines | Shapes, Spheres, Rose, Spiral Gyra, String Theory |
+| Physics and mazes | Gravity, Snake, Zot!, Down the Drain, GeoBounce |
+| Stamps and lines | Shapes, Spheres, Rose, Spiral Gyra, String Theory, Sunburst, Photon |
 | Flying through something | Warp!, Tunnel, Zooommm! |
-| Pictures | Starry Night, Mandelbrot, Hard Rain, Messages, Globe |
-| Eating the desktop | Spotlight, Punch Out, Puzzle, Can of Worms |
+| Maths | Mandelbrot, Strange Attractors, Vertigo, Satori, Stained Glass, Frost and Fire |
+| Pictures | Starry Night, Hard Rain, Messages, Globe, Nocturnes, Meadow |
+| Words | Einstein, Nonsense, DOS Shell |
+| Eating the desktop | Spotlight, Punch Out, Puzzle, Can of Worms, Spin Brush |
 
 What each one does comes from its own description string and control panel.
 There is no capture to check them against: all but Starry Night are 16-bit
@@ -182,8 +186,9 @@ modules, which will not paint under Wine (below), and Starry Night - 32-bit,
 and the engine's own fallback, so it does paint - was ported after the Wine
 sandbox had gone. It is the one worth capturing next time one is set up.
 
-Three of them are less code-only than "no artwork" suggests, and it pays to
-look beside a module before guessing:
+"No artwork" means no sprites in the formats `adart.py` and `adclassic.py`
+read. Plenty of these modules carry something else, and it pays to look
+beside a module before guessing:
 
 - **Starry Night** keeps its description as RTF, in `TYPE_2000` id 40, once per
   language. It says what the sliders mean - Buildings is a count from 0 to 100,
@@ -195,12 +200,36 @@ look beside a module before guessing:
 - **Messages** keeps its eight default messages, with their faces, sizes,
   colours and styles, in `MESG_AD3.DAT`: 246-byte records, which
   `all/modules/messages.js` carries over.
+- **Einstein** ships its chalk. Type 32513, named `LETTER`, is a handwriting
+  font keyed by character code, each glyph the pen's path one pixel step at a
+  time; codes 128 and up are whole pieces of equations. Its string table has
+  fifty lines to write out and fifteen equations in those codes.
+- **Nonsense** keeps its whole grammar in its string table: nouns with their
+  irregular plurals, verbs in five forms plus what may follow each, pronouns,
+  modals, adverbs, and so on, in blocks of a thousand ids.
+- **DOS Shell** has its boot banner, its commands, its `DIR` line format and its
+  error messages in its data segment - `strings` finds them all.
+- **Frost and Fire** ships six of its palettes as `PAL` resources (Windows
+  `LOGPALETTE`s). Zooommm! offers the same names, so it uses them too.
+- **Nocturnes**, **Meadow** and **Spin Brush** keep plain `BITMAP` resources
+  (a sheet of eyes, six flowers and a mask, and the patterns it smears), which
+  `adextract.py` converts. `adclassic.py` misses them because they start with a
+  `BITMAPINFOHEADER` rather than `BM`.
 
-Still to do among the code-drawn ones: Clocks, Confetti Factory's factory,
-Daredevil Dan, Dominoes, DOS Shell, Einstein, Fractal Forest, Frost and Fire,
-GeoBounce, Meadow, Modern Art, Mountains, Nirvana, Nocturnes, Photon, Satori,
-Spin Brush, Stained Glass, Strange Attractors, Sunburst, Vertigo and the
-game-show and puzzle modules.
+`adtext.py` pulls the Einstein and Nonsense data out:
+
+```sh
+python3 tools/adtext.py einstein AD40/CLASSIC/EINSTEIN.AD -o all/art/einstein
+python3 tools/adtext.py nonsense AD40/CLASSIC/NONSENSE.AD -o all/art/nonsense
+python3 tools/adtext.py strings AD40/CLASSIC/ANYTHING.AD     # any string table
+```
+
+Still to do among these: Fractal Forest (its `TREEDATA` is six 24-word records,
+one per tree, not yet understood), Mountains, Nirvana, Ray (its `TRACES`
+folder holds the pre-rendered scenes), DrawMorph (`MORPH*.DAT`), Slide Show
+and Artist. Then the sprite modules that need staging rather than drawing -
+Boris, Mowin' Man, Clocks, Dominoes, Modern Art, Confetti Factory, Daredevil
+Dan, Rat Race, You Bet Your Head and Lunatic Fringe.
 
 ## adrun.sh — running the originals
 

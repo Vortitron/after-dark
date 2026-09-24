@@ -119,6 +119,20 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-punch-out>` | `modules/punch.js` | `shape` = circle / oval / square / rectangle / random, `size` = small / medium / large, `speed` = slow / medium / fast |
 | `<after-dark-puzzle>` | `modules/puzzle.js` | `size` = small / medium / large, `speed` = slow / medium / fast / very fast!, `invert-screen` is a flag |
 | `<after-dark-worms>` | `modules/worms.js` | `wiggle` = straight / weavy / crawly / wiggly, `segments` = 5 / 10 / 20 / 40, `worms` = 1 / 3 / 6 / 10 / 20, `eat-screen` is a flag |
+| `<after-dark-einstein>` | `modules/einstein.js` | `errors` = never / rarely / seldom / occasionally / frequently / almost always, `neatness` = very / not very / pretty bad / really bad / ugly ugly ugly / chalk disaster, `lines` = 1 / 5 / 10 / 20 / fill screen. Written in the module's own chalk font, stroke by stroke |
+| `<after-dark-nonsense>` | `modules/nonsense.js` | `how-many` = curt / laconic / sagacious / proverbial / loquacious / tennysonian, `delay` = very short / short / medium / long / very long, `colored-background` is a flag |
+| `<after-dark-dos-shell>` | `modules/dosshell.js` | `color` = amber / green / mono / programmer / random, `speed` = pokey / normal / fast / demon, `accuracy` = low / medium / high / perfect |
+| `<after-dark-nocturnes>` | `modules/nocturne.js` | `density` = sparse / a few / a bunch / lots, `color` is a flag |
+| `<after-dark-meadow>` | `modules/meadow.js` | `season` = spring / summer / fall / winter, `seasons-last` = 10 seconds … 1 week / forever |
+| `<after-dark-frost>` | `modules/frost.js` | `size` = small / medium / large / huge, `palette` = random / cycloid / icycloid / electric / rainbows / ramped2 / sine / gray scale, `maximize-speed` is a flag |
+| `<after-dark-photon>` | `modules/photon.js` | `length` = 1–32, `burst-delay` = none / 1/2 sec. / 1 sec. / 2 sec. / 5 sec. / 10 sec. / 30 sec., `burst` = mixed / photon / electron / proton / neutrino, `always-centered` is a flag |
+| `<after-dark-sunburst>` | `modules/sunburst.js` | `delay` = slowest / slow / medium / fast / fastest |
+| `<after-dark-vertigo>` | `modules/vertigo.js` | `palette` = smooth / random / stingray, `pitch` = loose / medium / tight, `color-speed` = slow / medium / fast, `delay` = 5 secs … 1 minute |
+| `<after-dark-stained-glass>` | `modules/stained.js` | `complexity` = low / medium / high, `duplication` = none / some / lots, `color` = few / medium / lots |
+| `<after-dark-strange-attractors>` | `modules/strange.js` | `duration` = 5 seconds … 1 hour, `color-speed` = none / slowest … fastest |
+| `<after-dark-geobounce>` | `modules/geobounce.js` | `shape` = tetrahedron / cube / octahedron / dodecahedron / icosahedron / random, `size` and `speed` = small–large / slow–fast, `faces` = shading / colors / both |
+| `<after-dark-spin-brush>` | `modules/spin.js` | `switch-every` = 15 sec. … never, `thickness` = 1–4 / variable, `spin` = spin / spiral / star / stretch / random, `use-screen` is a flag |
+| `<after-dark-satori>` | `modules/satori.js` | `display` = fields / pools / rays / waves / leaves / mix / random, `colors` = arizona / siberia / tijuana / pacific / hawaii / nile / louisiana / camelot / colorado / atlantis / outback / ithaca / oz / random, `end-clarity` = 1x1 … 16x16, `knots` = 1–8 |
 | `<after-dark-aqua>` | `modules/aqua.js` | `creatures` and `seaweed` are counts, `sea-floor` is a flag |
 | `<after-dark-marbles-40>` | `modules/marbles-40.js` | `count` = a few / a pouch full / a jar full / a box full, `pattern` |
 | `<after-dark-fishpro>` | `modules/fishpro.js` | `fish` = solo / study group / class / school / university, `sea-floor` = none / static / animated, `select-fish` = a comma-separated list of species |

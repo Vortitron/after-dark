@@ -15,13 +15,18 @@
  * are the module's own names; like the original on a 256-colour screen, the
  * colour runs down each scheme's ramp as the tubes travel.
  *
- *   <after-dark-zoom colors="rainbows" speed="medium" delay="medium">
+ * Zooommm! and Frost and Fire came out of Berkeley Systems the same year with
+ * the same list of palette names, and Frost and Fire ships six of them as PAL
+ * resources - Cycloid, iCycloid, Electric, Rainbows, Ramped2 and Sine. Those
+ * six are the real thing, from all/art/frost/; the rest are made to match.
+ *
+ *   <after-dark-zoom colors="rainbows" speed="medium" delay="medium" palettes="art/frost">
  */
 (function () {
 	'use strict';
 
-	var SCHEMES = ['smooth', 'saw', 'ramped', 'electric', 'crest', 'rainbows', 'sine',
-		'cycloid', 'oscillate', 'banded', 'random'];
+	var SCHEMES = ['smooth', 'saw', 'ramped', 'ramped2', 'electric', 'crest', 'rainbows', 'sine',
+		'cycloid', 'icycloid', 'oscillate', 'banded', 'random'];
 	var SPEEDS = ['slowest', 'slow', 'medium', 'fast', 'faster', 'zooommmin'];
 	/* How fast a tube opens, as screens a second; it speeds up a little as it
 	   comes, which is what makes the bands read as a tube rather than ripples. */
@@ -97,6 +102,10 @@
 	};
 
 	Zoom.prototype.ramp = function () {
+		var real = this.pals && this.pals[this.current];
+		if (real) {
+			return function (t) { return real[Math.floor(t * real.length) % real.length]; };
+		}
 		return RAMPS[this.current] || RAMPS.smooth;
 	};
 
@@ -158,6 +167,11 @@
 		sim.scheme = SCHEMES[AfterDark.choice(el, 'colors', SCHEMES, 'random')];
 		sim.velocity = VELOCITY[AfterDark.choice(el, 'speed', SPEEDS, 'medium')];
 		sim.gap = GAP[AfterDark.choice(el, 'delay', DELAYS, 'medium')];
+		AfterDark.data(AfterDark.setting(el, 'palettes') || 'art/frost').then(function (d) {
+			sim.pals = d.palettes;
+		}).catch(function () {
+			/* Without them the made-up ramps stand in. */
+		});
 		return sim;
 	});
 

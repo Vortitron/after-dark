@@ -1,0 +1,15 @@
+{
+ "module": "NOCTURNE",
+ "format": "dib",
+ "bitmaps": {
+  "eyes": {
+   "w": 102,
+   "h": 80,
+   "file": "eyes.png",
+   "source": "BITMAP 1"
+  }
+ },
+ "text": [
+  "BITMAP 1: five kinds of eyes down, three stages of a blink across, 34x16 a pair. White on black; white becomes opacity so they can be tinted."
+ ]
+}
