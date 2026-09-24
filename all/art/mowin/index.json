@@ -1,0 +1,59 @@
+{
+ "module": "MOWIN",
+ "format": "dib",
+ "bitmaps": {
+  "up": {
+   "w": 71,
+   "h": 104,
+   "file": "up.png",
+   "source": "DIB 1200 / mask 5200 / fill"
+  },
+  "down": {
+   "w": 65,
+   "h": 131,
+   "file": "down.png",
+   "source": "DIB 1201 / fill"
+  },
+  "left": {
+   "w": 111,
+   "h": 100,
+   "file": "left.png",
+   "source": "DIB 1202 / mask 5202 / fill"
+  },
+  "right": {
+   "w": 111,
+   "h": 107,
+   "file": "right.png",
+   "source": "DIB 1203 / fill"
+  },
+  "flowers": {
+   "w": 196,
+   "h": 37,
+   "file": "flowers.png",
+   "source": "DIB 1300 / mask 5300"
+  },
+  "blade0": {
+   "w": 1,
+   "h": 3,
+   "file": "blade0.png",
+   "source": "DIB 400, first column"
+  },
+  "blade1": {
+   "w": 1,
+   "h": 4,
+   "file": "blade1.png",
+   "source": "DIB 401, first column"
+  },
+  "blade2": {
+   "w": 1,
+   "h": 7,
+   "file": "blade2.png",
+   "source": "DIB 402, first column"
+  }
+ },
+ "text": [
+  "The mower going up (seen from behind), down, left and right: DIBs 1200-1203, the set used from 16 colours up. Their AND masks 5200-5203 were drawn for the 16-colour set (200-203) and fit those; on these, each picture has a white and a black background, and the black is also the tyres. So: white is filled in from the edges; black is taken off only in straight runs from an edge (a flood fill would run into the tyres); the masks are used where they fit, for up and left.",
+  "flowers: 1300 masked by 5300.",
+  "blade0-2: grass at three heights, 400-402. Each DIB is 9 wide but only its first column is used: one blade, bright at the tip and dark at the root."
+ ]
+}

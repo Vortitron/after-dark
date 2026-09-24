@@ -132,6 +132,8 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-strange-attractors>` | `modules/strange.js` | `duration` = 5 seconds … 1 hour, `color-speed` = none / slowest … fastest |
 | `<after-dark-geobounce>` | `modules/geobounce.js` | `shape` = tetrahedron / cube / octahedron / dodecahedron / icosahedron / random, `size` and `speed` = small–large / slow–fast, `faces` = shading / colors / both |
 | `<after-dark-spin-brush>` | `modules/spin.js` | `switch-every` = 15 sec. … never, `thickness` = 1–4 / variable, `spin` = spin / spiral / star / stretch / random, `use-screen` is a flag |
+| `<after-dark-boris>` | `modules/boris.js` | `cats` = 1–4, `butterfly` = never / rarely / seldom / occasionally / frequently / always, `color` is a flag |
+| `<after-dark-mowin-man>` | `modules/mowin.js` | `speed` = pokey / normal / hurried / menace, `mow-every` = always / day / 2 days … week, `growth-rate` = none / slow / medium / fast, `clear-screen` is a flag (off grows the lawn over the desktop) |
 | `<after-dark-satori>` | `modules/satori.js` | `display` = fields / pools / rays / waves / leaves / mix / random, `colors` = arizona / siberia / tijuana / pacific / hawaii / nile / louisiana / camelot / colorado / atlantis / outback / ithaca / oz / random, `end-clarity` = 1x1 … 16x16, `knots` = 1–8 |
 | `<after-dark-aqua>` | `modules/aqua.js` | `creatures` and `seaweed` are counts, `sea-floor` is a flag |
 | `<after-dark-marbles-40>` | `modules/marbles-40.js` | `count` = a few / a pouch full / a jar full / a box full, `pattern` |

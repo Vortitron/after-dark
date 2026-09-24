@@ -228,8 +228,23 @@ Still to do among these: Fractal Forest (its `TREEDATA` is six 24-word records,
 one per tree, not yet understood), Mountains, Nirvana, Ray (its `TRACES`
 folder holds the pre-rendered scenes), DrawMorph (`MORPH*.DAT`), Slide Show
 and Artist. Then the sprite modules that need staging rather than drawing -
-Boris, Mowin' Man, Clocks, Dominoes, Modern Art, Confetti Factory, Daredevil
-Dan, Rat Race, You Bet Your Head and Lunatic Fringe.
+Clocks, Dominoes, Modern Art, Confetti Factory, Daredevil Dan, Rat Race, You
+Bet Your Head and Lunatic Fringe.
+
+Boris and Mowin' Man are done, and both keep more than one set of pictures,
+chosen by colour depth in the module's `RESINFO` table (type 32515):
+
+- **Boris** has every frame three times: the 1000s in 256 colours, the 3000s in
+  1-bit for monochrome screens, the 18000s in 16 colours. The 5000s are the
+  1-bit AND masks for the 1000s (same id + 4000), and the butterfly is 15000s
+  masked by 17000s. `15201` is truncated in the module.
+- **Mowin' Man**'s masks (5200-5203) were drawn for its 16-colour mower
+  (200-203) and fit those to 98-99%, but only two of the four fit the colour
+  set (1200-1203) it uses from 16 colours up. Those pictures have two
+  background colours each, one of which is also the tyres, so
+  `all/art/mowin/` is cut out by hand-picked fills - see its `index.json`.
+  Its three grass bitmaps are one blade each: a 9-pixel-wide DIB of which
+  only the first column is drawn.
 
 ## adrun.sh — running the originals
 

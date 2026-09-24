@@ -6,7 +6,7 @@
   <title>After Dark in the Browser</title>
   <meta name="description" content="After Dark screensavers running in the browser — the CSS recreations, plus new ones built from artwork decoded straight out of the original Windows modules.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/favicon.png?v=ceda69a-260924192419" />
+  <link rel="shortcut icon" href="img/favicon.png?v=3dd4393-260924194341" />
   <style>
     /* ------------------------------------------------------------------
        Windows 95 Display Properties, which is where After Dark 4.0 for
@@ -357,7 +357,7 @@
 
   <div class="window">
     <div class="titlebar">
-      <img src="img/after-dark-icon.png?v=ceda69a-260924192419" alt="" width="16" height="16">
+      <img src="img/after-dark-icon.png?v=3dd4393-260924194341" alt="" width="16" height="16">
       <span class="grow">Display Properties</span>
       <span class="btn out" aria-hidden="true">_</span>
       <span class="btn out" aria-hidden="true">&#9633;</span>
@@ -437,7 +437,7 @@
 
   <div class="taskbar">
     <a class="start" href="https://github.com/Vortitron/after-dark-css">
-      <img src="img/favicon.png?v=ceda69a-260924192419" alt="" width="14" height="14"> Source
+      <img src="img/favicon.png?v=3dd4393-260924194341" alt="" width="14" height="14"> Source
     </a>
     <span>After Dark &copy; 1989&ndash;1998 Berkeley Systems</span>
     <span class="tray" id="build" title="Build stamp — bumps when GitHub Pages is updated">…</span>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ad-build -->
-  <script>window.AFTER_DARK_BUILD = {"rev": "ceda69a", "time": "2026-09-24T19:24:19Z", "label": "24 Sep 19:24 UTC", "v": "ceda69a-260924192419"};</script>
+  <script>window.AFTER_DARK_BUILD = {"rev": "3dd4393", "time": "2026-09-24T19:43:41Z", "label": "24 Sep 19:43 UTC", "v": "3dd4393-260924194341"};</script>
   <!-- /ad-build -->
 
   <script>
@@ -539,6 +539,10 @@
         js: 'spin', el: 'after-dark-spin-brush', attrs: 'art="all/art/spin" switch-every="1 min." thickness="3" spin="random"' },
       { name: 'Satori',          file: 'all/satori.html',          kind: 'ripped', tag: 'SATORI.AD 3.x',
         js: 'satori', el: 'after-dark-satori', attrs: 'display="mix" colors="random" end-clarity="2x2" knots="4"' },
+      { name: 'Boris',           file: 'all/boris.html',           kind: 'ripped', tag: 'BORIS.AD 1993',
+        js: 'boris', el: 'after-dark-boris', attrs: 'art="all/art/boris" cats="1" butterfly="occasionally" color' },
+      { name: 'Mowin’ Man',  file: 'all/mowin.html',           kind: 'ripped', tag: 'MOWIN.AD 1993',
+        js: 'mowin', el: 'after-dark-mowin-man', attrs: 'art="all/art/mowin" speed="normal" mow-every="always" growth-rate="medium" clear-screen' },
       { name: 'Aquatic Realm',   file: 'all/aqua.html',            kind: 'ripped', tag: 'Aqua.ad',
         js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6"' },
       { name: 'Fish Pro',        file: 'all/fishpro.html',         kind: 'ripped', tag: 'FISHPRO.AD 1994',
@@ -920,6 +924,19 @@
                    'camelot', 'colorado', 'atlantis', 'outback', 'ithaca', 'oz'] },
         { name: 'end-clarity', label: 'End Clarity', values: ['2x2', '1x1', '4x4', '8x8', '16x16'] },
         { name: 'knots', label: 'Knots', values: ['4', '1', '2', '3', '5', '6', '8'] }
+      ],
+      boris: [
+        { name: 'cats', label: 'Number of Cats', values: ['1', '2', '3', '4'] },
+        { name: 'butterfly', label: 'Butterfly',
+          values: ['occasionally', 'never', 'rarely', 'seldom', 'frequently', 'always'] },
+        { name: 'color', label: 'Color', check: true, on: true }
+      ],
+      mowin: [
+        { name: 'speed', label: 'Speed', values: ['normal', 'pokey', 'hurried', 'menace'] },
+        { name: 'mow-every', label: 'Mow Every',
+          values: ['always', 'day', '2 days', '3 days', '4 days', '5 days', '6 days', 'week'] },
+        { name: 'clear-screen', label: 'Clear Screen First', check: true, on: true },
+        { name: 'growth-rate', label: 'Growth Rate', values: ['medium', 'none', 'slow', 'fast'] }
       ],
       bungee: [
         { name: 'jumper', label: 'Jumper',

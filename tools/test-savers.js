@@ -359,6 +359,23 @@ function testStrange() {
 	assert.ok(p.box.w > 0 && p.box.h > 0, 'the attractor covers some ground');
 }
 
+/** Every frame id a module names must be in its exported art. */
+function testArtCoverage() {
+	var boris = JSON.parse(fs.readFileSync(path.join(root, 'all/art/boris/index.json'), 'utf8'));
+	var src = fs.readFileSync(path.join(root, 'all/modules/boris.js'), 'utf8');
+	var ids = (src.match(/\b1[0-9]{3}\b/g) || []).filter(function (id) { return Number(id) >= 1000 && Number(id) < 2000; });
+	assert.ok(ids.length > 20);
+	ids.forEach(function (id) { assert.ok(boris.bitmaps[id], 'Boris frame ' + id + ' is exported'); });
+	[15000, 15001, 15002, 15100, 15300, 15400, 15200, 15202].forEach(function (id) {
+		assert.ok(boris.bitmaps[id], 'butterfly frame ' + id + ' is exported');
+	});
+	var mowin = JSON.parse(fs.readFileSync(path.join(root, 'all/art/mowin/index.json'), 'utf8'));
+	['up', 'down', 'left', 'right', 'flowers', 'blade0', 'blade1', 'blade2'].forEach(function (name) {
+		assert.ok(mowin.bitmaps[name], "Mowin' Man " + name + ' is exported');
+	});
+	assert.strictEqual(mowin.bitmaps.blade2.w, 1, 'a blade is one pixel wide');
+}
+
 stubDom();
 testGravity();
 testSnake();
@@ -380,6 +397,7 @@ testNonsense();
 testEinstein();
 testGeoBounce();
 testStrange();
+testArtCoverage();
 console.log('ok — gravity, snake, zot, bogglins, om, fish-world, rainforest, draino, shapes, spheres, ' +
 	'hard rain, string theory, mandelbrot, messages, globe, starry night, warp, nonsense, einstein, ' +
-	'geobounce, strange attractors');
+	'geobounce, strange attractors, boris and mowin art');
