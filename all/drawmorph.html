@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DrawMorph Screensaver | After Dark in the Browser</title>
+	<meta name="description" content="After Dark's DrawMorph, running in the browser: Jan Konopasek's line drawings morphing one into the next, from the MORPH files beside WMORPH.AD.">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" href="../img/favicon.png?v=8b81cdc-260924204821">
+	<link rel="stylesheet" href="base.css?v=8b81cdc-260924204821">
+	<style>
+		html, body { height: 100%; }
+		body { background: #000; margin: 0; overflow: hidden; }
+		after-dark-drawmorph { position: absolute; inset: 0; display: block; }
+	</style>
+</head>
+<body>
+	<h1 class="visuallyhidden">DrawMorph Screensaver - After Dark in the Browser</h1>
+
+	<after-dark-drawmorph art="art/wmorph" morph="random" speed="smoother"></after-dark-drawmorph>
+
+	<script src="ad.js?v=8b81cdc-260924204821"></script>
+	<script src="modules/drawmorph.js?v=8b81cdc-260924204821"></script>
+</body>
+</html>

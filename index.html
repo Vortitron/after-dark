@@ -6,7 +6,7 @@
   <title>After Dark in the Browser</title>
   <meta name="description" content="After Dark screensavers running in the browser — the CSS recreations, plus new ones built from artwork decoded straight out of the original Windows modules.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/favicon.png?v=84a7b91-260924202337" />
+  <link rel="shortcut icon" href="img/favicon.png?v=8b81cdc-260924204821" />
   <style>
     /* ------------------------------------------------------------------
        Windows 95 Display Properties, which is where After Dark 4.0 for
@@ -357,7 +357,7 @@
 
   <div class="window">
     <div class="titlebar">
-      <img src="img/after-dark-icon.png?v=84a7b91-260924202337" alt="" width="16" height="16">
+      <img src="img/after-dark-icon.png?v=8b81cdc-260924204821" alt="" width="16" height="16">
       <span class="grow">Display Properties</span>
       <span class="btn out" aria-hidden="true">_</span>
       <span class="btn out" aria-hidden="true">&#9633;</span>
@@ -437,7 +437,7 @@
 
   <div class="taskbar">
     <a class="start" href="https://github.com/Vortitron/after-dark-css">
-      <img src="img/favicon.png?v=84a7b91-260924202337" alt="" width="14" height="14"> Source
+      <img src="img/favicon.png?v=8b81cdc-260924204821" alt="" width="14" height="14"> Source
     </a>
     <span>After Dark &copy; 1989&ndash;1998 Berkeley Systems</span>
     <span class="tray" id="build" title="Build stamp — bumps when GitHub Pages is updated">…</span>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ad-build -->
-  <script>window.AFTER_DARK_BUILD = {"rev": "84a7b91", "time": "2026-09-24T20:23:37Z", "label": "24 Sep 20:23 UTC", "v": "84a7b91-260924202337"};</script>
+  <script>window.AFTER_DARK_BUILD = {"rev": "8b81cdc", "time": "2026-09-24T20:48:21Z", "label": "24 Sep 20:48 UTC", "v": "8b81cdc-260924204821"};</script>
   <!-- /ad-build -->
 
   <script>
@@ -559,6 +559,18 @@
         js: 'fractal', el: 'after-dark-fractal-forest', attrs: 'art="all/art/fractal" trees="some" type="random" season="spring" seasons-last="1 min."' },
       { name: 'Nirvana',         file: 'all/nirvana.html',         kind: 'ripped', tag: 'NIRVANA.AD 1994',
         js: 'nirvana', el: 'after-dark-nirvana', attrs: 'color="random" redraw-every="5 min" activity="calm" change-color="often"' },
+      { name: 'DrawMorph',       file: 'all/drawmorph.html',       kind: 'ripped', tag: 'WMORPH.AD 1994',
+        js: 'drawmorph', el: 'after-dark-drawmorph', attrs: 'art="all/art/wmorph" morph="random" speed="smoother"' },
+      { name: 'Confetti Factory', file: 'all/confetti.html',       kind: 'ripped', tag: 'CONFETTI.AD 1993',
+        js: 'confetti', el: 'after-dark-confetti-factory', attrs: 'art="all/art/confetti" ducks="seven" workshift="1 min." type="metal"' },
+      { name: 'Daredevil Dan',   file: 'all/daredevil.html',       kind: 'ripped', tag: 'DAREDEVI.AD 1994',
+        js: 'daredevil', el: 'after-dark-daredevil-dan', attrs: 'art="all/art/daredevi" risk="$5,000"' },
+      { name: 'Rat Race',        file: 'all/ratrace.html',         kind: 'ripped', tag: 'RATRACE.AD 1994',
+        js: 'ratrace', el: 'after-dark-rat-race', attrs: 'art="all/art/ratrace" training="high school" track' },
+      { name: 'You Bet Your Head', file: 'all/ybyh.html',          kind: 'ripped', tag: 'YBYH.AD 1994',
+        js: 'ybyh', el: 'after-dark-you-bet-your-head', attrs: 'art="all/art/ybyh" contestants="3" timer="20 seconds" show-answers' },
+      { name: 'Lunatic Fringe',  file: 'all/lunatic.html',         kind: 'ripped', tag: 'LUNATIC.AD 1993',
+        js: 'lunatic', el: 'after-dark-lunatic-fringe', attrs: 'art="all/art/lunatic" level="1"' },
       { name: 'Aquatic Realm',   file: 'all/aqua.html',            kind: 'ripped', tag: 'Aqua.ad',
         js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6"' },
       { name: 'Fish Pro',        file: 'all/fishpro.html',         kind: 'ripped', tag: 'FISHPRO.AD 1994',
@@ -1010,6 +1022,33 @@
         { name: 'redraw-every', label: 'Redraw Every', values: ['5 min', '3 min', '10 min', '30 min', '60 min'] },
         { name: 'activity', label: 'Activity', values: ['calm', 'serene', 'alert', 'busy', 'frenetic'] },
         { name: 'change-color', label: 'Change Color', values: ['often', 'never', 'rarely', 'always'] }
+      ],
+      drawmorph: [
+        { name: 'morph', label: 'Morph',
+          values: ['random', 'clock', 'pipecleaner man', 'the athletes', 'underwater', 'ribit', 'all aboard', 'my first morph'] },
+        { name: 'speed', label: 'Speed', values: ['smoother', 'jerky', 'stuttered', 'fairly smooth'] }
+      ],
+      confetti: [
+        { name: 'ducks', label: 'Ducks', values: ['seven', 'none', 'default'] },
+        { name: 'workshift', label: 'Workshift',
+          values: ['1 min.', '10 sec.', '30 sec.', '2 min.', '5 min.', '10 min.', '90 min.', '2 hrs.'] },
+        { name: 'type', label: 'Type', values: ['metal', 'wood'] }
+      ],
+      daredevil: [
+        { name: 'risk', label: 'Insurance Risk', values: ['$5,000', '$500', '$1,000', '$10,000', '$100,000'] }
+      ],
+      ratrace: [
+        { name: 'training', label: 'Training',
+          values: ['high school', 'drop out', 'grade school', 'collegiate', 'professional'] },
+        { name: 'track', label: 'Race Track', check: true, on: true }
+      ],
+      ybyh: [
+        { name: 'contestants', label: 'Contestants', values: ['3', 'text only', '1', '2'] },
+        { name: 'timer', label: 'Timer', values: ['20 seconds', '10 seconds', '30 seconds', '45 seconds'] },
+        { name: 'show-answers', label: 'Show Answers', check: true, on: true }
+      ],
+      lunatic: [
+        { name: 'level', label: 'Starting Level', values: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] }
       ],
       bungee: [
         { name: 'jumper', label: 'Jumper',

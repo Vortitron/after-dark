@@ -244,11 +244,22 @@ module and what was filled in. Worth knowing:
 - **Fractal Forest**'s `TREEDATA` is read as branching parameters. That is a
   guess from how the six records differ, not from the code.
 
-Still to do: Ray (its `TRACES/*.TRC` are pre-rendered scenes in a packed span
-format, not yet decoded - the module also carries an easter-egg cat that runs
-and explodes), DrawMorph (`MORPH*.DAT`), and the staged scenes and games:
-Confetti Factory, Daredevil Dan, Rat Race, You Bet Your Head and Lunatic
-Fringe.
+The games and staged scenes are done too - Confetti Factory, Daredevil Dan,
+Rat Race, You Bet Your Head and Lunatic Fringe - built from their parts,
+since no module keeps a picture of its scene. And DrawMorph, whose morphs are
+the text files beside it (`adtext.py morphs`). Worth knowing:
+
+- **Rat Race** names its runners in `RATN 2000` (fifty-four of them) and writes
+  on its tote board in `PICT 110`, spaced by its `STFT` table: the x of each
+  glyph from ASCII 32.
+- **You Bet Your Head**'s 228 questions are its `STRINGLIST`s from 10000 up,
+  the right answer first.
+- **Lunatic Fringe** keeps each sprite as frames stacked in one bitmap with a
+  blank row between; the ships have 32 headings, up first and clockwise.
+
+Still to do: Ray. Its `TRACES/*.TRC` are pre-rendered scenes in a packed span
+format, not yet decoded - and the module carries an easter-egg cat that runs
+and explodes.
 
 Boris and Mowin' Man are done, and both keep more than one set of pictures,
 chosen by colour depth in the module's `RESINFO` table (type 32515):

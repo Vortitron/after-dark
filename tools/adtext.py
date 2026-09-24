@@ -8,6 +8,7 @@ all/modules/ to read.
     python3 tools/adtext.py strings AD40/CLASSIC/NONSENSE.AD
     python3 tools/adtext.py einstein AD40/CLASSIC/EINSTEIN.AD -o all/art/einstein
     python3 tools/adtext.py nonsense AD40/CLASSIC/NONSENSE.AD -o all/art/nonsense
+    python3 tools/adtext.py morphs AD40/CLASSIC -o all/art/wmorph
 
 strings    Every NE string table, as {id: text}. A block of resource id n
            holds strings (n-1)*16 .. (n-1)*16+15, each one length-prefixed.
@@ -21,6 +22,13 @@ einstein   The chalk. EINSTEIN.AD's type 32513 resources, named LETTER in its
            than one pixel is the pen lifted and moved. Strings 3-52 are the
            lines written out a hundred times; 53-67 are equations, written with
            those codes.
+
+morphs     DrawMorph's MORPH*.DAT, which sit beside WMORPH.AD in the install,
+           as JSON. They are text: "nFrames: n" and n+1 indices of each
+           frame's first segment, "nSegs: n" and each segment's first point,
+           "SegInfo: n" and a colour (0x00BBGGRR) and a width for each, then
+           "nCount: n" points as "x y", and "Size: w h". The Clock morph is
+           the digits 0-9 and a colon, in the older layout without SegInfo.
 
 nonsense   NONSENSE.AD's grammar. Its string ids come in blocks of 1000, each
            starting with a count: 1000 nouns (odd singular, the even one after
@@ -130,13 +138,60 @@ def nonsense(path):
     }
 
 
+MORPHS = [('clock', 'MORPHCLK'), ('pipecleaner man', 'MORPH1'), ('the athletes', 'MORPH2'),
+          ('underwater', 'MORPH3'), ('ribit', 'MORPH4'), ('all aboard', 'MORPH5'), ('my first morph', 'UMORPH1')]
+
+
+def morph_file(path):
+    lines = open(path, encoding='latin1').read().split('\n')
+    i, raw = 0, {}
+    while i < len(lines):
+        line = lines[i]
+        i += 1
+        if ':' not in line:
+            continue
+        key, rest = line.split(':', 1)
+        if key == 'Size':
+            raw['size'] = [int(v) for v in rest.split()]
+            continue
+        n = int(rest.split()[0])
+        n += 1 if key == 'nFrames' else 0
+        raw[key] = lines[i:i + n]
+        i += n
+    firsts = [int(v) for v in raw['nFrames']]
+    starts = [int(v) for v in raw['nSegs']] + [len(raw['nCount'])]
+    pts = [[int(v) for v in p.split()] for p in raw['nCount']]
+    info = raw.get('SegInfo', [])
+    frames = []
+    for f in range(len(firsts) - 1):
+        segs = []
+        for s in range(firsts[f], firsts[f + 1]):
+            colour, width = (int(v) for v in info[s].split()) if s < len(info) else (0xFFFFFF, 0)
+            flat = [c for p in pts[starts[s]:starts[s + 1]] for c in p]
+            segs.append({'rgb': [colour & 255, (colour >> 8) & 255, (colour >> 16) & 255], 'w': width, 'pts': flat})
+        frames.append(segs)
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    size = raw.get('size') or [max(xs) + 1, max(ys) + 1]
+    return {'size': size, 'frames': frames}
+
+
+def morphs(folder):
+    out = {'module': 'WMORPH', 'format': 'morphs', 'morphs': {}}
+    for name, stem in MORPHS:
+        path = os.path.join(folder, stem + '.DAT')
+        if os.path.exists(path):
+            out['morphs'][name] = morph_file(path)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('what', choices=['strings', 'einstein', 'nonsense'])
+    ap.add_argument('what', choices=['strings', 'einstein', 'nonsense', 'morphs'])
     ap.add_argument('module')
     ap.add_argument('-o', '--outdir')
     args = ap.parse_args()
-    data = {'strings': strings, 'einstein': einstein, 'nonsense': nonsense}[args.what](args.module)
+    data = {'strings': strings, 'einstein': einstein, 'nonsense': nonsense, 'morphs': morphs}[args.what](args.module)
     if not args.outdir:
         json.dump(data, sys.stdout, indent=1, ensure_ascii=False)
         print()

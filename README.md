@@ -142,6 +142,12 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-mountains>` | `modules/mountains.js` | `view` = boundaries / webs / mountains / constructions / highlands / random, `water` = frame / shell / sheet / surface / solid / random, `planet` = mercury … pluto / random, `complexity` and `zoom` |
 | `<after-dark-fractal-forest>` | `modules/fractal.js` | `trees` = one / few / some / many, `type` = maple / elm / pine / poplar / sapling / random, `season`, `seasons-last` |
 | `<after-dark-nirvana>` | `modules/nirvana.js` | `color` = smooth / stripes / contrast / rainbow / metal / lines / enamel / random, `redraw-every`, `activity` = serene … frenetic, `change-color` = never … always |
+| `<after-dark-drawmorph>` | `modules/drawmorph.js` | `morph` = clock / pipecleaner man / the athletes / underwater / ribit / all aboard / my first morph / random, `speed` = jerky / stuttered / fairly smooth / smoother |
+| `<after-dark-confetti-factory>` | `modules/confetti.js` | `ducks` = none / seven / default, `workshift` = 10 sec. … 2 hrs., `type` = metal / wood. Caps Lock turns the belts round |
+| `<after-dark-daredevil-dan>` | `modules/daredevil.js` | `risk` = $500 / $1,000 / $5,000 / $10,000 / $100,000 |
+| `<after-dark-rat-race>` | `modules/ratrace.js` | `training` = drop out / grade school / high school / collegiate / professional, `track` is a flag |
+| `<after-dark-you-bet-your-head>` | `modules/ybyh.js` | `contestants` = text only / 1 / 2 / 3, `timer` = 10 / 20 / 30 / 45 seconds, `show-answers` is a flag. Caps Lock and 1, 2, 3 to play |
+| `<after-dark-lunatic-fringe>` | `modules/lunatic.js` | `level` = 1–10. Plays itself; Caps Lock to play (J / L or arrows turn, K or Up thrusts, Space fires, P shield) |
 | `<after-dark-satori>` | `modules/satori.js` | `display` = fields / pools / rays / waves / leaves / mix / random, `colors` = arizona / siberia / tijuana / pacific / hawaii / nile / louisiana / camelot / colorado / atlantis / outback / ithaca / oz / random, `end-clarity` = 1x1 … 16x16, `knots` = 1–8 |
 | `<after-dark-aqua>` | `modules/aqua.js` | `creatures` and `seaweed` are counts, `sea-floor` is a flag |
 | `<after-dark-marbles-40>` | `modules/marbles-40.js` | `count` = a few / a pouch full / a jar full / a box full, `pattern` |

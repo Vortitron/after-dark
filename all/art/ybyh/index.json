@@ -1,0 +1,3079 @@
+{
+ "module": "YBYH",
+ "sequences": {
+  "1001": {
+   "w": 82,
+   "h": 87,
+   "count": 10,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 58
+    },
+    {
+     "x": 44,
+     "y": 0,
+     "w": 44,
+     "h": 58
+    },
+    {
+     "x": 88,
+     "y": 0,
+     "w": 45,
+     "h": 58
+    },
+    {
+     "x": 133,
+     "y": 0,
+     "w": 53,
+     "h": 41
+    },
+    {
+     "x": 186,
+     "y": 0,
+     "w": 72,
+     "h": 32
+    },
+    {
+     "x": 258,
+     "y": 0,
+     "w": 42,
+     "h": 76
+    },
+    {
+     "x": 300,
+     "y": 0,
+     "w": 37,
+     "h": 87
+    },
+    {
+     "x": 337,
+     "y": 0,
+     "w": 74,
+     "h": 32
+    },
+    {
+     "x": 411,
+     "y": 0,
+     "w": 78,
+     "h": 34
+    },
+    {
+     "x": 489,
+     "y": 0,
+     "w": 82,
+     "h": 36
+    }
+   ]
+  },
+  "1002": {
+   "w": 81,
+   "h": 50,
+   "count": 10,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 38,
+     "h": 39
+    },
+    {
+     "x": 38,
+     "y": 0,
+     "w": 38,
+     "h": 40
+    },
+    {
+     "x": 76,
+     "y": 0,
+     "w": 38,
+     "h": 41
+    },
+    {
+     "x": 114,
+     "y": 0,
+     "w": 55,
+     "h": 33
+    },
+    {
+     "x": 169,
+     "y": 0,
+     "w": 71,
+     "h": 32
+    },
+    {
+     "x": 240,
+     "y": 0,
+     "w": 36,
+     "h": 45
+    },
+    {
+     "x": 276,
+     "y": 0,
+     "w": 33,
+     "h": 50
+    },
+    {
+     "x": 309,
+     "y": 0,
+     "w": 73,
+     "h": 32
+    },
+    {
+     "x": 382,
+     "y": 0,
+     "w": 77,
+     "h": 34
+    },
+    {
+     "x": 459,
+     "y": 0,
+     "w": 81,
+     "h": 36
+    }
+   ]
+  },
+  "1003": {
+   "w": 85,
+   "h": 53,
+   "count": 10,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 50,
+     "h": 40
+    },
+    {
+     "x": 50,
+     "y": 0,
+     "w": 50,
+     "h": 39
+    },
+    {
+     "x": 100,
+     "y": 0,
+     "w": 50,
+     "h": 38
+    },
+    {
+     "x": 150,
+     "y": 0,
+     "w": 68,
+     "h": 30
+    },
+    {
+     "x": 218,
+     "y": 0,
+     "w": 75,
+     "h": 36
+    },
+    {
+     "x": 293,
+     "y": 0,
+     "w": 45,
+     "h": 47
+    },
+    {
+     "x": 338,
+     "y": 0,
+     "w": 41,
+     "h": 53
+    },
+    {
+     "x": 379,
+     "y": 0,
+     "w": 77,
+     "h": 36
+    },
+    {
+     "x": 456,
+     "y": 0,
+     "w": 81,
+     "h": 38
+    },
+    {
+     "x": 537,
+     "y": 0,
+     "w": 85,
+     "h": 40
+    }
+   ]
+  },
+  "1004": {
+   "w": 7,
+   "h": 7,
+   "count": 5,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 4,
+     "h": 4
+    },
+    {
+     "x": 4,
+     "y": 0,
+     "w": 7,
+     "h": 7
+    },
+    {
+     "x": 11,
+     "y": 0,
+     "w": 5,
+     "h": 7
+    },
+    {
+     "x": 16,
+     "y": 0,
+     "w": 3,
+     "h": 7
+    },
+    {
+     "x": 19,
+     "y": 0,
+     "w": 5,
+     "h": 7
+    }
+   ]
+  },
+  "1005": {
+   "w": 129,
+   "h": 116,
+   "count": 2,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 108,
+     "h": 116
+    },
+    {
+     "x": 108,
+     "y": 0,
+     "w": 129,
+     "h": 21
+    }
+   ]
+  },
+  "1006": {
+   "w": 100,
+   "h": 39,
+   "count": 7,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 100,
+     "h": 26
+    },
+    {
+     "x": 100,
+     "y": 0,
+     "w": 100,
+     "h": 26
+    },
+    {
+     "x": 200,
+     "y": 0,
+     "w": 100,
+     "h": 34
+    },
+    {
+     "x": 300,
+     "y": 0,
+     "w": 96,
+     "h": 38
+    },
+    {
+     "x": 396,
+     "y": 0,
+     "w": 91,
+     "h": 39
+    },
+    {
+     "x": 487,
+     "y": 0,
+     "w": 87,
+     "h": 38
+    },
+    {
+     "x": 574,
+     "y": 0,
+     "w": 82,
+     "h": 35
+    }
+   ]
+  },
+  "1007": {
+   "w": 31,
+   "h": 81,
+   "count": 4,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 31,
+     "h": 81
+    },
+    {
+     "x": 31,
+     "y": 0,
+     "w": 31,
+     "h": 81
+    },
+    {
+     "x": 62,
+     "y": 0,
+     "w": 31,
+     "h": 81
+    },
+    {
+     "x": 93,
+     "y": 0,
+     "w": 31,
+     "h": 80
+    }
+   ]
+  },
+  "1008": {
+   "w": 70,
+   "h": 43,
+   "count": 4,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 42
+    },
+    {
+     "x": 70,
+     "y": 0,
+     "w": 69,
+     "h": 42
+    },
+    {
+     "x": 139,
+     "y": 0,
+     "w": 65,
+     "h": 43
+    },
+    {
+     "x": 204,
+     "y": 0,
+     "w": 59,
+     "h": 43
+    }
+   ]
+  },
+  "1009": {
+   "w": 9,
+   "h": 58,
+   "count": 5,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 9,
+     "h": 58
+    },
+    {
+     "x": 9,
+     "y": 0,
+     "w": 6,
+     "h": 57
+    },
+    {
+     "x": 15,
+     "y": 0,
+     "w": 4,
+     "h": 55
+    },
+    {
+     "x": 19,
+     "y": 0,
+     "w": 6,
+     "h": 52
+    },
+    {
+     "x": 25,
+     "y": 0,
+     "w": 9,
+     "h": 51
+    }
+   ]
+  },
+  "1010": {
+   "w": 117,
+   "h": 64,
+   "count": 7,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 117,
+     "h": 60
+    },
+    {
+     "x": 117,
+     "y": 0,
+     "w": 93,
+     "h": 64
+    },
+    {
+     "x": 210,
+     "y": 0,
+     "w": 65,
+     "h": 64
+    },
+    {
+     "x": 275,
+     "y": 0,
+     "w": 78,
+     "h": 62
+    },
+    {
+     "x": 353,
+     "y": 0,
+     "w": 113,
+     "h": 62
+    },
+    {
+     "x": 466,
+     "y": 0,
+     "w": 114,
+     "h": 63
+    },
+    {
+     "x": 580,
+     "y": 0,
+     "w": 116,
+     "h": 64
+    }
+   ]
+  },
+  "1011": {
+   "w": 81,
+   "h": 107,
+   "count": 13,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 70,
+     "h": 91
+    },
+    {
+     "x": 70,
+     "y": 0,
+     "w": 59,
+     "h": 87
+    },
+    {
+     "x": 129,
+     "y": 0,
+     "w": 53,
+     "h": 75
+    },
+    {
+     "x": 182,
+     "y": 0,
+     "w": 54,
+     "h": 84
+    },
+    {
+     "x": 236,
+     "y": 0,
+     "w": 60,
+     "h": 89
+    },
+    {
+     "x": 296,
+     "y": 0,
+     "w": 59,
+     "h": 93
+    },
+    {
+     "x": 355,
+     "y": 0,
+     "w": 58,
+     "h": 92
+    },
+    {
+     "x": 413,
+     "y": 0,
+     "w": 68,
+     "h": 100
+    },
+    {
+     "x": 481,
+     "y": 0,
+     "w": 79,
+     "h": 107
+    },
+    {
+     "x": 560,
+     "y": 0,
+     "w": 76,
+     "h": 90
+    },
+    {
+     "x": 636,
+     "y": 0,
+     "w": 81,
+     "h": 63
+    },
+    {
+     "x": 717,
+     "y": 0,
+     "w": 76,
+     "h": 47
+    },
+    {
+     "x": 793,
+     "y": 0,
+     "w": 81,
+     "h": 66
+    }
+   ]
+  },
+  "1012": {
+   "w": 36,
+   "h": 40,
+   "count": 3,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 36,
+     "h": 40
+    },
+    {
+     "x": 36,
+     "y": 0,
+     "w": 36,
+     "h": 40
+    },
+    {
+     "x": 72,
+     "y": 0,
+     "w": 36,
+     "h": 40
+    }
+   ]
+  },
+  "1016": {
+   "w": 59,
+   "h": 30,
+   "count": 4,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 59,
+     "h": 12
+    },
+    {
+     "x": 59,
+     "y": 0,
+     "w": 59,
+     "h": 14
+    },
+    {
+     "x": 118,
+     "y": 0,
+     "w": 59,
+     "h": 28
+    },
+    {
+     "x": 177,
+     "y": 0,
+     "w": 59,
+     "h": 30
+    }
+   ]
+  },
+  "1017": {
+   "w": 44,
+   "h": 9,
+   "count": 9,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 44,
+     "h": 9
+    },
+    {
+     "x": 44,
+     "y": 0,
+     "w": 44,
+     "h": 9
+    },
+    {
+     "x": 88,
+     "y": 0,
+     "w": 44,
+     "h": 9
+    },
+    {
+     "x": 132,
+     "y": 0,
+     "w": 34,
+     "h": 6
+    },
+    {
+     "x": 166,
+     "y": 0,
+     "w": 34,
+     "h": 6
+    },
+    {
+     "x": 200,
+     "y": 0,
+     "w": 34,
+     "h": 6
+    },
+    {
+     "x": 234,
+     "y": 0,
+     "w": 34,
+     "h": 6
+    },
+    {
+     "x": 268,
+     "y": 0,
+     "w": 34,
+     "h": 6
+    },
+    {
+     "x": 302,
+     "y": 0,
+     "w": 34,
+     "h": 6
+    }
+   ]
+  },
+  "1110": {
+   "w": 118,
+   "h": 112,
+   "count": 8,
+   "frames": [
+    {
+     "x": 0,
+     "y": 0,
+     "w": 105,
+     "h": 79
+    },
+    {
+     "x": 105,
+     "y": 0,
+     "w": 74,
+     "h": 107
+    },
+    {
+     "x": 179,
+     "y": 0,
+     "w": 65,
+     "h": 112
+    },
+    {
+     "x": 244,
+     "y": 0,
+     "w": 75,
+     "h": 103
+    },
+    {
+     "x": 319,
+     "y": 0,
+     "w": 78,
+     "h": 89
+    },
+    {
+     "x": 397,
+     "y": 0,
+     "w": 87,
+     "h": 67
+    },
+    {
+     "x": 484,
+     "y": 0,
+     "w": 117,
+     "h": 62
+    },
+    {
+     "x": 601,
+     "y": 0,
+     "w": 118,
+     "h": 61
+    }
+   ]
+  }
+ },
+ "bitmaps": {
+  "banners": {
+   "w": 277,
+   "h": 509,
+   "file": "banners.png",
+   "source": "sict-1015"
+  },
+  "digits": {
+   "w": 10,
+   "h": 166,
+   "file": "digits.png",
+   "source": "pict-1014"
+  },
+  "curtain": {
+   "w": 32,
+   "h": 40,
+   "file": "curtain.png",
+   "source": "sict-1026"
+  },
+  "curtain2": {
+   "w": 32,
+   "h": 44,
+   "file": "curtain2.png",
+   "source": "sict-1027"
+  },
+  "wood": {
+   "w": 64,
+   "h": 112,
+   "file": "wood.png",
+   "source": "sict-1021"
+  },
+  "boxes": {
+   "w": 70,
+   "h": 132,
+   "file": "boxes.png",
+   "source": "tict-1013"
+  },
+  "gold": {
+   "w": 64,
+   "h": 64,
+   "file": "gold.png",
+   "source": "sict-1022"
+  }
+ },
+ "questions": [
+  {
+   "q": "If you wanted to sprinkle the world's most oft used spice on lunch, you'd pick up the:",
+   "a": [
+    "salt",
+    "pepper",
+    "ketchup",
+    "galanga root",
+    "cilantro",
+    "human ashes"
+   ]
+  },
+  {
+   "q": "Of course, the world's oldest ball game is:",
+   "a": [
+    "handball",
+    "basketball",
+    "tether ball",
+    "Pong",
+    "pocket billiards"
+   ]
+  },
+  {
+   "q": "Besides man, the only animal in the world that can be taught to stand on its head is:",
+   "a": [
+    "the elephant",
+    "the lion",
+    "an opossum",
+    "the jackrabbit",
+    "the jackalope"
+   ]
+  },
+  {
+   "q": "It's the only game that doesn't have an element of chance:",
+   "a": [
+    "chess",
+    "pachinko",
+    "bowling",
+    "roulette",
+    "love",
+    "politics"
+   ]
+  },
+  {
+   "q": "American cheese, also known as Cheddar, originated in what country?",
+   "a": [
+    "England",
+    "America",
+    "Iran",
+    "Czechoslovakia",
+    "South America",
+    "The Moon"
+   ]
+  },
+  {
+   "q": "Cynophobia, I'm afraid, is the fear of:",
+   "a": [
+    "dogs",
+    "dice",
+    "balloons",
+    "sinning",
+    "cynicism",
+    "toilet seats"
+   ]
+  },
+  {
+   "q": "The giant panda bear, not a bear at all, is really a member of what animal family?",
+   "a": [
+    "raccoon",
+    "anthropod",
+    "feline",
+    "bovine",
+    "canine"
+   ]
+  },
+  {
+   "q": "Which beast in the animal kingdom has the longest tail?",
+   "a": [
+    "giraffe",
+    "elephant",
+    "buffalo",
+    "kangaroo",
+    "manx cat"
+   ]
+  },
+  {
+   "q": "What's the only part of the human body that, once broken or damaged, cannot repair itself?",
+   "a": [
+    "tooth",
+    "heart",
+    "gluteus maximus",
+    "manicured nails",
+    "tongue"
+   ]
+  },
+  {
+   "q": "What does a spermologist collect?",
+   "a": [
+    "trivia",
+    "sperm",
+    "eggs",
+    "back rent",
+    "postcards",
+    "lovers"
+   ]
+  },
+  {
+   "q": "What creatures have the best vision in the animal kingdom?",
+   "a": [
+    "hawks",
+    "eagles",
+    "bees",
+    "turkeys",
+    "bats",
+    "accountants"
+   ]
+  },
+  {
+   "q": "What is the motto of the US Post Office?",
+   "a": [
+    "Certainty, Security and Celerity",
+    "Neither rain nor snow nor dead of night will stay the postman from his appointed rounds",
+    "Seal it, Stamp it, Send it",
+    "Your Postal Order is Our Postal Command",
+    "Lick it yourself"
+   ]
+  },
+  {
+   "q": "Ouch! Besides humans, what other animals can suffer sunburn?",
+   "a": [
+    "Pigs and walruses",
+    "Snakes and toads",
+    "Eels and otters",
+    "Seals and slugs"
+   ]
+  },
+  {
+   "q": "We may have red blood running in our veins, but guess the creature that has blood of another color?",
+   "a": [
+    "Lobsters are blue-blooded",
+    "Coward's blood is bright yellow",
+    "Mosquitoes bleed red with blue spots",
+    "The blood of snakes is pure white"
+   ]
+  },
+  {
+   "q": "A wedding's 'best man' originally got his title for helping the groom...",
+   "a": [
+    "kidnap the bride",
+    "choose his tuxedo",
+    "hold the ring",
+    "remember his lines",
+    "when he fainted after the vows",
+    "plan his escape"
+   ]
+  },
+  {
+   "q": "If your chosen hobby was spelunking, you would often be found...",
+   "a": [
+    "exploring dank caves",
+    "collecting mushrooms",
+    "grating exotic cheeses",
+    "writing 17-line poetry",
+    "making silly faces",
+    "hawkin' loogies"
+   ]
+  },
+  {
+   "q": "Besides representations of Justice and Freedom, only these three women have appeared on US currency:",
+   "a": [
+    "Martha Washington, Pocahontas and Susan B. Anthony",
+    "Betsy Ross, Diana Ross and Martha Washington",
+    "Martha Washington, Diana Washington and Marilyn Monroe",
+    "Pocahontas, Marilyn Monroe and Mrs. James Monroe",
+    "Madonna, the young Madonna, the old Madonna",
+    "Marsha, Jan and Cindy"
+   ]
+  },
+  {
+   "q": "Do you know the average number of square feet of skin you're in?",
+   "a": [
+    "14 to 18 square feet",
+    "Can't be measured in square feet",
+    "2 to 5 square feet",
+    "25 square feet",
+    "Depends on your height and weight, of course"
+   ]
+  },
+  {
+   "q": "Although identical twins don't have identical ones, fingerprints are already formed by what age?",
+   "a": [
+    "3 months in the womb",
+    "Age 13 in boys, 11 in girls",
+    "At the time of the first committed crime",
+    "6 months",
+    "Day one"
+   ]
+  },
+  {
+   "q": "How much of the body's heat is lost by taking off that hat?",
+   "a": [
+    "One half to three quarters of it",
+    "All of it",
+    "None of it",
+    "One seventeenth of a percent",
+    "None, there are no holes in my head",
+    "Depends on your hair color"
+   ]
+  },
+  {
+   "q": "The toothbrush was invented around 1498 and used the hair of pigs as bristles. Where was it first made?",
+   "a": [
+    "China",
+    "Aboard Sir Francis Drake's ship, the Golden Hinde",
+    "Cavitica, Greece",
+    "Dentistry, Illinois",
+    "Brushington, England",
+    "Colgate, Brussels"
+   ]
+  },
+  {
+   "q": "Where do most accidents occur in the average household?",
+   "a": [
+    "On the stairs",
+    "In the deep end of the hot tub",
+    "In the kitchen",
+    "In bed",
+    "Around the toilet bowl",
+    "On the way to the bathroom"
+   ]
+  },
+  {
+   "q": "What's the meaning of the ZIP in the Zip Code",
+   "a": [
+    "Zoning Improvement Plan",
+    "Zero Informational Position",
+    "Zone Installation Paradigm",
+    "Zeigler's Improved Postal",
+    "Zebras Ignite Prematurely"
+   ]
+  },
+  {
+   "q": "To what does that expression 'once in a blue moon' really refer?",
+   "a": [
+    "Infrequently, there are two full moons in one month",
+    "Happened once in the Northeastern sky on January 6, 1490",
+    "Atmospheric conditions sometimes make the moon appear baby blue",
+    "Sometimes the moon, made of green cheese, looks blue",
+    "A full lunar eclipse"
+   ]
+  },
+  {
+   "q": "Do you know the name of the most widely-sung song in the English language?",
+   "a": [
+    "Happy Birthday To You",
+    "Feelings",
+    "Jimi Hendrix's Are You Experienced?",
+    "For He's a Jolly Good Fellow",
+    "Santa Claus is Coming to Town",
+    "On Mighty Toaster Wings"
+   ]
+  },
+  {
+   "q": "Besides his very cool costume, what superpower does Batman possess?",
+   "a": [
+    "None, but he's very good at martial arts",
+    "He can eat unlimited amounts of food",
+    "He can think backward as quickly as forward",
+    "Like a bat, he has unerring natural radar",
+    "He's handy in the kitchen",
+    "He sewed his own outfit"
+   ]
+  },
+  {
+   "q": "In the credits for a movie, what is the best boy?",
+   "a": [
+    "Assistant to the gaffer, or chief electrician",
+    "Gofer person: goes for coffee, goes for snacks",
+    "Nominee for best actor",
+    "Assistant to the assistant director's assistant",
+    "The producer's son",
+    "The star's recent boyfriend",
+    "Statistically a female"
+   ]
+  },
+  {
+   "q": "Which of these are among the seven deadly sins?",
+   "a": [
+    "Anger, envy and sloth",
+    "Murder, bossiness and boorishness",
+    "Greed, obscenity and stupidity",
+    "Poverty, stubbornness and insomnia",
+    "Vulgarity, sloth and tackiness",
+    "Certainty, security and celerity"
+   ]
+  },
+  {
+   "q": "Which of the following is the actual first line of Moby Dick?",
+   "a": [
+    "Call me Ishmael",
+    "He was the mother of all whales",
+    "They say there are plenty of fish in the sea...",
+    "I was late for supper, and that day they were servin' up whale",
+    "It was a dark and stormy night...",
+    "Whatever you do, don't call me Ishmael"
+   ]
+  },
+  {
+   "q": "Where is that Buddhist place known as nirvana?",
+   "a": [
+    "Nirvana is a state of bliss",
+    "Heaven",
+    "Near Budapest",
+    "Near Valhalla",
+    "It is a suburb of Bethlehem",
+    "Two doors down from the Jones'"
+   ]
+  },
+  {
+   "q": "You know baseball's seventh-inning stretch? Why the seventh inning?",
+   "a": [
+    "Seven is considered a lucky number!",
+    "So the television cameras have time to change videotapes",
+    "Gives the vendors more time to sell their wares",
+    "Used to be baseball games were 14 innings long \u00d0 this was the midpoint",
+    "The human bladder is only so big"
+   ]
+  },
+  {
+   "q": "The Taj Mahal in India was originally built to serve what purpose?",
+   "a": [
+    "As a tomb",
+    "As a wedding present",
+    "As the world's most luxurious hotel",
+    "As the world's largest summer cottage",
+    "An early, eastern version of a souvenier shop",
+    "A hideout for Elvis"
+   ]
+  },
+  {
+   "q": "Who is on record as the verifiably longest-lived person in the world?",
+   "a": [
+    "120 year old Shigechiyo Izumi of Japan died in 1986",
+    "At age 116, Russian-born Czar Ima Tiredoffit",
+    "A slave from Missouri, Irena Sojurner, said to have reached 103",
+    "Kenya Be-Liffit was a South-African shaman who lived to the age of 124",
+    "Anyone you happen to despise"
+   ]
+  },
+  {
+   "q": "How many known types of marriage exist in the wide, wide world?",
+   "a": [
+    "Four: monogamy, polygamy, polyandry and group marriage",
+    "Polygamy and monogamy",
+    "Thirteen, ranging from self-marriage to group marriage",
+    "Just three: monogamy, polygamy and bigamy",
+    "Never been researched, but the strangest may be self-marriage"
+   ]
+  },
+  {
+   "q": "Okay, where does Gouda cheese come from?",
+   "a": [
+    "Gouda, The Netherlands",
+    "Milk of a Gouda cow, raised anywhere",
+    "Goudaghan, Afghanistan, originally camel's milk cheese",
+    "Gough Daa, Moroccan goat cheese",
+    "Goody, Florida, the result of a cheese-making contest",
+    "Mmm, that's a gouda cheese"
+   ]
+  },
+  {
+   "q": "What animal gave up the yarn for that Angora sweater?",
+   "a": [
+    "Little rabbits from Angora, France",
+    "Rodents called Angers, from Angkor Wat, Cambodia",
+    "An angora goat",
+    "A camel from Ankara, Turkey",
+    "Angora cats from Persia"
+   ]
+  },
+  {
+   "q": "What was the first nation to give women the vote?",
+   "a": [
+    "New Zealand in 1893",
+    "America in 1923",
+    "England allowed them to cast votes by 1625",
+    "The tiny island of Lesbos in 1300",
+    "The Vatican in 1803"
+   ]
+  },
+  {
+   "q": "You've heard of the Battle of the Bulge in World War II? What was the bulge?",
+   "a": [
+    "A break in the Allied Lines caused by a German advance",
+    "A new type of gun worn under the shirt",
+    "A hill in Belgium",
+    "The Bulge was the nickname of the French General Ardenne",
+    "The nickname for a particular way French soldiers wore their famous black berets",
+    "Herman Goering's weight problem"
+   ]
+  },
+  {
+   "q": "So, where are those Panama hats made?",
+   "a": [
+    "Ecuador",
+    "Panama",
+    "Pan City, Alabama",
+    "Pantomime, France",
+    "Strawbridge, England"
+   ]
+  },
+  {
+   "q": "You know that spilling salt is bad luck, but do you know why?",
+   "a": [
+    "Salt was once an expensive and rare commodity",
+    "Because it makes the floor all slippery",
+    "Salt was seen as a symbol of tears, and crying foresaw bad luck",
+    "In the Bible, the Devil loved salt and salty foods",
+    "It's too hard to put it back in the shaker"
+   ]
+  },
+  {
+   "q": "What is the world's deadliest mushroom?",
+   "a": [
+    "Death Cap",
+    "Enoki",
+    "Chanterelle",
+    "Deadly nightshade",
+    "Button",
+    "French Beret"
+   ]
+  },
+  {
+   "q": "Who invented chop suey?",
+   "a": [
+    "A dishwasher in a San Francisco restaurant",
+    "A line cook named Suey Wong",
+    "Owners of a pork chop factory",
+    "The same fellow who invented Chapstick",
+    "Ah Chuey (bless you)"
+   ]
+  },
+  {
+   "q": "What, do you think, is the world's most trusted profession?",
+   "a": [
+    "Druggist",
+    "Policeman",
+    "Mortician",
+    "Medical Doctor",
+    "Rock Musician",
+    "Parking Valet",
+    "Proctologist"
+   ]
+  },
+  {
+   "q": "This writer holds the record for the most titles published:",
+   "a": [
+    "William Shakespeare",
+    "Danielle Steele",
+    "Mark Twain",
+    "Agatha Christie",
+    "Stephen King"
+   ]
+  },
+  {
+   "q": "Amongst those of us who fly, what was the most common airline complaint?",
+   "a": [
+    "In-flight difficulties",
+    "Leg room",
+    "Inedible food",
+    "Huge fares",
+    "Tiny bathrooms",
+    "Fear of flying",
+    "Only get one bag of nuts"
+   ]
+  },
+  {
+   "q": "This is interesting. What country is crammed with the world's most camels?",
+   "a": [
+    "Somalia",
+    "India",
+    "Saudi Arabia",
+    "Timbuktu",
+    "Sudan"
+   ]
+  },
+  {
+   "q": "This state has the odd reputation of having the most prison breaks...",
+   "a": [
+    "Michigan",
+    "California",
+    "New York",
+    "Florida",
+    "Oklahoma"
+   ]
+  },
+  {
+   "q": "Chimpanzees differ from humans in that they get goosebumps on their...",
+   "a": [
+    "faces",
+    "tails",
+    "ears",
+    "palms",
+    "rumps"
+   ]
+  },
+  {
+   "q": "What fruit is closely associated with Isaac Newton?",
+   "a": [
+    "apple",
+    "fig",
+    "mango",
+    "watermelon",
+    "persimmon",
+    "cherry"
+   ]
+  },
+  {
+   "q": "You may know the oldest, but what is the longest antique ever sold?",
+   "a": [
+    "The London Bridge",
+    "Noah's Ark",
+    "Cleopatra's barge",
+    "Henry VIII's dining room table",
+    "Princess Di's wedding train",
+    "Great Wall of China"
+   ]
+  },
+  {
+   "q": "Surf's up, dude! What's the highest officially recorded wave?",
+   "a": [
+    "112 feet out of Manila Harbor",
+    "13 feet 6 inches on Diamond Head Beach",
+    "57 miles from trough to crest at The Great Coral Reef, Australia",
+    "Venice Beach's 71 footer in 1968",
+    "Annette Funicello's hair; Beach Party 1967"
+   ]
+  },
+  {
+   "q": "Of all the natural phenomena devised by nature, which has caused the largest toll on human lives?",
+   "a": [
+    "Earthquake",
+    "Fire",
+    "Famine",
+    "Bubonic plague",
+    "Flood",
+    "Management"
+   ]
+  },
+  {
+   "q": "Quick, name the tallest geyser in the world, active or not:",
+   "a": [
+    "New Zealand's Waimangu",
+    "Old Faithful in Yellowstone National Park",
+    "The Steamboat Geyser in Yellowstone National Park",
+    "Geysir (The Gusher) in Iceland"
+   ]
+  },
+  {
+   "q": "What to wear? Can you name the site of the world's most constantly diverse temperature range?",
+   "a": [
+    "Verkhoyansk, Russia's temps climb from -90 F to a warm 188 F in one day",
+    "Death Valley, California's temperatures range from 33 F to 118 F",
+    "Browning, Montana often goes from 100 F to -56 F",
+    "Spearfish, South Dakota thermometers read -4 F in the am, and 44 F at night"
+   ]
+  },
+  {
+   "q": "How many times has the record-holding human lightening conductor, Roy Sullivan, been struck by lightning?",
+   "a": [
+    "7",
+    "3",
+    "13",
+    "23",
+    "Once"
+   ]
+  },
+  {
+   "q": "What living thing holds the record as the noisiest land creature---as far as vocals are concerned?",
+   "a": [
+    "Howler monkeys",
+    "Man",
+    "Woman",
+    "Elephants",
+    "Male lions",
+    "Jovial hyenas"
+   ]
+  },
+  {
+   "q": "Combined, the total weight of this creature's annual offspring is 3 times the weight of the world's human population:",
+   "a": [
+    "Cabbage aphids",
+    "Tarantulas",
+    "Mosquitoes",
+    "Blue whales"
+   ]
+  },
+  {
+   "q": "Name the world's most lethal animal, which has been credited with 50% of all human deaths since the Stone Age?",
+   "a": [
+    "Plasmodium mosquitoes",
+    "Water Moccasin snakes",
+    "Bubonic fleas",
+    "Killer bees"
+   ]
+  },
+  {
+   "q": "What are the world's most valuable animals in cash terms?",
+   "a": [
+    "Race horses",
+    "Chinchillas",
+    "Chamois",
+    "Beef cattle",
+    "Sled dogs",
+    "Banana Slugs"
+   ]
+  },
+  {
+   "q": "What land animal can be called the world's slowest, clocked at 6-8 feet per minute?",
+   "a": [
+    "Three-toed sloth",
+    "Garden snail",
+    "Giant tortoise",
+    "Slow loris"
+   ]
+  },
+  {
+   "q": "Which of the following original Seven Wonders of the World still exist?",
+   "a": [
+    "Sphinx",
+    "Hoover Dam and the Sphinx",
+    "Hanging Gardens of Babylon, Roman Aqueducts and the Sphinx",
+    "Pyramid of Giza and The Eiffel Tower",
+    "The Flying Toaster"
+   ]
+  },
+  {
+   "q": "Los Angeles means The Angels; how does Las Vegas translate?",
+   "a": [
+    "The Plains",
+    "The Vagrants",
+    "The Fat Chances",
+    "The Miracles",
+    "The Stars"
+   ]
+  },
+  {
+   "q": "Which American president was the first to actually live in the White House?",
+   "a": [
+    "John Adams",
+    "George Washington",
+    "Ben Franklin",
+    "James Monroe",
+    "Marylin Monroe",
+    "Socks the Cat"
+   ]
+  },
+  {
+   "q": "His gravestone reads, \"On the whole, I'd rather be in Philadelphia:\"",
+   "a": [
+    "W.C. Fields",
+    "Lassie the Dog",
+    "Rin Tin Tin the Wonder Dog",
+    "Benjamin Franklin",
+    "Moe Fine"
+   ]
+  },
+  {
+   "q": "That feeling of pins and needles as a result of whacking your elbow is known as hitting the 'funny bone' because...",
+   "a": [
+    "That's the location of your humerus bone",
+    "It feels so funny",
+    "Other people laugh at your discomfort",
+    "That's the correct anatomical name"
+   ]
+  },
+  {
+   "q": "Where's the location of the world's biggest gold holdings?",
+   "a": [
+    "Federal Reserve Bank of New York",
+    "Fort Knox",
+    "South Africa",
+    "Headquarters of the American Association of Denistry"
+   ]
+  },
+  {
+   "q": "Do you know what is the world's longest creature?",
+   "a": [
+    "A jellyfish found off the coast of England",
+    "Blue whale",
+    "Amazon slug",
+    "Python snake",
+    "Mammoth slug",
+    "'Nessie of the Loch"
+   ]
+  },
+  {
+   "q": "This vision aid was invented long before all others?",
+   "a": [
+    "sunglasses",
+    "monocle",
+    "contact lens",
+    "goggles",
+    "bifocals"
+   ]
+  },
+  {
+   "q": "If there's a queen sitting on the throne it's officially called a...",
+   "a": [
+    "kingdom",
+    "queendom",
+    "maternal monarchy",
+    "potentate",
+    "fatherland"
+   ]
+  },
+  {
+   "q": "You were aware that this creature has three hearts, weren't you?",
+   "a": [
+    "Octopus",
+    "Your ex-girlfriend",
+    "Your ex-boyfriend",
+    "Gila monster",
+    "Armadillo",
+    "Aorta Elk"
+   ]
+  },
+  {
+   "q": "Hmm, guess which auto part the salvage yards sell more of than any other ...",
+   "a": [
+    "front left doors",
+    "rear bumpers",
+    "head lamps",
+    "fuzzy dice",
+    "windshields",
+    "rats"
+   ]
+  },
+  {
+   "q": "The U.S. Constitution mentions this one, and only one, crime...",
+   "a": [
+    "treason",
+    "counterfeiting",
+    "jaywalking",
+    "embezzlement",
+    "looting",
+    "lying"
+   ]
+  },
+  {
+   "q": "Can you guess how the chroniclers of history listed Adam's occupation?",
+   "a": [
+    "gardener",
+    "snake wrangler",
+    "first male",
+    "apple farmer",
+    "tailor",
+    "stud"
+   ]
+  },
+  {
+   "q": "What animal has its nostrils neatly on top of its head?",
+   "a": [
+    "whale",
+    "alligator",
+    "toad",
+    "seal",
+    "anteater"
+   ]
+  },
+  {
+   "q": "To be a true Rouquefort cheese, it must be aged in this environment:",
+   "a": [
+    "caves in France",
+    "sunshine",
+    "0 percent humidity",
+    "tanning factory",
+    "pure brine",
+    "Air tight containers"
+   ]
+  },
+  {
+   "q": "How many species of fish can be found in the Great Salt Lake?",
+   "a": [
+    "None",
+    "Too many to count",
+    "11",
+    "Depends on the day",
+    "13,909"
+   ]
+  },
+  {
+   "q": "The 'Mona Lisa' is painted on:",
+   "a": [
+    "wood",
+    "canvas",
+    "an old menu",
+    "paper",
+    "another masterpiece"
+   ]
+  },
+  {
+   "q": "Do you know what makes Mars appear red?",
+   "a": [
+    "rust",
+    "smog",
+    "gases",
+    "cranberry bogs",
+    "water",
+    "Earth's atmosphere"
+   ]
+  },
+  {
+   "q": "If I mentioned that you were oryzivorous, I would be letting it known that you",
+   "a": [
+    "Like rice",
+    "Prefer vegetables over meat",
+    "Can only see out of your left eye",
+    "Blush uncontrollably",
+    "Are obsessively neat",
+    "Perspire aromatically"
+   ]
+  },
+  {
+   "q": "We all know the first thing Neil Armstrong said when he landed on the moon; what was the second?\"",
+   "a": [
+    "\"The surface is fine and powdery\"",
+    "\"Hey, I can see my house\"",
+    "\"This is so cool\"",
+    "\"Not a speck of green cheese\"",
+    "\"I love being an astronaut\"",
+    "\"I hope I can remember where I parked\""
+   ]
+  },
+  {
+   "q": "What's the epitaph on Shakespeare's tombstone?",
+   "a": [
+    "\"Cursed be he that moves my bones\"",
+    "\"To be or not to be--I no longer am\"",
+    "\"Out, out damned death\"",
+    "\"I am a writer, fie and death was not meant to be\"",
+    "\"If only I kept the movie rights\""
+   ]
+  },
+  {
+   "q": "Wherever did we get the expression 'tit for tat'?",
+   "a": [
+    "From the Dutch habit of saying 'dit vor dat'",
+    "'Tis the song of the titmouse",
+    "An old barter saying, 'I'll trade one cow for one for one tat of rum'",
+    "An old expression, \"Tisn't what I that\"",
+    "Nobody knows",
+    "Nobody really cares"
+   ]
+  },
+  {
+   "q": "What's the biggest draw at the average zoo?",
+   "a": [
+    "The big cats",
+    "The hotdog stand",
+    "Kangaroos",
+    "Any animals that are courting",
+    "The gift shop, by a long shot",
+    "Elephants"
+   ]
+  },
+  {
+   "q": "Do you speak the fourth most widely-used language in America, which is...?",
+   "a": [
+    "sign language",
+    "BASIC",
+    "Spanish",
+    "English",
+    "Swear words"
+   ]
+  },
+  {
+   "q": "What the heck is a dactylogram?",
+   "a": [
+    "a fingerprint",
+    "Braille telegram",
+    "Potato-powered clock",
+    "Petrified dinosaur feces"
+   ]
+  },
+  {
+   "q": "Hmmm, know what place to visit in order to see the widest variety of hummingbirds?",
+   "a": [
+    "Ecuador",
+    "Humington Beach, California",
+    "Museums; there are only 3 species left in the wilds",
+    "Spain",
+    "Peru"
+   ]
+  },
+  {
+   "q": "Know who invented the game of golf?",
+   "a": [
+    "The Scots",
+    "The ancient Greeks",
+    "American doctors",
+    "The Slavs",
+    "Bored landscapers"
+   ]
+  },
+  {
+   "q": "If a woman shyly told you she was a philematophobe, what does she obviously loathe to do?",
+   "a": [
+    "Kiss",
+    "Bathe",
+    "Cook",
+    "Work with people",
+    "Wear fur",
+    "Eat out"
+   ]
+  },
+  {
+   "q": "It kills me that this percentage of all murders will go unsolved ...",
+   "a": [
+    "28%",
+    "36%",
+    "0",
+    "Every other one",
+    "Only the ones wherein someone died",
+    "54%"
+   ]
+  },
+  {
+   "q": "Name the veggie that turns green when sunburnt:",
+   "a": [
+    "Turnip",
+    "Tomato",
+    "Bok Choy",
+    "Radish",
+    "Spinach",
+    "Cabbage"
+   ]
+  },
+  {
+   "q": "You know the only world heavyweight boxing champ that retired undefeated?",
+   "a": [
+    "Rocky Marciano",
+    "Hulk Hogan",
+    "Muhammed Ali",
+    "Pretty Boy Floyd",
+    "Fabio",
+    "Jersey Joe Wallcott"
+   ]
+  },
+  {
+   "q": "What does an amathophobe fear?",
+   "a": [
+    "Dust",
+    "The study of mathematics",
+    "Poverty",
+    "The telephone",
+    "Elvis impersonators"
+   ]
+  },
+  {
+   "q": "How many people were aboard Noah's Ark?",
+   "a": [
+    "Eight",
+    "Two",
+    "None",
+    "One hundred and twelve",
+    "Just Noah",
+    "No one knows"
+   ]
+  },
+  {
+   "q": "That famous delicacy, ketchup, started its shelf life as a ...",
+   "a": [
+    "Patent medicine",
+    "Beauty product",
+    "Preservative",
+    "Remedy for heartburn",
+    "Dessert topping",
+    "Floor wax"
+   ]
+  },
+  {
+   "q": "A rare thing, kakistocracy, means government by ...",
+   "a": [
+    "The worst people in society",
+    "The military",
+    "Scientists",
+    "Those under the age of minority",
+    "Birth right"
+   ]
+  },
+  {
+   "q": "Choose one as the origin of the word \"autopsy\":",
+   "a": [
+    "Greek for 'to see for one's self'",
+    "Latin meaning 'automatic evaluation'",
+    "Ancient Greek for 'death by one's own hand'",
+    "Middle English expression, 'the study of darkness'"
+   ]
+  },
+  {
+   "q": "Besides humans, which of the following animals mate face-to-face?",
+   "a": [
+    "Dolphins, whales and porcupines",
+    "Snakes and sloths",
+    "Sharks, bats and tree frogs",
+    "Otters, ferrets and beetles",
+    "Lions, tigers and bears"
+   ]
+  },
+  {
+   "q": "You know Levi's 501 brand?  So what did the 501 refer to?",
+   "a": [
+    "Original number of rivets per pair",
+    "Denim jeans were the 501st product Levi Strauss tried to market",
+    "Cost him exactly $501 to patent the design",
+    "His first shipment of the trousers was 501 pairs",
+    "A superstition known only to the Strauss family",
+    "Number of stiches per pair"
+   ]
+  },
+  {
+   "q": "What's the use of that very real product from Southeast Asia, elephant putty?",
+   "a": [
+    "Lessens the appearance of cracks in an elephant's hide",
+    "Type of super glue",
+    "Used to stop leaks in dams and dikes",
+    "Additive used to enrich elephant feed, sort of an elephant chow helper",
+    "A type of glue used to repair cracked ivory"
+   ]
+  },
+  {
+   "q": "Originally, what was mozzarella cheese made from?",
+   "a": [
+    "Buffalo milk",
+    "Goat curd",
+    "Molds from Mozzi, Italy",
+    "Matzoh",
+    "Moss collected from roots and tubers"
+   ]
+  },
+  {
+   "q": "If it's authentic, your Gutenberg Bible is printed on it ...",
+   "a": [
+    "Vellum",
+    "Onionskin",
+    "Silk",
+    "Shredded wheat",
+    "Human skin",
+    "Righthand pages only"
+   ]
+  },
+  {
+   "q": "What's the plural for piecemeal?",
+   "a": [
+    "Flockmeal",
+    "Piecesmeal",
+    "Piecemeals",
+    "Patchmeal",
+    "There is none"
+   ]
+  },
+  {
+   "q": "Freshwater fish, like most creatures, have daily routines. But one thing they don't do is:",
+   "a": [
+    "Drink",
+    "Eat",
+    "Rest",
+    "Socialize",
+    "Swim",
+    "Sleep",
+    "Dance"
+   ]
+  },
+  {
+   "q": "Crocodile tears, an expression conveying false emotions, derives from the fact that crocodiles ...",
+   "a": [
+    "Have no tear ducts",
+    "Tend to be deceitful",
+    "Are completely deadpan when they kill",
+    "Are driven to violence at the sound of human sobbing",
+    "Shed tears when they are most content"
+   ]
+  },
+  {
+   "q": "What do palm trees lack that all other trees have in abundance?",
+   "a": [
+    "Bark",
+    "Acorns",
+    "Coconuts",
+    "Roots",
+    "Sap",
+    "Madonna",
+    "Branches"
+   ]
+  },
+  {
+   "q": "What's 'rappini'?",
+   "a": [
+    "Young turnip greens",
+    "Green cheese",
+    "Green pasta noodles",
+    "Italian rap music",
+    "Very small sausages"
+   ]
+  },
+  {
+   "q": "How do you get more mules?",
+   "a": [
+    "Cross a male donkey with a female horse",
+    "Introduce a male donkey to a female donkey",
+    "Cross a male monkey with a female donkey",
+    "Mules are simply twin offspring of horses",
+    "Give 'em a later curfew and turn down the lights",
+    "Cross a female donkey with a male horse"
+   ]
+  },
+  {
+   "q": "Where does the expression 'seeded', from rating tennis players, originate?",
+   "a": [
+    "It's a corruption of the word conceded",
+    "From the old practice of burying the winning tennis ball",
+    "Used to be seated, and indicated the referee\u00d5s position during play",
+    "Comes from the expression, 'now you see it, now you don't'",
+    "The order in which they were planted"
+   ]
+  },
+  {
+   "q": "Can you name the actor most-often nominated for an Academy Award?",
+   "a": [
+    "Spencer Tracy",
+    "Humprey Bogart",
+    "Clint Eastwood",
+    "Marlon Brando",
+    "Fabio",
+    "Jack Nicholson"
+   ]
+  },
+  {
+   "q": "An epistemophiliac is obsessed with...",
+   "a": [
+    "Knowledge",
+    "Flowers",
+    "Love letters",
+    "Words and their origins",
+    "Fabio",
+    "Madonna"
+   ]
+  },
+  {
+   "q": "A duck, you know, can't walk without bobbing its head. Similarly, a donkey can't bray without...",
+   "a": [
+    "Raising its tail",
+    "Closing its eyes",
+    "Stamping its hooves",
+    "Sneezing"
+   ]
+  },
+  {
+   "q": "Roadside billboards have been around since...",
+   "a": [
+    "The Civil War",
+    "The Roman Era",
+    "World War I",
+    "The American Revolution",
+    "Roads",
+    "The 1950s"
+   ]
+  },
+  {
+   "q": "Do you know what Sean Connery's profession was before he became an actor?",
+   "a": [
+    "Polished coffins in a woodshop",
+    "Tended bar in his native Scotland",
+    "Folk singer",
+    "Computer programmer",
+    "Elvis impersonator",
+    "Body builder",
+    "Secret agent (no kiddin')"
+   ]
+  },
+  {
+   "q": "What is a scarlet pimpernel?",
+   "a": [
+    "A fast-growing weed",
+    "A red-throated mynah bird",
+    "A masked marauder",
+    "The anti-hero in a pulp novel",
+    "A grim, but not fatal, disease"
+   ]
+  },
+  {
+   "q": "Do you know Dr. Freud the psychiatrist's true first name?",
+   "a": [
+    "Sigismund",
+    "Sigmund",
+    "Siggy",
+    "Sylvester",
+    "Heimy",
+    "Doctor"
+   ]
+  },
+  {
+   "q": "If you've undergone a rhytidectomy, what in the world has happened to you?",
+   "a": [
+    "You've just had your face lifted",
+    "Your nose has been straightened",
+    "Finally got that tummy tuck you've been wanting",
+    "The second toe is now the same size as the big one",
+    "Gots your ears tucked"
+   ]
+  },
+  {
+   "q": "Ethiopians are credited with introducing helmets into warfare; what were those first head protectors?",
+   "a": [
+    "Horses' skulls",
+    "Cooking pans",
+    "Coconut shells",
+    "Heads of their dead comrades",
+    "Bed pans"
+   ]
+  },
+  {
+   "q": "A star on the Hollywood Walk of Fame is not free. What will it cost the celebrity?",
+   "a": [
+    "$3000 cash",
+    "The cost of the cement",
+    "An agreement to do a telethon",
+    "One item from the celebrity's wardrobe",
+    "Their dignity",
+    "$50,000"
+   ]
+  },
+  {
+   "q": "This sports item, usually made in Haiti, takes exactly 216 stitches to complete:",
+   "a": [
+    "A baseball",
+    "A football",
+    "Golf club mittens",
+    "Hockey jersey",
+    "A soccer ball"
+   ]
+  },
+  {
+   "q": "Do you know why the pelican breathes through its mouth?",
+   "a": [
+    "No nostrils",
+    "To suppress an especially acute sense of smell",
+    "To inflate the pouch which helps in navigation",
+    "Nose breathing is saved for diving",
+    "Helps the pelican make its famous \"honk\""
+   ]
+  },
+  {
+   "q": "During the famous Alaskan gold rush of 1897 what commodity was selling for its exact weight in gold?",
+   "a": [
+    "Salt",
+    "Whiskey",
+    "Huskey dogs",
+    "Cheese",
+    "Soap"
+   ]
+  },
+  {
+   "q": "That potato you're eating is what part of the plant, exactly?",
+   "a": [
+    "The stem",
+    "The root",
+    "The blossom",
+    "The eye",
+    "A plant blister"
+   ]
+  },
+  {
+   "q": "Why does the Nile catfish swim upside-down for most of its life?",
+   "a": [
+    "To eat the algae from the underside of water plants",
+    "Its brain is heavier than its belly",
+    "Its eyelids originate on the bottom of the eye",
+    "Stupidity, plain and simple"
+   ]
+  },
+  {
+   "q": "What's the body's largest organ?",
+   "a": [
+    "The skin",
+    "The proboscis",
+    "Lower intestine",
+    "The heart"
+   ]
+  },
+  {
+   "q": "Ninety-two percent of professional baseball players who do this never appear in a major league game:",
+   "a": [
+    "Sign professional contracts",
+    "Dip snuff",
+    "Chew bubble gum instead of tobacco",
+    "Attempt a simultaneous singing career",
+    "Scratch you-know-where"
+   ]
+  },
+  {
+   "q": "On what day, more than any other, are long distance phone calls made?",
+   "a": [
+    "Mother's Day",
+    "Thanksgiving",
+    "Alexander Graham Bell's birthday",
+    "Sundays",
+    "Mom's birthday",
+    "Christmas",
+    "Father's Day"
+   ]
+  },
+  {
+   "q": "Know the American university that first had female cheerleaders?",
+   "a": [
+    "University of Minnesota",
+    "Notre Dame",
+    "Cheerleaders College of America",
+    "William and Mary",
+    "Hoopla University"
+   ]
+  },
+  {
+   "q": "What animal is the only one that sports a chin?",
+   "a": [
+    "Human beings",
+    "Chimpanzees",
+    "Great Danes",
+    "Bison",
+    "Jay Leno"
+   ]
+  },
+  {
+   "q": "What is the most times that anyone can fold a paper in half?",
+   "a": [
+    "10",
+    "6",
+    "8",
+    "11",
+    "9"
+   ]
+  },
+  {
+   "q": "Which creature has absolutely no brains?",
+   "a": [
+    "Starfish",
+    "Politician",
+    "Turkey",
+    "Flea",
+    "Fabio",
+    "Slug"
+   ]
+  },
+  {
+   "q": "What makes those soap bubbles you blow rise?",
+   "a": [
+    "The warm breath enclosed inside",
+    "Natural helium contained in soap",
+    "Nitrogen",
+    "Soap is lighter than air",
+    "Karma"
+   ]
+  },
+  {
+   "q": "What form of perambulation is impossible for an elephant?",
+   "a": [
+    "Jumping",
+    "Galloping",
+    "Loping",
+    "Running",
+    "Typing",
+    "Sewing"
+   ]
+  },
+  {
+   "q": "The liquor known as gin takes its name from this, its primary ingredient:",
+   "a": [
+    "Juniper berries",
+    "Ginger root",
+    "Ginseng",
+    "Ginger ale",
+    "Gingivitis"
+   ]
+  },
+  {
+   "q": "What does a 'gigger' do for a living?",
+   "a": [
+    "Catches frogs",
+    "Dances for tips",
+    "Tightens bolts on submarines",
+    "Same as an electrician",
+    "Grates cheese"
+   ]
+  },
+  {
+   "q": "Do you know why the White House is white?",
+   "a": [
+    "It was painted white to cover the damage from being burned by the British",
+    "It's made from naturally white stone",
+    "It was George Washington's favorite color",
+    "To absorb sunlight, before it was centrally heated",
+    "To reflect sunlight before it was centrally air-conditioned"
+   ]
+  },
+  {
+   "q": "Suffering from octophobia? What are you afraid of?",
+   "a": [
+    "Opening your eyes",
+    "Octopus",
+    "The number 8",
+    "The coming of the month of October"
+   ]
+  },
+  {
+   "q": "Through what part of its body does a cricket hear?",
+   "a": [
+    "Its knee",
+    "Its ear",
+    "Its wing",
+    "Its antennae",
+    "None, it can't hear"
+   ]
+  },
+  {
+   "q": "While making Swiss cheese, the cheese wheels are turned twice--what's the reason?",
+   "a": [
+    "Makes the holes uniform",
+    "Helps keep the cheese mold-free",
+    "Otherwise there'd be no holes at all",
+    "Flavor reasons only",
+    "Ultra-strict government regulations"
+   ]
+  },
+  {
+   "q": "Most of those who do it, prefer to handle their pogonotomy in the morning. What is it?",
+   "a": [
+    "Shaving",
+    "Drinking hot beverages",
+    "Showering",
+    "Punishing the children",
+    "Waking up from REM",
+    "Listening to REM"
+   ]
+  },
+  {
+   "q": "A group of lions is called a pride, what's a group of turtles?",
+   "a": [
+    "A bale",
+    "A flotilla",
+    "A school",
+    "A covey",
+    "A murder",
+    "Late for dinner"
+   ]
+  },
+  {
+   "q": "Know the correct name for a baby kangaroo?",
+   "a": [
+    "A joey",
+    "A roo",
+    "A kanga pup",
+    "A pocket pal"
+   ]
+  },
+  {
+   "q": "The original recipe for toothpaste, as devised by the Romans included:",
+   "a": [
+    "Human urine and vinegar",
+    "Cheese mold and alum",
+    "Pumice stones and wine",
+    "Oil and boiled horses' hooves",
+    "Baking soda and hydrogen peroxide"
+   ]
+  },
+  {
+   "q": "If you use the services of a gnathologist, what must you bring with you?",
+   "a": [
+    "Your tooth which needs the gold crown",
+    "The insects you want her to identify",
+    "That piece of food which made you so sick",
+    "The saucepans you need re-coppered"
+   ]
+  },
+  {
+   "q": "You knew the costliest spice in the world was saffron; know what it is?",
+   "a": [
+    "The dried stigma of a type of lily",
+    "Precious metal powder",
+    "Dried dung of the lily snail",
+    "Pollen"
+   ]
+  },
+  {
+   "q": "What do baby ostriches eat?",
+   "a": [
+    "Eggs; their unhatched nest mates",
+    "Sand; that's why Mom buries her head",
+    "They don't eat at all, only drink",
+    "Any type of raw meat",
+    "Cheese",
+    "Fabio"
+   ]
+  },
+  {
+   "q": "When the wine is labeled Burgundy, what can you assume about the contents?",
+   "a": [
+    "Nothing except that it's red",
+    "The grapes come from the Burgundy region of France",
+    "It will be aged more than five years",
+    "That it is considered a red chardonnay",
+    "It's probably expensive"
+   ]
+  },
+  {
+   "q": "If I read on your job application that you are a mancinicist, what should I do?",
+   "a": [
+    "Make sure I put the pen in your left hand, you're left-handed",
+    "Hire you, but under the conditions of the Disabled Americans Act",
+    "Be sure to lock up the petty change",
+    "Give you free access to both the men's and the women's rooms"
+   ]
+  },
+  {
+   "q": "Where did kilts originate?",
+   "a": [
+    "France",
+    "Scotland",
+    "Kilty, Ireland",
+    "St. Kitts",
+    "England",
+    "Wales"
+   ]
+  },
+  {
+   "q": "If I filled a ten-gallon hat with water, how much could it really hold?",
+   "a": [
+    "Approximately three-fourths of a gallon",
+    "Ten gallons, of course",
+    "Five gallons, it's always measured two times",
+    "Depends on the hat size, naturally"
+   ]
+  },
+  {
+   "q": "Name the only man-made object which becomes increasingly stronger as its size is increased?",
+   "a": [
+    "The geodesic dome",
+    "A mallet",
+    "Loaf of bread",
+    "Toaster",
+    "Arch"
+   ]
+  },
+  {
+   "q": "What did the early Popeye eat to increase his strength and endurance?",
+   "a": [
+    "Garlic",
+    "Hamburgers",
+    "Mushrooms",
+    "Cheese",
+    "Spinach"
+   ]
+  },
+  {
+   "q": "How many left-handed polo players can be counted amongst the world's professional players?",
+   "a": [
+    "None, left-handers are barred from the game",
+    "Too many to count, but they make up the majority",
+    "There are no records recording this information",
+    "There are no right-handed players, all the mallets are made for southpaws",
+    "Duh! Polo is played with both hands on the mallet"
+   ]
+  },
+  {
+   "q": "What does a working phycologist do all day?",
+   "a": [
+    "Study seaweed",
+    "Categorize mushroom size and types",
+    "Train laboratory mice",
+    "Study the habits of working people",
+    "Study dillweed"
+   ]
+  },
+  {
+   "q": "In which appendages can you find one fourth of your body's bones?",
+   "a": [
+    "Hands",
+    "Feet",
+    "Skull",
+    "Arms",
+    "Spine"
+   ]
+  },
+  {
+   "q": "Where was King Kong's kingdom?",
+   "a": [
+    "Skull Island",
+    "Didn't have one, his mom was just optimistic",
+    "Apes can't hold royal titles",
+    "Planet of the Apes",
+    "Faye Ray's Bar & Grille"
+   ]
+  },
+  {
+   "q": "Which two things listed below cause more deaths than any others?",
+   "a": [
+    "Cars and guns",
+    "Dogs and drugs",
+    "Firecrackers and wrecking balls",
+    "Bosses and children",
+    "Lightening and bombs",
+    "Husbands and wives"
+   ]
+  },
+  {
+   "q": "What is the most common cosmetic surgery requested by men?",
+   "a": [
+    "Hair transplants",
+    "Biceps implants",
+    "Nose jobs",
+    "Eye bag reductions",
+    "Tummy tucks"
+   ]
+  },
+  {
+   "q": "The five interlocking rings of the Olympic symbol are red, white, blue, black and yellow. Why?",
+   "a": [
+    "At least one of those colors appear on every national flag",
+    "They represent all the possible shades of skin color",
+    "These show up best on a colored television",
+    "No real reason, just chance"
+   ]
+  },
+  {
+   "q": "Sheep, it is reported, won't drink from a stream that is...",
+   "a": [
+    "Running",
+    "More than half-way depleted",
+    "Has a visible fish population",
+    "Empty",
+    "Is less than 53 degrees Fahrenheit",
+    "Still"
+   ]
+  },
+  {
+   "q": "Whom, amongst Ireland's population, is exempted from paying taxes?",
+   "a": [
+    "Those who produce \"works of art\"",
+    "Widows",
+    "Employees of the Guinness Brewery",
+    "Policemen and soldiers",
+    "Those who can prove pure Irish heritage back thirteen generations"
+   ]
+  },
+  {
+   "q": "You know that boy and dog on the Crackerjacks Box? The boy is Jack, what's the dog's name?",
+   "a": [
+    "Bingo",
+    "Crackers",
+    "Crackerjack",
+    "Rover",
+    "Spot",
+    "Orville"
+   ]
+  },
+  {
+   "q": "What group of folks invented the windmill?",
+   "a": [
+    "The Arabs",
+    "The Dutch",
+    "Spaniards",
+    "The Chinese",
+    "The Fabioans"
+   ]
+  },
+  {
+   "q": "What were the first small appliances to be electrified?",
+   "a": [
+    "Flat irons",
+    "Toasters",
+    "Hair dryers",
+    "Nosehair trimmers"
+   ]
+  },
+  {
+   "q": "When, do you guess, was the earliest known patent given for a toaster design?",
+   "a": [
+    "1906 to George Schneider",
+    "1938 to Harry Black and T. Carlos Decker",
+    "1883 to Major H.L. Sunbeam",
+    "1777 to Benjamin Franklin"
+   ]
+  },
+  {
+   "q": "What sideline event improved the market for the American toaster?",
+   "a": [
+    "A reduction in electric rates",
+    "Sliced bread was invented",
+    "White bread became popular",
+    "Electricity was put on the AC current"
+   ]
+  },
+  {
+   "q": "What's a \"pincher\" in toaster terminology?",
+   "a": [
+    "Springs that hold the bread to the coil",
+    "A piece of bread that sticks in the element and burns",
+    "A piece of bread sliced too thin and burns; refers to the miserly slice",
+    "A person operating the toaster who habitually removes bread with fingers-ouch!"
+   ]
+  },
+  {
+   "q": "Know what actually occurs to make the toast crisp?",
+   "a": [
+    "Bread dries from exposure to heat",
+    "Carbonizing of the bread, thus the toasty color",
+    "Sugars in the yeast and wheat caramelize",
+    "Bread goes from dough to \"crackers\""
+   ]
+  },
+  {
+   "q": "What's a \"swing basket\" in toaster talk?",
+   "a": [
+    "The 'doors' holding the slice actually swing out to turn the toast",
+    "The toaster was once suspended from the ceiling to swing freely",
+    "Means the heating element was a particular patented design",
+    "Denotes the toaster was manufactured during the Swing era"
+   ]
+  },
+  {
+   "q": "When was the first \"family-size\" quadruple-slice toaster patented?",
+   "a": [
+    "1925",
+    "1958",
+    "1900",
+    "1962"
+   ]
+  },
+  {
+   "q": "When was the first \"pop-up\" toaster designed?",
+   "a": [
+    "1926",
+    "1959",
+    "12 AD",
+    "1892"
+   ]
+  },
+  {
+   "q": "Where was the first pop-up toaster devised?",
+   "a": [
+    "Minneapolis, Minnesota",
+    "Popular, Arkansas",
+    "Alexandria, Egypt",
+    "Castro Valley, California",
+    "Philadelphia, Pennsylvania"
+   ]
+  },
+  {
+   "q": "Who was the inventor of the \"pop-up\"toaster design?",
+   "a": [
+    "Waters Genters",
+    "Poppin Dough Company",
+    "Benjamin Franklin",
+    "King Ptolemy",
+    "Sunbeam Electric Corporation"
+   ]
+  },
+  {
+   "q": "Of all the wonderful names listed below, which is the only \"pretend\" toaster company?",
+   "a": [
+    "PushUp",
+    "Torrid",
+    "Toast-O-Lator",
+    "Cookenette",
+    "Marion Giant Flipflop"
+   ]
+  },
+  {
+   "q": "Gerald Ford had other occupations before being our president.  In his salad days he was even a ...",
+   "a": [
+    "male model",
+    "disc jockey",
+    "drug dealer",
+    "receptionist"
+   ]
+  },
+  {
+   "q": "Angelo Siciliano, the famous ninety-eight-pound weakling who perfected sand-kicking was more commonly known as ...",
+   "a": [
+    "Charles Atlas",
+    "Vito Correleone",
+    "Bubba",
+    "Pope of Greenwich Village",
+    "Mr. T"
+   ]
+  },
+  {
+   "q": "Did you know Big Ben was not a clock at all, but ...",
+   "a": [
+    "A bell",
+    "An overgrown watch",
+    "An old prison",
+    "The original royal palace",
+    "A public restroom"
+   ]
+  },
+  {
+   "q": "The \"Colonel Bogey March\" is a common name for this common, quintessentially American, entertainment:",
+   "a": [
+    "The producing of flatulation noise from the armpit",
+    "The parade celebrating victory in the American War of Independence",
+    "A down-home celebration for graduating seniors",
+    "The race to the presents on Christmas morning",
+    "The annual Philadelphia \"Liberty Bell\" run"
+   ]
+  },
+  {
+   "q": "Do you know what Elvis' number-one sandwich choice was?",
+   "a": [
+    "Bacon and peanut butter",
+    "Cool Whip and sardines",
+    "Raw pork chops",
+    "Canned cheese and marshmallows",
+    "Bananas and mayonnaise"
+   ]
+  },
+  {
+   "q": "Where was the first parking meter installed, and when?",
+   "a": [
+    "July 1935 in Oklahoma City",
+    "In front of Ben Franklin's store, Philadelphia, installed in 1778",
+    "Built in 1901, outside the White House",
+    "1870 in front of Thomas Edison's lab, Menlo Park, New Jersey"
+   ]
+  },
+  {
+   "q": "Do you know why women tend to be better dancers than men?",
+   "a": [
+    "Lower center of gravity",
+    "More rhythm",
+    "Women are less inhibited, generally",
+    "Women are scientifically proven to hear purer tones in music",
+    "Smaller feet"
+   ]
+  },
+  {
+   "q": "Where did women in Elizabethan England wear their wedding rings?",
+   "a": [
+    "On their thumbs",
+    "Around their necks",
+    "In holes pierced through their navels",
+    "Nowhere, the fashion was to accept their husbands' snuffboxes",
+    "They didn't"
+   ]
+  },
+  {
+   "q": "The Japanese are familiar with articles of clothing called tabi; know what they are?",
+   "a": [
+    "Socks with a separate compartment for the big toe",
+    "An abbreviated version of the \"obi\"",
+    "Kimonos with short sleeves",
+    "The official crown of the Emperor",
+    "Samurai's version of the boxer shorts"
+   ]
+  },
+  {
+   "q": "Where will you find that bridge called the  Corpus Callosum?",
+   "a": [
+    "In your brain",
+    "Corpus Christi, Texas",
+    "The Vatican",
+    "Copacabana Beach, Rio de Janeiro",
+    "Cops County, Connecticut"
+   ]
+  },
+  {
+   "q": "Name the most universal of all good luck charms:",
+   "a": [
+    "Horseshoe, hung with its pointed ends up",
+    "Rabbit's foot",
+    "Four-leaf clover",
+    "The kitchen broom",
+    "Wads of money"
+   ]
+  },
+  {
+   "q": "Know the origin of the term \"lucky break\"?",
+   "a": [
+    "From winning the tug-of-war with a wishbone",
+    "Was considered legal and lucky for a racehorse to break out of the starting box",
+    "Cut of the deck in a poker game",
+    "Luck was considered a superstition, the Devil cut you a break"
+   ]
+  },
+  {
+   "q": "Why do we say \"God bless you\" after a sneeze?",
+   "a": [
+    "People used to believe the soul might fly from the body after a hefty sneeze",
+    "Trying to ward off the inevitable cold caught from others' sneezes",
+    "Just good manners after a rude noise",
+    "Sneezes were once considered good luck"
+   ]
+  },
+  {
+   "q": "Why do we flip coins to make decisions?",
+   "a": [
+    "The turning up of Caesar's face on a coin meant he agreed with the outcome",
+    "Used to be we paid a professional chooser to make our decisions",
+    "In the ancient days we paid a price for the blessing from the gods",
+    "Coins were a precursor to dice"
+   ]
+  },
+  {
+   "q": "Cows moo, horses neigh, what animals gibber?",
+   "a": [
+    "Apes",
+    "Baby porcupines",
+    "Alligators",
+    "Snakes",
+    "Rhinos"
+   ]
+  },
+  {
+   "q": "What's an alchemist?",
+   "a": [
+    "A pseudo-scientist who tries to turn cheap metals into gold",
+    "A cook who uses scientific recipes",
+    "A beer and ale brewer",
+    "A newspaper editor"
+   ]
+  },
+  {
+   "q": "Know the word that describes a word or phrase which can be read both backwards and forwards?",
+   "a": [
+    "Palindrome",
+    "There is no such thing",
+    "Agility",
+    "Ambidextrous"
+   ]
+  },
+  {
+   "q": "What's the stock market term for an investor who believes the market will rise in value?",
+   "a": [
+    "Bull",
+    "Bear",
+    "Believer",
+    "Bamboozler",
+    "Share surfer"
+   ]
+  },
+  {
+   "q": "What's the national origin of the bagpipes?",
+   "a": [
+    "Ancient Rome",
+    "Scotland",
+    "Ireland",
+    "France",
+    "Israel"
+   ]
+  },
+  {
+   "q": "This African dog is capable of barking, but rarely does;  it usually whines:",
+   "a": [
+    "Basenji",
+    "Borzoi",
+    "Nairobi greyhound",
+    "Kenya terrier",
+    "Rhodesian ridgeback"
+   ]
+  },
+  {
+   "q": "What's the nickname for the theory that the universe started with an enormous explosion?",
+   "a": [
+    "Big Bang Theory",
+    "Firecracker Theory",
+    "Cherry Bomb Hypothesis",
+    "Gavel Guess",
+    "Enormous Explosion Postulation"
+   ]
+  },
+  {
+   "q": "It used to be in East Pakistan, and it boasts the world's highest population density:",
+   "a": [
+    "Bangladesh",
+    "Rajampoor",
+    "West Indies",
+    "Rangoon",
+    "Babaganoosh"
+   ]
+  },
+  {
+   "q": "In golf, scoring one stroke over par on a hole is called:",
+   "a": [
+    "Bogey",
+    "Hump",
+    "Birdie",
+    "Fore"
+   ]
+  },
+  {
+   "q": "One of the largest known dinosaurs, this one was an amphibian and a herbivore:",
+   "a": [
+    "Brontosaurus",
+    "Barney",
+    "Tyrannosaurus rex",
+    "Herbosaurus",
+    "Footsaurus rex"
+   ]
+  },
+  {
+   "q": "This was once a slang nickname for a surgeon:",
+   "a": [
+    "Sawbones",
+    "Scalpel slinger",
+    "Bloody Mary",
+    "Suture Steve"
+   ]
+  },
+  {
+   "q": "They include cirrus, stratus, and cumulus; what are they?",
+   "a": [
+    "Clouds",
+    "Stages of cheese during manufacture and aging",
+    "3 possible dwarves rejected by Disney and Snow White",
+    "Horse-training equipment",
+    "The stages of an active acne eruption"
+   ]
+  },
+  {
+   "q": "Can you name the 100-pound South-American creature that is the largest living rodent in the world?",
+   "a": [
+    "Capybara",
+    "Bush Buck",
+    "Rug Rat",
+    "Armadillo",
+    "Willard"
+   ]
+  },
+  {
+   "q": "After man, it is reportedly the most intelligent mammal:",
+   "a": [
+    "Dolphin",
+    "Gorilla",
+    "Feral Pig",
+    "Porpoise",
+    "Plains Parrot"
+   ]
+  },
+  {
+   "q": "Who is that English novelist whose novel depicting the life of an island castaway became a classic?",
+   "a": [
+    "Daniel Defoe",
+    "Charles Dickens",
+    "Alexander Dumas",
+    "Oscar Wilde",
+    "Drew Barrymore"
+   ]
+  },
+  {
+   "q": "This animal has been described as \"two dogs long\" and \"half a dog high\":",
+   "a": [
+    "Daschund",
+    "Manx cat",
+    "Coyote",
+    "Scottish Terrier",
+    "Lassie",
+    "Polish sausage"
+   ]
+  },
+  {
+   "q": "Can you name everyone present at the Mad Hatter's Tea Party?",
+   "a": [
+    "Alice, the Mad Hatter, the Dormouse and the March Hare",
+    "Cheshire Cat, Lewis Carroll, Alice and Winnie the Pooh",
+    "Alice, The Duchess and the Mad Hatter",
+    "The White Rabbit, The Mad Hatter and the Dormouse"
+   ]
+  },
+  {
+   "q": "This male bee has no stinger and gathers no honey:",
+   "a": [
+    "Drone",
+    "Honey bee",
+    "King bee",
+    "Killer bee",
+    "Shiftless bee",
+    "Couch Potato"
+   ]
+  },
+  {
+   "q": "The medieval French called this weed \"Lions tooth\" from the shape of its leaves:",
+   "a": [
+    "Dandelion",
+    "Ragweed",
+    "Skunk Cabbage",
+    "Mustard",
+    "Thistle"
+   ]
+  },
+  {
+   "q": "Name the Greek town which housed a famous, powerful oracle in the ancient days of gods and godesses?",
+   "a": [
+    "Delphi",
+    "Delta Sigma Gamma",
+    "Dionysius",
+    "Dogtown"
+   ]
+  },
+  {
+   "q": "What's a dowser hired to do?",
+   "a": [
+    "Find water with a divining rod",
+    "Dig ditches",
+    "Put together package tours of  minor league spring training camps",
+    "Encase those giant wheels of cheese in wax",
+    "That's a professional dart thrower"
+   ]
+  },
+  {
+   "q": "Guess the name of those ancient priests who held their rites in oak groves:",
+   "a": [
+    "Druids",
+    "Pentecostals",
+    "Dirigibles",
+    "Tree Sayers",
+    "Acornists"
+   ]
+  },
+  {
+   "q": "Know that region around the equator where the winds are so light that navigation is almost impossible?  What's it called?",
+   "a": [
+    "The Doldrums",
+    "Ennui",
+    "Trade Wind Zone",
+    "Cape Ann",
+    "Testasta Zone"
+   ]
+  },
+  {
+   "q": "If  I had the letters D.D. after my name, what could I call myself ...",
+   "a": [
+    "A Doctor of Divinity",
+    "A Doctor of Dentistry",
+    "A Dog Doctor",
+    "A Doctor of Distinction"
+   ]
+  },
+  {
+   "q": "What was the name of the island where Napoleon was exiled after his defeat?",
+   "a": [
+    "Elba",
+    "Crete",
+    "The Bahamas",
+    "Bora Bora"
+   ]
+  },
+  {
+   "q": "To what genus does the horse, donkey and zebra belong?",
+   "a": [
+    "Equus",
+    "Bovine",
+    "Canine",
+    "Borgnine",
+    "Enzyme"
+   ]
+  },
+  {
+   "q": "This artificial language was developed in 1887. Its spelling is phonetic and its grammar simple:",
+   "a": [
+    "Esperanto",
+    "Cubism",
+    "Calligraphy",
+    "Braille",
+    "C+++"
+   ]
+  },
+  {
+   "q": "What's the name of the swamp where Pogo the opossum lived?",
+   "a": [
+    "Okeefenokee",
+    "Everglades",
+    "Mosquito Coast",
+    "Serenghetti"
+   ]
+  },
+  {
+   "q": "What is a Spaghetti Western?",
+   "a": [
+    "A Shoestring-budget Western movie originally filmed in Italy",
+    "A Western film wherein the cowboys didn't ride horses or shoot guns",
+    "A cowboy movie that emphasized a good deal of eating",
+    "Any Western written by Italian screenwriters"
+   ]
+  },
+  {
+   "q": "This takes place the first Tuesday after the first Monday in November:",
+   "a": [
+    "Elections",
+    "The Vernal Equinox",
+    "Rosa Parks Day",
+    "Chinese New Year",
+    "Animal Liberation Day"
+   ]
+  },
+  {
+   "q": "She's the Biblical mother of Cain, Abel and Seth:",
+   "a": [
+    "Eve",
+    "Rebecca",
+    "Lilith",
+    "Adamelia",
+    "Madonna"
+   ]
+  },
+  {
+   "q": "In that famous equation by Albert Einstein, E=mc2, what does the E stand for?",
+   "a": [
+    "Energy",
+    "Einstein",
+    "Its the symbol for mercury",
+    "Equality",
+    "Eureka"
+   ]
+  },
+  {
+   "q": "Is there any place in America named especially for Christopher Columbus?",
+   "a": [
+    "The District of Columbia",
+    "Columbus, Ohio",
+    "Columbia University",
+    "No",
+    "California is the Miwok Indian name for Columbus"
+   ]
+  },
+  {
+   "q": "After a bull has been killed by a matador, what memento would he present to an honored guest?",
+   "a": [
+    "The bull's ear",
+    "His cape",
+    "A picador",
+    "His hat and shoes",
+    "The bull's eye"
+   ]
+  },
+  {
+   "q": "This fur is associated with royalty and comes from the weasel's pelt:",
+   "a": [
+    "Ermine",
+    "Chinchilla",
+    "Mink",
+    "Persian Lamb",
+    "Fox"
+   ]
+  },
+  {
+   "q": "What is the only thing a koala bear will eat?",
+   "a": [
+    "Eucalyptus",
+    "Bamboo",
+    "Toasted larvae of the grub worm",
+    "Cola nuts",
+    "Firebugs"
+   ]
+  },
+  {
+   "q": "Entomology is the study of these things:",
+   "a": [
+    "Insects",
+    "Best seller lists",
+    "Entertainment preferences",
+    "Word origins",
+    "The tendency for things to fall in a straight line"
+   ]
+  },
+  {
+   "q": "This round red cheese originates in a Netherlands town of the same name:",
+   "a": [
+    "Edam",
+    "Rougeball",
+    "Kraftsburg",
+    "Gouda",
+    "Muenster"
+   ]
+  },
+  {
+   "q": "That Greek mathematician, Archimedes, allegedly ran down the street stark naked shouting this word after an especially great discovery:",
+   "a": [
+    "Eureka!",
+    "Epsilon!",
+    "Drachma!",
+    "Fiddlesticks!",
+    "Yippee!"
+   ]
+  },
+  {
+   "q": "What do the wizards and mediums call a materialization of a spirit?",
+   "a": [
+    "Ectoplasm",
+    "Exorcism",
+    "Ecclesiastics",
+    "Epigram",
+    "Ghoulization"
+   ]
+  },
+  {
+   "q": "Do you know Caspar the Ghost's last name?  Did you even know he had one?",
+   "a": [
+    "Milquetoast",
+    "Melbatoast",
+    "Smith",
+    "Gobblins",
+    "Ghostmeister"
+   ]
+  }
+ ],
+ "text": [
+  "Contestant heads 1001 (blue), 1002 (red), 1003 (green): upright, blinking, stretched, squashed. 1016 the buzzer, 1017 the timer bar, 1012 a feather, 1007 a spring, 1008 a brain on springs, 1010 a falling weight, 1011 a wooden arm.",
+  "banners: SICT 1015, THAT'S RIGHT! / WRONG! / TIME'S UP! stacked. digits: PICT 1014, 9 down to 0. questions: the 238 STRINGLISTs, the right answer first."
+ ]
+}
