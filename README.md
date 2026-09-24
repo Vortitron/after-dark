@@ -4,7 +4,7 @@
 
 Do you longingly reminisce about the days when flying toasters graced your screen? Do words like "Confetti Factory" and "Daredevil Dan" make your heart skip a beat?
 
-**[See them here!](https://vortitron.github.io/after-dark-css/)**
+**[See them here!](https://vortitron.github.io/after-dark/)**
 
 This started as [Bryan Braun's after-dark-css](https://github.com/bryanbraun/after-dark-css) — After Dark screensavers imitated with nothing but CSS animations and transforms, no images and no JavaScript. Those are all still here.
 
@@ -71,7 +71,7 @@ and every `git commit` will stamp `build.json` / `?v=…` cache-busters for you.
 Every screensaver here is a page in its own right, so the way that works anywhere is an iframe:
 
 ```html
-<iframe src="https://vortitron.github.io/after-dark-css/all/marbles.html"
+<iframe src="https://vortitron.github.io/after-dark/all/marbles.html"
         width="640" height="480" scrolling="no" style="border:0"
         title="Marbles screen saver"></iframe>
 ```
