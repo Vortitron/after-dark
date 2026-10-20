@@ -8,7 +8,15 @@
  * The screen is cut into tiles, one goes missing, and the rest slide into
  * the gap one after another, never solving anything.
  *
- *   <after-dark-puzzle size="medium" speed="medium">
+ * Not checkable against the real module: under Wine its view of "the desktop"
+ * is black whatever is on screen (a full-screen window, the X root, 8- or
+ * 24-bit display all tried), so the capture is a black screen. The defaults
+ * are the panel's own (TYPE_1000): Size Small, Speed Slow. The Speed list has three entries
+ * in the resource (Slow, Medium, Fast); "Very Fast!" is a leftover string.
+ * On black the original drew nothing at all, so the tiles' bevel here may
+ * be our own.
+ *
+ *   <after-dark-puzzle size="small" speed="slow">
  */
 (function () {
 	'use strict';
@@ -118,8 +126,8 @@
 
 	AfterDark.define('after-dark-puzzle', function (el) {
 		var sim = new Puzzle();
-		sim.side = SIDE[AfterDark.choice(el, 'size', SIZES, 'medium')];
-		sim.slide = SLIDE[AfterDark.choice(el, 'speed', SPEEDS, 'medium')];
+		sim.side = SIDE[AfterDark.choice(el, 'size', SIZES, 'small')];
+		sim.slide = SLIDE[AfterDark.choice(el, 'speed', SPEEDS, 'slow')];
 		sim.invert = AfterDark.flag(el, 'invert-screen');
 		return sim;
 	});

@@ -34,7 +34,13 @@
  * 116x116 "Bugs Motel - No Vacancy" sign at 8000 is left out for the same
  * reason: nothing records what the bugs did with it.
  *
- *   <after-dark-bugs density="colony" type="all" clear-screen></after-dark-bugs>
+ * Not checked against the module running: under Wine (2026-10-15) BUGS.AD
+ * calls USER.GetNextQueueWindow, which Wine does not implement, and dies
+ * before drawing anything. Its Bug Density slider defaults to 50 of 100,
+ * which is Swarm in the module's own value table (16, 32, 48, 64, 80, 100),
+ * so that is the default here.
+ *
+ *   <after-dark-bugs density="swarm" type="all" clear-screen></after-dark-bugs>
  */
 (function () {
   'use strict';
@@ -173,8 +179,8 @@
 
     window.AfterDark.load(base).then(function (art) {
       var sim = new Bugs(art);
-      var density = (AfterDark.setting(self, 'density') || 'colony').toLowerCase();
-      sim.count = DENSITY[density] || parseInt(density, 10) || DENSITY.colony;
+      var density = (AfterDark.setting(self, 'density') || 'swarm').toLowerCase();
+      sim.count = DENSITY[density] || parseInt(density, 10) || DENSITY.swarm;
       sim.setType(AfterDark.setting(self, 'type'));
       // "Clear screen first" - on, unless it is turned off to let a page show
       // through, which is what it meant when the desktop was behind it.

@@ -12,7 +12,13 @@
  * and the flowers open one by one, summer is full, in fall the grass goes to
  * straw and the flowers drop, and winter snows on it until spring melts it.
  *
- *   <after-dark-meadow art="art/meadow" season="spring" seasons-last="1 minute">
+ * The panel's defaults are Spring and Seasons Last 15 (30 seconds).
+ *
+ * Not checked against a capture: under Wine (8- and 24-bit) the engine says
+ * "Unable to load selected module" for MEADOW.AD, though the module itself
+ * loads (a +loaddll trace shows it) - its start-up returns failure.
+ *
+ *   <after-dark-meadow art="art/meadow" season="spring" seasons-last="30 seconds">
  */
 (function () {
 	'use strict';
@@ -148,7 +154,7 @@
 	AfterDark.define('after-dark-meadow', function (el) {
 		var sim = new Meadow();
 		sim.season = AfterDark.choice(el, 'season', SEASONS, 'spring');
-		sim.length = LENGTH[AfterDark.choice(el, 'seasons-last', LASTS, '1 minute')];
+		sim.length = LENGTH[AfterDark.choice(el, 'seasons-last', LASTS, '30 seconds')];
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/meadow').then(function (art) {
 			sim.art = art.bitmap('flowers').image;
 		}).catch(function (err) {

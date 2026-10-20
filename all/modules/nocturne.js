@@ -14,7 +14,12 @@
  * and Toast in it, left over from the Flying Toasters module it was built
  * from; they do nothing.) The crickets are left out, as all sound is here.
  *
- *   <after-dark-nocturnes art="art/nocturne" density="a bunch" color>
+ * The panel's defaults are Density 100 (Lots) and Color on.
+ *
+ * Not checked against a capture: under Wine (8- and 24-bit) the engine says
+ * "Unable to load selected module" for NOCTURNE.AD.
+ *
+ *   <after-dark-nocturnes art="art/nocturne" density="lots" color>
  */
 (function () {
 	'use strict';
@@ -113,7 +118,7 @@
 
 	AfterDark.define('after-dark-nocturnes', function (el) {
 		var sim = new Nocturnes();
-		sim.count = PAIRS[AfterDark.choice(el, 'density', DENSITIES, 'a bunch')];
+		sim.count = PAIRS[AfterDark.choice(el, 'density', DENSITIES, 'lots')];
 		sim.color = AfterDark.flag(el, 'color');
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/nocturne').then(function (art) {
 			sim.setArt(art.bitmap('eyes').image);

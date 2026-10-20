@@ -9,39 +9,67 @@
  *    piling their confetti, use the Caps Lock key to reverse the direction of
  *    the conveyor belts."
  *
- * Its controls are Ducks (None, Seven, Default), Workshift (10 sec. to 2 hrs.)
- * and Type (Metal, Wood). Its art is the factory in pieces, in
- * all/art/confetti/: a hopper with a hatch, belt pulleys turning in four
- * frames with the belt running round them, straight runs of belt, in metal
- * and in wood; a duck waddling in seven frames and a Duck sign. There is no
- * picture of the factory itself, so it is put together here: the hopper
- * across the top, belts in a zigzag down the screen, confetti out of the
- * hatch, along the belts, off the ends and into a heap on the floor. At the
- * end of the shift the Duck sign goes up and the ducks come out and push the
- * heap along the floor, the way the belts last ran; Caps Lock turns the belts.
+ * Its controls (TYPE_1000) are Ducks (None, Seven; default Seven), Workshift
+ * (10 sec., 30 sec., 1 min., 2 min., 5 min., 10 min.; default 30 sec.) and
+ * Type (Metal, Wood, Both; default Wood). Its art, in all/art/confetti/, is
+ * the factory in pieces, in metal and in wood: girder ends, girder, a strut,
+ * belt pulleys turning in four frames, a length of belt; a duck waddling in
+ * seven frames and a Duck sign.
  *
- *   <after-dark-confetti-factory art="art/confetti" ducks="seven" workshift="1 min." type="metal">
+ * The staging was checked against the module running under Wine at 1024x768
+ * (2026-10-15), which is where these numbers come from:
+ *
+ *   - Five rows of girders, their tops a seventh of the screen apart (109,
+ *     218, 327, 436, 545), each running from 16 px in from the left to 16 px
+ *     in from the right in lengths of 80 to 140 px with 16 px gaps and two
+ *     struts apiece. In each row one stretch is a conveyor instead: a pulley
+ *     at each end and belt between, anywhere from 60 to 330 px long. Now and
+ *     then a row has an open gap instead of a conveyor. The layout is new
+ *     every shift. Everything is drawn at its own size.
+ *   - Confetti drifts down from the top of the screen in a band about 180 px
+ *     wide that moves somewhere else every 13 seconds or so. It lands on the
+ *     belts and rides them off the end, and piles up wherever it lands on a
+ *     girder, in little 45-degree heaps. What misses everything heaps up on
+ *     the floor, 50 px above the bottom of the screen.
+ *   - At the end of the shift the screen goes black and the Duck sign stands
+ *     in the middle for four seconds. Then seven ducks come in from the right
+ *     in a loose formation down the whole height of the screen and waddle off
+ *     to the left at about 115 px a second. Two seconds of black, and the next
+ *     shift starts with a new factory.
+ *
+ * The capture's colours are not to be trusted (the 8-bit display mapped the
+ * module's palette wrongly), so the confetti's colours are a guess, as are its
+ * falling and belt speeds and how often a row has a gap instead of a belt.
+ *
+ *   <after-dark-confetti-factory art="art/confetti" ducks="seven" workshift="30 sec." type="wood">
  */
 (function () {
 	'use strict';
 
-	var DUCKS = ['none', 'seven', 'default'];
-	var HOW_MANY = [0, 7, 3];
-	var SHIFTS = ['10 sec.', '30 sec.', '1 min.', '2 min.', '5 min.', '10 min.', '90 min.', '2 hrs.'];
-	var SECONDS = [10, 30, 60, 120, 300, 600, 5400, 7200];
-	var TYPES = ['metal', 'wood'];
-	var PIECES = { metal: { hopper: 211, belt: 212, wheels: [212, 213] }, wood: { hopper: 221, belt: 222, wheels: [222, 223] } };
+	var DUCKS = ['none', 'seven'];
+	var HOW_MANY = [0, 7];
+	var SHIFTS = ['10 sec.', '30 sec.', '1 min.', '2 min.', '5 min.', '10 min.'];
+	var SECONDS = [10, 30, 60, 120, 300, 600];
+	var TYPES = ['metal', 'wood', 'both'];
+	/* Girder end, girder, strut, other end, the first of four pulley frames, belt. */
+	var PIECES = {
+		metal: { left: 2111, mid: 2112, strut: 2113, right: 2114, wheel: 2121, belt: 2125 },
+		wood: { left: 2211, mid: 2212, strut: 2213, right: 2214, wheel: 2221, belt: 2225 }
+	};
 	var PAPER = ['#ff5555', '#55ff55', '#5555ff', '#ffff55', '#ff55ff', '#55ffff', '#ffffff', '#ffaa00'];
-	var BELT_SPEED = 45;
+	/* Where the seven ducks are in their formation, at 1024x768: x behind the
+	   leader, and y. */
+	var FLOCK = [[200, 27], [50, 219], [250, 316], [0, 412], [300, 412], [150, 506], [100, 603]];
+	var BELT_SPEED = 60, FALL = 80, DUCK_SPEED = 115, SIGN = 4, GAP = 2;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
 	}
 
 	function Confetti() {
-		this.ducks = 3;
-		this.shift = 60;
-		this.type = 'metal';
+		this.ducks = 7;
+		this.shift = 30;
+		this.type = 'wood';
 		this.dir = 1;
 		this.art = null;
 	}
@@ -49,29 +77,60 @@
 	Confetti.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
-		this.s = Math.max(1, Math.min(w, h) / 300);
-		var s = this.s;
-		this.floor = h - 2 * s;
-		this.pile = new Float32Array(Math.ceil(w));
+		this.s = Math.max(1, Math.round(Math.min(w, h) / 768));
 		this.heap = document.createElement('canvas');
 		this.heap.width = Math.max(1, Math.round(w));
 		this.heap.height = Math.max(1, Math.round(h));
-		this.bits = [];
-		this.clock = 0;
+		this.work();
+	};
+
+	/** A new shift: a new factory, no confetti yet. */
+	Confetti.prototype.work = function () {
+		var w = this.w, h = this.h, s = this.s;
 		this.phase = 'work';
+		this.clock = 0;
+		this.bits = [];
+		this.emit = 0;
+		this.floorPile = null;
 		this.spin = 0;
-		this.sign = 0;
-		this.parade = [];
-		/* Belts zigzag down, each overhanging the one below at its end. */
-		this.belts = [];
-		var top = 70 * s, rows = Math.max(3, Math.floor((h - top - 90 * s) / (48 * s)));
-		for (var i = 0; i < rows; i += 1) {
-			var left = i % 2 === 0;
-			var bw = w * rand(0.5, 0.65);
-			var x0 = left ? w * rand(0.04, 0.12) : w - bw - w * rand(0.04, 0.12);
-			this.belts.push({ x0: x0, x1: x0 + bw, y: top + (i + 1) * ((h - top - 90 * s) / rows) });
+		this.heap.getContext('2d').clearRect(0, 0, this.heap.width, this.heap.height);
+		this.floor = Math.round(h * 718 / 768);
+		this.rows = [];
+		for (var i = 0; i < 5; i += 1) {
+			var y = Math.round(h * (i + 1) / 7), kind = this.type === 'both' ? (Math.random() < 0.5 ? 'metal' : 'wood') : this.type;
+			var row = { y: y, kind: kind, girders: [], belt: null, pile: new Float32Array(Math.ceil(w)) };
+			var left = 16 * s, right = w - 16 * s, from, to;
+			if (Math.random() < 0.85) {
+				var len = rand(60, 330) * s;
+				from = rand(left + 40 * s, right - len - 72 * s);
+				to = from + len;
+				row.belt = { x0: from, x1: to + 32 * s, dir: Math.random() < 0.5 ? 1 : -1 };
+				to += 32 * s;
+			} else {
+				var gap = rand(150, 300) * s;
+				from = Math.random() < 0.5 ? right - gap : rand(left + 100 * s, right - gap - 100 * s);
+				to = from + gap;
+			}
+			this.lay(row, left, from - 8 * s);
+			this.lay(row, to + 8 * s, right);
+			this.rows.push(row);
 		}
-		this.hatch = this.belts.length ? (this.belts[0].x0 + this.belts[0].x1) / 2 : w / 2;
+		this.moveSpray();
+	};
+
+	/** Girders from x0 to x1, 80 to 140 px at a time with 16 px between. */
+	Confetti.prototype.lay = function (row, x0, x1) {
+		var s = this.s, x = x0;
+		while (x1 - x >= 40 * s) {
+			var len = Math.min(x1 - x, rand(80, 140) * s);
+			if (x1 - x - len < 56 * s) { len = x1 - x; }
+			row.girders.push({ x0: Math.round(x), x1: Math.round(x + len) });
+			x += len + 16 * s;
+		}
+	};
+
+	Confetti.prototype.moveSpray = function () {
+		this.spray = { x: rand(0, this.w - 180 * this.s), t: rand(11, 15) };
 	};
 
 	Confetti.prototype.img = function (id) {
@@ -79,160 +138,171 @@
 		return b ? b.image : null;
 	};
 
-	/** The belt a falling bit lands on, if any, between y0 and y1. */
-	Confetti.prototype.landing = function (x, y0, y1) {
-		for (var i = 0; i < this.belts.length; i += 1) {
-			var b = this.belts[i];
-			if (x >= b.x0 && x <= b.x1 && y0 <= b.y && y1 >= b.y) { return b; }
+	/** Where something falling at x comes to rest on a row: a belt, a girder or nothing. */
+	Confetti.prototype.under = function (row, x) {
+		var b = row.belt;
+		if (b && x >= b.x0 + 16 * this.s && x <= b.x1 - 16 * this.s) { return 'belt'; }
+		for (var i = 0; i < row.girders.length; i += 1) {
+			if (x >= row.girders[i].x0 && x < row.girders[i].x1) { return 'girder'; }
 		}
 		return null;
 	};
 
-	Confetti.prototype.drop = function (bit) {
-		var g = this.heap.getContext('2d'), x = Math.max(0, Math.min(this.w - 1, Math.floor(bit.x)));
-		var step = Math.max(1, Math.round(this.s)), grain = this.s * 0.8;
-		/* It rolls downhill until it finds somewhere it can rest, so the heap slumps. */
-		for (var n = 0; n < 400; n += 1) {
-			var l = x - step, r = x + step;
-			var lowL = l >= 0 && this.pile[l] + grain * 2 < this.pile[x];
-			var lowR = r < this.w && this.pile[r] + grain * 2 < this.pile[x];
+	/**
+	 * A grain comes to rest on a heap (a row's girders or the floor). It rolls
+	 * down whichever side is lower until both sides are no more than a pixel
+	 * below it, which makes the 45-degree heaps the module has.
+	 */
+	Confetti.prototype.settle = function (pile, base, x, c, row) {
+		var w = this.w, n;
+		x = Math.max(0, Math.min(w - 1, Math.floor(x)));
+		for (n = 0; n < 200; n += 1) {
+			var l = x - 1, r = x + 1;
+			var lowL = l >= 0 && pile[l] + 1 < pile[x] && (!row || this.under(row, l) === 'girder');
+			var lowR = r < w && pile[r] + 1 < pile[x] && (!row || this.under(row, r) === 'girder');
 			if (lowL && lowR) { x = Math.random() < 0.5 ? l : r; } else if (lowL) { x = l; } else if (lowR) { x = r; } else { break; }
 		}
-		/* A long shift's heap stops short of the belts; the rest blows away. */
-		if (this.pile[x] > this.h * 0.3) { return; }
-		this.pile[x] += grain;
-		g.fillStyle = bit.c;
-		g.fillRect(x - this.s, this.floor - this.pile[x], this.s * 2, this.s * 1.5);
+		if (pile[x] > 60 * this.s) { return; }
+		pile[x] += 1;
+		var g = this.heap.getContext('2d');
+		g.fillStyle = c;
+		g.fillRect(x, base - pile[x], 1, 1);
 	};
 
 	Confetti.prototype.step = function (dt, ctx, w, h) {
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0, 0, w, h);
 		if (!this.art) { return; }
-		var s = this.s, set = PIECES[this.type], i;
+		ctx.imageSmoothingEnabled = false;
 		this.clock += dt;
-		var working = this.phase === 'work';
-		if (working) {
-			this.spin += dt * 8 * this.dir;
-			/* Out of the hatch. */
-			for (i = 0; i < Math.ceil(dt * 90); i += 1) {
-				this.bits.push({ x: this.hatch + rand(-6, 6) * s, y: 52 * s, vx: 0, vy: rand(10, 40), c: PAPER[Math.floor(Math.random() * PAPER.length)], on: null });
-			}
+		if (this.phase === 'work') {
+			this.working(dt, ctx);
 			if (this.clock > this.shift) {
-				this.phase = this.ducks ? 'ducks' : 'work';
+				this.phase = 'sign';
 				this.clock = 0;
-				this.startParade();
 			}
+			return;
 		}
-		/* Confetti: falls, rides a belt, falls off its end. */
+		var s = this.s;
+		if (this.phase === 'sign') {
+			ctx.drawImage(this.img(217), Math.round(w / 2 - 23 * s), Math.round(h / 2 - 23 * s), 46 * s, 46 * s);
+			if (this.clock > SIGN) {
+				this.phase = this.ducks ? 'ducks' : 'gap';
+				this.clock = 0;
+			}
+		} else if (this.phase === 'ducks') {
+			if (this.parade(ctx)) {
+				this.phase = 'gap';
+				this.clock = 0;
+			}
+		} else if (this.clock > GAP) {
+			this.work();
+		}
+	};
+
+	Confetti.prototype.working = function (dt, ctx) {
+		var s = this.s, w = this.w, h = this.h, i, j;
+		this.spin += dt * 8;
+		this.spray.t -= dt;
+		if (this.spray.t <= 0) { this.moveSpray(); }
+		/* Out of the sky, in the spray's band. */
+		for (this.emit += dt * 40; this.emit >= 1; this.emit -= 1) {
+			this.bits.push({ x: this.spray.x + rand(0, 180 * s), y: 0, row: 0, ride: null,
+				c: PAPER[Math.floor(Math.random() * PAPER.length)] });
+		}
 		for (i = this.bits.length - 1; i >= 0; i -= 1) {
 			var b = this.bits[i];
-			if (b.on) {
-				if (working) { b.x += this.dir * BELT_SPEED * s * dt * (this.belts.indexOf(b.on) % 2 ? -1 : 1); }
-				if (b.x < b.on.x0 || b.x > b.on.x1) {
-					/* Thrown off the end at the belt's speed. */
-					b.vx = (b.x > b.on.x1 ? 1 : -1) * BELT_SPEED * s * rand(0.4, 1.3);
-					b.on = null;
-					b.vy = 10;
+			if (b.ride) {
+				b.x += b.ride.dir * this.dir * BELT_SPEED * s * dt;
+				if (b.x < b.ride.x0 + 8 * s || b.x > b.ride.x1 - 8 * s) {
+					/* Off the end of the belt, over the pulley. */
+					b.x = b.x < b.ride0 ? b.ride.x0 - 1 : b.ride.x1 + 1;
+					b.ride = null;
 				}
 				continue;
 			}
-			b.vy += 300 * dt;
-			var ny = b.y + b.vy * dt, land = this.landing(b.x, b.y, ny);
-			if (land) {
-				b.on = land;
-				b.y = land.y - 1 * s;
-				continue;
+			var ny = b.y + FALL * s * dt;
+			b.x += Math.sin(ny * 0.07 + i) * 6 * s * dt;
+			var done = false;
+			for (j = b.row; j < this.rows.length; j += 1) {
+				var row = this.rows[j], top = row.y - row.pile[Math.max(0, Math.min(w - 1, Math.floor(b.x)))];
+				if (b.y > row.y) { b.row = j + 1; continue; }
+				if (ny < top) { break; }
+				var on = this.under(row, b.x);
+				if (on === 'belt') {
+					b.ride = row.belt;
+					b.ride0 = (row.belt.x0 + row.belt.x1) / 2;
+					b.y = row.y - 1;
+					b.row = j + 1;
+					done = true;
+				} else if (on === 'girder') {
+					this.settle(row.pile, row.y, b.x, b.c, row);
+					this.bits.splice(i, 1);
+					done = true;
+				}
+				break;
 			}
+			if (done) { continue; }
 			b.y = ny;
-			b.x += (b.vx + Math.sin(b.y * 0.05 + i) * 10) * dt;
-			if (b.y >= this.floor - this.pile[Math.max(0, Math.min(w - 1, Math.floor(b.x)))]) {
-				this.drop(b);
+			var fx = Math.max(0, Math.min(w - 1, Math.floor(b.x)));
+			if (b.y >= this.floor - (this.floorPile ? this.floorPile[fx] : 0)) {
+				this.floorPile = this.floorPile || new Float32Array(Math.ceil(w));
+				this.settle(this.floorPile, this.floor, b.x, b.c, null);
+				this.bits.splice(i, 1);
+			} else if (b.x < -4 || b.x > w + 4) {
 				this.bits.splice(i, 1);
 			}
 		}
+		this.rows.forEach(function (row) { this.drawRow(ctx, row); }, this);
 		ctx.drawImage(this.heap, 0, 0, w, h);
-		ctx.imageSmoothingEnabled = false;
-		/* The belts. */
-		var frame = ((Math.floor(this.spin) % 4) + 4) % 4;
-		this.belts.forEach(function (bt, n) {
-			var wheel = this.img(set.wheels[n % 2] * 10 + 1 + frame), run = this.img(set.belt * 10 + 5);
-			var ww = 32 * s, y = bt.y - 2 * s;
-			for (var x = bt.x0 + ww / 2; x < bt.x1 - ww / 2; x += 10 * s) {
-				ctx.drawImage(run, Math.round(x), Math.round(y), 10 * s, 32 * s);
-			}
-			ctx.drawImage(wheel, Math.round(bt.x0 - ww / 2), Math.round(y), ww, ww);
-			ctx.drawImage(wheel, Math.round(bt.x1 - ww / 2), Math.round(y), ww, ww);
-		}, this);
-		/* The hopper across the top, with its hatch over the first belt. */
-		var cap = this.img(set.hopper * 10 + 1), mid = this.img(set.hopper * 10 + 2), port = this.img(set.hopper * 10 + 3),
-			end = this.img(set.hopper * 10 + 4), hh = (this.type === 'wood' ? 24 : 20) * s, hy = 30 * s;
-		ctx.drawImage(cap, 0, hy, 10 * s, hh);
-		for (var x = 10 * s; x < w - 10 * s; x += 10 * s) { ctx.drawImage(mid, x, hy, 10 * s, hh); }
-		ctx.drawImage(end, w - 10 * s, hy, 10 * s, hh);
-		ctx.drawImage(port, Math.round(this.hatch - 12 * s), hy, 24 * s, hh);
 		for (i = 0; i < this.bits.length; i += 1) {
 			ctx.fillStyle = this.bits[i].c;
-			ctx.fillRect(this.bits[i].x, this.bits[i].y, s * 2, s * 1.5);
+			ctx.fillRect(Math.round(this.bits[i].x), Math.round(this.bits[i].y), s, s);
 		}
-		if (this.phase === 'ducks') { this.paradeStep(dt, ctx); }
+	};
+
+	Confetti.prototype.drawRow = function (ctx, row) {
+		var s = this.s, set = PIECES[row.kind], y = row.y, i, x;
+		var put = function (img, px, py) {
+			if (img) { ctx.drawImage(img, Math.round(px), Math.round(py), img.width * s, img.height * s); }
+		};
+		for (i = 0; i < row.girders.length; i += 1) {
+			var g = row.girders[i], len = g.x1 - g.x0;
+			for (x = g.x0 + 10 * s; x < g.x1 - 10 * s; x += 10 * s) { put(this.img(set.mid), Math.min(x, g.x1 - 20 * s), y); }
+			put(this.img(set.left), g.x0, y);
+			put(this.img(set.right), g.x1 - 10 * s, y);
+			put(this.img(set.strut), g.x0 + 10 * s, y);
+			put(this.img(set.strut), g.x0 + Math.round(len * 0.62), y);
+		}
+		var b = row.belt;
+		if (b) {
+			for (x = b.x0 + 16 * s; x < b.x1 - 16 * s; x += 10 * s) { put(this.img(set.belt), Math.min(x, b.x1 - 26 * s), y); }
+			var turn = Math.floor(this.spin) * b.dir * this.dir, f = ((turn % 4) + 4) % 4;
+			put(this.img(set.wheel + f), b.x0, y);
+			put(this.img(set.wheel + f), b.x1 - 32 * s, y);
+		}
 	};
 
 	/* ------------------------------------------------------------ ducks -- */
 
-	Confetti.prototype.startParade = function () {
-		this.parade = [];
-		var from = this.dir > 0 ? -60 * this.s : this.w + 60 * this.s;
-		for (var i = 0; i < this.ducks; i += 1) {
-			this.parade.push({ x: from - this.dir * i * 56 * this.s, t: rand(0, 1) });
+	/** The ducks waddle across; true once the last one is off the screen. */
+	Confetti.prototype.parade = function (ctx) {
+		var s = this.s, w = this.w, h = this.h, lead = w - this.clock * DUCK_SPEED * s, gone = true;
+		for (var i = 0; i < Math.min(this.ducks, FLOCK.length); i += 1) {
+			var x = lead + FLOCK[i][0] * s, y = FLOCK[i][1] * h / 768;
+			if (x > -46 * s) { gone = false; }
+			/* The duck is drawn facing left, the way they go. */
+			var img = this.img(210 + (Math.floor(this.clock * 8) + i) % 7);
+			if (img) { ctx.drawImage(img, Math.round(x), Math.round(y), 46 * s, 46 * s); }
 		}
-		this.sign = 0;
-	};
-
-	Confetti.prototype.paradeStep = function (dt, ctx) {
-		var s = this.s, w = this.w, g = this.heap.getContext('2d');
-		this.sign += dt;
-		/* The sign first, flashing, then the ducks. */
-		if (Math.floor(this.sign * 2) % 2 === 0 || this.sign > 3) {
-			ctx.drawImage(this.img(217), Math.round(w / 2 - 23 * s), Math.round(this.h * 0.45 - 23 * s), 46 * s, 46 * s);
-		}
-		if (this.sign < 2) { return; }
-		var gone = 0;
-		for (var i = 0; i < this.parade.length; i += 1) {
-			var d = this.parade[i];
-			d.x += this.dir * 55 * s * dt;
-			d.t += dt;
-			/* Each one pushes the heap on ahead of it. */
-			var front = Math.floor(d.x + this.dir * 20 * s);
-			if (front >= 0 && front < w) {
-				var moved = this.pile[front], ahead = Math.max(0, Math.min(w - 1, front + this.dir * Math.round(2 * s)));
-				this.pile[ahead] += moved;
-				this.pile[front] = 0;
-				g.clearRect(front, 0, 1, this.floor + 4 * s);
-			}
-			var frame = 210 + Math.floor(d.t * 10) % 7, img = this.img(frame);
-			ctx.save();
-			ctx.translate(Math.round(d.x), 0);
-			/* The duck is drawn facing left. */
-			if (this.dir > 0) { ctx.scale(-1, 1); }
-			ctx.drawImage(img, -23 * s, Math.round(this.floor - 46 * s), 46 * s, 46 * s);
-			ctx.restore();
-			if ((this.dir > 0 && d.x > w + 40 * s) || (this.dir < 0 && d.x < -40 * s)) { gone += 1; }
-		}
-		if (gone === this.parade.length) {
-			/* The heap goes out with the last duck; back to work. */
-			this.pile.fill(0);
-			g.clearRect(0, 0, w, this.h);
-			this.phase = 'work';
-			this.clock = 0;
-		}
+		return gone;
 	};
 
 	AfterDark.define('after-dark-confetti-factory', function (el) {
 		var sim = new Confetti();
-		sim.ducks = HOW_MANY[AfterDark.choice(el, 'ducks', DUCKS, 'default')];
-		sim.shift = SECONDS[AfterDark.choice(el, 'workshift', SHIFTS, '1 min.')];
-		sim.type = TYPES[AfterDark.choice(el, 'type', TYPES, 'metal')];
+		sim.ducks = HOW_MANY[AfterDark.choice(el, 'ducks', DUCKS, 'seven')];
+		sim.shift = SECONDS[AfterDark.choice(el, 'workshift', SHIFTS, '30 sec.')];
+		sim.type = TYPES[AfterDark.choice(el, 'type', TYPES, 'wood')];
 		window.addEventListener('keydown', function (e) {
 			if (e.key === 'CapsLock') { sim.dir = -sim.dir; }
 		});

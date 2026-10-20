@@ -1,0 +1,252 @@
+{
+ "module": "Swans",
+ "format": "dib",
+ "bitmaps": {
+  "100": {
+   "w": 75,
+   "h": 60,
+   "id": 100,
+   "file": "100.png"
+  },
+  "200": {
+   "w": 75,
+   "h": 63,
+   "id": 200,
+   "file": "200.png"
+  },
+  "201": {
+   "w": 76,
+   "h": 63,
+   "id": 201,
+   "file": "201.png"
+  },
+  "202": {
+   "w": 81,
+   "h": 63,
+   "id": 202,
+   "file": "202.png"
+  },
+  "203": {
+   "w": 74,
+   "h": 65,
+   "id": 203,
+   "file": "203.png"
+  },
+  "204": {
+   "w": 77,
+   "h": 65,
+   "id": 204,
+   "file": "204.png"
+  },
+  "300": {
+   "w": 29,
+   "h": 38,
+   "id": 300,
+   "file": "300.png"
+  },
+  "301": {
+   "w": 30,
+   "h": 39,
+   "id": 301,
+   "file": "301.png"
+  },
+  "302": {
+   "w": 29,
+   "h": 38,
+   "id": 302,
+   "file": "302.png"
+  },
+  "303": {
+   "w": 29,
+   "h": 38,
+   "id": 303,
+   "file": "303.png"
+  },
+  "304": {
+   "w": 29,
+   "h": 38,
+   "id": 304,
+   "file": "304.png"
+  },
+  "305": {
+   "w": 30,
+   "h": 38,
+   "id": 305,
+   "file": "305.png"
+  },
+  "306": {
+   "w": 29,
+   "h": 60,
+   "id": 306,
+   "file": "306.png"
+  },
+  "307": {
+   "w": 30,
+   "h": 60,
+   "id": 307,
+   "file": "307.png"
+  },
+  "400": {
+   "w": 48,
+   "h": 37,
+   "id": 400,
+   "file": "400.png"
+  },
+  "401": {
+   "w": 49,
+   "h": 37,
+   "id": 401,
+   "file": "401.png"
+  },
+  "402": {
+   "w": 49,
+   "h": 37,
+   "id": 402,
+   "file": "402.png"
+  },
+  "403": {
+   "w": 46,
+   "h": 37,
+   "id": 403,
+   "file": "403.png"
+  },
+  "404": {
+   "w": 17,
+   "h": 21,
+   "id": 404,
+   "file": "404.png"
+  },
+  "405": {
+   "w": 16,
+   "h": 22,
+   "id": 405,
+   "file": "405.png"
+  },
+  "500": {
+   "w": 30,
+   "h": 45,
+   "id": 500,
+   "file": "500.png"
+  },
+  "501": {
+   "w": 30,
+   "h": 45,
+   "id": 501,
+   "file": "501.png"
+  },
+  "502": {
+   "w": 30,
+   "h": 44,
+   "id": 502,
+   "file": "502.png"
+  },
+  "600": {
+   "w": 73,
+   "h": 59,
+   "id": 600,
+   "file": "600.png"
+  },
+  "601": {
+   "w": 70,
+   "h": 59,
+   "id": 601,
+   "file": "601.png"
+  },
+  "602": {
+   "w": 70,
+   "h": 59,
+   "id": 602,
+   "file": "602.png"
+  },
+  "603": {
+   "w": 68,
+   "h": 60,
+   "id": 603,
+   "file": "603.png"
+  },
+  "604": {
+   "w": 62,
+   "h": 63,
+   "id": 604,
+   "file": "604.png"
+  },
+  "605": {
+   "w": 63,
+   "h": 63,
+   "id": 605,
+   "file": "605.png"
+  },
+  "606": {
+   "w": 65,
+   "h": 63,
+   "id": 606,
+   "file": "606.png"
+  },
+  "607": {
+   "w": 62,
+   "h": 63,
+   "id": 607,
+   "file": "607.png"
+  },
+  "608": {
+   "w": 75,
+   "h": 61,
+   "id": 608,
+   "file": "608.png"
+  },
+  "700": {
+   "w": 73,
+   "h": 62,
+   "id": 700,
+   "file": "700.png"
+  },
+  "701": {
+   "w": 70,
+   "h": 60,
+   "id": 701,
+   "file": "701.png"
+  },
+  "702": {
+   "w": 70,
+   "h": 60,
+   "id": 702,
+   "file": "702.png"
+  },
+  "703": {
+   "w": 68,
+   "h": 59,
+   "id": 703,
+   "file": "703.png"
+  },
+  "704": {
+   "w": 62,
+   "h": 58,
+   "id": 704,
+   "file": "704.png"
+  },
+  "705": {
+   "w": 63,
+   "h": 58,
+   "id": 705,
+   "file": "705.png"
+  },
+  "706": {
+   "w": 65,
+   "h": 58,
+   "id": 706,
+   "file": "706.png"
+  },
+  "707": {
+   "w": 62,
+   "h": 56,
+   "id": 707,
+   "file": "707.png"
+  }
+ },
+ "text": [
+  "tems Inc.",
+  "Swan Lake",
+  "SWAN LAKE (tm) Swans and their cygnets swim gracefully across your screen.\r\n\r\nTry a \"Synchronized\" swim  to impose a little structure on the proceedings.\r\n\r\nSwan artwork by Igor Gasowski.\r\n\r\nWindows version by Mike Overlin, SAPIEN Technologies, Inc.",
+  "Necks 300-307 and bodies 400-405 have black (index 0) as well as the edge colour round them; it is cleared to transparent here, since the parts overlap."
+ ]
+}

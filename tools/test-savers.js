@@ -48,27 +48,27 @@ function testGravity() {
 	var Gravity = global.AfterDarkGravity;
 	assert.strictEqual(Gravity.MIN_BALLS, 1);
 	assert.strictEqual(Gravity.MAX_BALLS, 7);
-	assert.strictEqual(Gravity.SIZES.medium, 18);
-
-	var a = { x: 0, y: 0, radius: 10, mass: 100 };
-	var b = { x: 40, y: 0, radius: 10, mass: 100 };
-	var force = Gravity.pull(a, b);
-	assert.ok(force.x > 0, 'A is pulled toward B (positive x)');
-	assert.ok(Math.abs(force.y) < 1e-9, 'no vertical pull when they share y');
+	assert.strictEqual(Gravity.SIZES.large, 30);
+	assert.ok(Gravity.PALETTE.length >= Gravity.MAX_BALLS, 'enough colours for a set');
 
 	var sim = new Gravity();
 	sim.count = 3;
-	sim.reset(320, 240);
+	sim.reset(320);
 	assert.strictEqual(sim.balls.length, 3);
-	var before = sim.balls.map(function (ball) {
-		return { x: ball.x, y: ball.y, vx: ball.vx, vy: ball.vy };
-	});
-	sim.step(0.016, 320, 240);
-	var moved = sim.balls.some(function (ball, i) {
-		return ball.x !== before[i].x || ball.y !== before[i].y ||
-			ball.vx !== before[i].vx || ball.vy !== before[i].vy;
-	});
-	assert.ok(moved, 'a step changes position or velocity');
+	var colours = sim.balls.map(function (b) { return b.colour; });
+	assert.strictEqual(new Set(colours).size, 3, 'no two balls alike');
+	var ball = sim.balls[0];
+	var y = ball.y;
+	sim.move(ball, 320, 240);
+	sim.move(ball, 320, 240);
+	assert.ok(ball.y > y, 'a ball falls');
+	var floor = 240 - sim.size / 2;
+	for (var i = 0; i < 5000 && !ball.done; i += 1) {
+		sim.move(ball, 320, 240);
+		assert.ok(ball.y <= floor + 1e-9, 'never below the floor');
+		assert.ok(ball.x >= sim.size / 2 && ball.x <= 320 - sim.size / 2, 'inside the walls');
+	}
+	assert.ok(ball.done, 'the bounces die away');
 }
 
 function testSnake() {
@@ -140,7 +140,12 @@ function testTables() {
 	loadModule('bogglins');
 	var Bogglins = global.AfterDarkBogglins;
 	assert.ok(Bogglins.EXPLOSIVITY.volatile > Bogglins.EXPLOSIVITY.unstable);
-	assert.ok(Bogglins.TWANG.sharp.height > Bogglins.TWANG.mild.height);
+	assert.ok(Bogglins.TWANG.sharp && Bogglins.TWANG.mild, 'every Twanginess is accepted');
+	var bog = new Bogglins({ bitmap: function () { return { image: null }; } });
+	bog.reset(1024, 768);
+	assert.strictEqual(bog.crew.length, 1, 'one Bogglin, as in the original');
+	for (var t = 0; t < 600; t += 1) { bog.step(1 / 30, 1024, 768); }
+	assert.ok(bog.crew[0].x >= 0 && bog.crew[0].x <= 1024 && bog.crew[0].y <= 768, 'he stays on screen');
 
 	loadModule('om');
 	var Om = global.AfterDarkOm;
@@ -157,8 +162,25 @@ function testFishWorld() {
 	var names = FishWorld.SPECIES.map(function (s) { return s.name; });
 	assert.ok(names.indexOf('Blue Bird Wrasse') >= 0);
 	assert.ok(names.indexOf('Sea Horse') >= 0);
-	var n = FishWorld.schoolSize(800, 600);
-	assert.ok(n >= FishWorld.SCHOOL_MIN && n <= FishWorld.SCHOOL_MAX);
+	/* Fish::IFish: H/100 + H/100/3 + 2, +1 unless H/100 is a multiple of 3, at most 16 */
+	assert.strictEqual(FishWorld.schoolSize(1024, 768), 12);
+	assert.strictEqual(FishWorld.schoolSize(640, 480), 8);
+	assert.strictEqual(FishWorld.schoolSize(800, 600), 10);
+	assert.strictEqual(FishWorld.schoolSize(4000, 3000), 16);
+	/* a mirrored sprite moves the other way through the same frames */
+	var movie = new FishWorld.Movie({ cels: {}, frames: [null, [0, 0, 10, 10], [5, 0, 15, 10]] }, {});
+	var sp = new FishWorld.Sprite(movie);
+	sp.nextSequence(1);
+	sp.setCenter(100, 50);
+	sp.play();
+	sp.play();
+	assert.strictEqual(sp.cx, 105);
+	sp.op = 1;
+	sp.nextSequence(1);
+	sp.setCenter(100, 50);
+	sp.play();
+	sp.play();
+	assert.strictEqual(sp.cx, 95);
 }
 
 function testRainforest() {
@@ -177,6 +199,14 @@ function testRainforest() {
 	assert.strictEqual(sim.chosen.length, 6);
 	sim.reset(320, 240);
 	assert.strictEqual(sim.critters.length, sim.count);
+	/* God's edge slots at 1024x768: 17 + 17 + 14, less one; 3 of each of 6 kinds */
+	var god = new Rainforest.God(1024, 768, 18, 6);
+	assert.strictEqual(god.total, 47);
+	god.desiredPopulation(3);
+	assert.strictEqual(god.desired, 3);
+	assert.ok(god.requestBirth(0, 3) && god.requestBirth(0, 3) && god.requestBirth(0, 3));
+	assert.ok(!god.requestBirth(0, 3));
+	assert.strictEqual(Rainforest.God.angle([0, 10, 0, 10], [0, 0, 0, 0]), 90);
 }
 
 function testDraino() {
@@ -318,7 +348,7 @@ function testNonsense() {
 	for (var i = 0; i < 200; i += 1) {
 		var line = g.sentence();
 		assert.ok(/^[A-Z]/.test(line), 'starts with a capital: ' + line);
-		assert.ok(/[.!]$/.test(line), 'ends a sentence: ' + line);
+		assert.ok(/[.?]$/.test(line), 'ends a sentence or a question: ' + line);
 		assert.ok(!/\s\s|undefined/.test(line), 'no gaps or holes: ' + line);
 	}
 }

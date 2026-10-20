@@ -5,166 +5,168 @@
  * code. Its own description:
  *
  *   "GRAVITY (tm) demonstrates Newtonian gravity with bouncing balls.
- *    Choose 1-7 balls with the Number Balls slider.
- *    Use the Size slider to set the size of the balls."
- *   Original idea by Bryce Fowler.
+ *    Choose 1-7 balls with the "Number Balls" slider.
+ *    Use the "Size" slider to set the size of the balls.
+ *    Check "Clear Screen" to clear the screen between each set of balls."
+ *   Original idea by Bryce Fowler. Gravity by Bill Stewart & Tracy Elmore.
  *
- * The settings are its own, out of TYPE_1000: Number Balls is 1-7, Size is
- * 10-30 pixels, plus Clear Screen and Colors checkboxes. Sound is omitted
- * because there is no sound here.
+ * Its controls (TYPE_1000) are Number Balls (slider, 1-7), Size (slider,
+ * 10-30), Clear Screen (checkbox) and Sound. There is no Colors control.
  *
- *   <after-dark-gravity balls="4" size="medium" colors clear-screen>
+ * Checked against the real module running under Wine (8-bit, 1024x768,
+ * colours grabbed through the saver window's own colormap):
+ *  - The balls are flat circles in the 16 VGA colours, outlined in black,
+ *    and they are never erased: every step stamps the ball again, so each
+ *    one leaves a dotted trail of parabola-ish arcs. Size is the diameter
+ *    in pixels (Size 10 -> 10 px, the capture with no settings -> 30 px).
+ *  - A set of balls is dropped in together from the top edge, each with
+ *    its own colour (no two alike) and a steady sideways drift of up to
+ *    8 px a step that bounces off the side walls without loss.
+ *  - The fall is not textbook: the step grows by about 27% each step away
+ *    from the top of the arc (plus a pixel), and shrinks the same way on
+ *    the way up, so the tops of the arcs are flat and the drops steep.
+ *    Each bounce comes back to about 0.88 of the height.
+ *  - When the bounces have died away (~900 steps for one ball) the screen
+ *    is cleared (if Clear Screen is on) and a new set falls with new colours.
+ *  - With no settings stored the module ran 7 balls of 30 px.
+ * Inferred: the step rate. Under Wine it ran unthrottled (a set in under
+ * three seconds); 30 steps a second is a guess at a 1992 PC. Sound omitted.
+ *
+ *   <after-dark-gravity balls="7" size="large" clear-screen>
  */
 (function () {
 	'use strict';
 
 	var MIN_BALLS = 1;
 	var MAX_BALLS = 7;
-	var SIZES = { small: 10, medium: 18, large: 28 };
+	/* Diameters. The slider ran 10-30; the list names its ends and middle. */
+	var SIZES = { small: 10, medium: 20, large: 30 };
+	/* The VGA colours the balls came in (no black; silver never turned up). */
 	var PALETTE = [
-		'#e23b3b', '#3bd14a', '#3b7ae2', '#f2d24b',
-		'#3be2d4', '#e23bd1', '#f2f2f2'
+		'#800000', '#008000', '#808000', '#000080', '#800080', '#008080', '#808080',
+		'#ff0000', '#00ff00', '#ffff00', '#0000ff', '#ff00ff', '#00ffff', '#ffffff'
 	];
-	var GREY = ['#d8d8d8', '#b0b0b0', '#888888', '#e8e8e8', '#c8c8c8', '#a0a0a0', '#f4f4f4'];
-	var G = 4200;
-	var SOFT = 24;
-	var RESTITUTION = 0.92;
-	var DAMP = 0.9992;
+	var STEPS_PER_SEC = 30;
+	var GROW = 1.27;      /* each step falls this much further than the last... */
+	var NUDGE = 1;        /* ...plus this many pixels */
+	var KEEP = 0.88;      /* height kept at each bounce */
+	var MAX_DRIFT = 8;    /* sideways pixels per step */
+	var DONE = 3;         /* a bounce lower than this ends the ball */
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
 	}
 
-	function massOf(radius) {
-		return radius * radius;
-	}
-
-	/** Acceleration on a from b, Newtonian with a softening length. */
-	function pull(a, b) {
-		var dx = b.x - a.x;
-		var dy = b.y - a.y;
-		var dist2 = dx * dx + dy * dy;
-		var min = (a.radius + b.radius) * (a.radius + b.radius);
-		if (dist2 < min) {
-			dist2 = min;
-		}
-		var dist = Math.sqrt(dist2 + SOFT * SOFT);
-		var accel = G * b.mass / (dist * dist * dist);
-		return { x: dx * accel, y: dy * accel };
-	}
-
 	function Gravity() {
-		this.count = 4;
-		this.radius = SIZES.medium;
-		this.colors = true;
+		this.count = MAX_BALLS;
+		this.size = SIZES.large;
 		this.clearScreen = true;
 		this.balls = [];
+		this.clock = 0;
+		this.fresh = true;
 	}
 
-	Gravity.prototype.spawn = function (w, h, index) {
-		var radius = this.radius * rand(0.72, 1.18);
-		var palette = this.colors ? PALETTE : GREY;
-		return {
-			x: rand(radius + 4, Math.max(radius + 5, w - radius - 4)),
-			y: rand(radius + 4, Math.max(radius + 5, h - radius - 4)),
-			vx: rand(-50, 50),
-			vy: rand(-50, 50),
-			radius: radius,
-			mass: massOf(radius),
-			colour: palette[index % palette.length]
-		};
-	};
-
-	Gravity.prototype.reset = function (w, h) {
-		this.balls = [];
+	Gravity.prototype.reset = function (w) {
 		var n = Math.max(MIN_BALLS, Math.min(MAX_BALLS, this.count));
+		var colours = PALETTE.slice();
+		var r = this.size / 2;
+		this.balls = [];
 		for (var i = 0; i < n; i += 1) {
-			this.balls.push(this.spawn(w, h, i));
+			var c = colours.splice(Math.floor(Math.random() * colours.length), 1)[0];
+			this.balls.push({
+				x: rand(r, Math.max(r + 1, w - r)),
+				y: 0,
+				apex: 0,      /* top of the current arc */
+				fall: 0,      /* how far below the apex the ball is */
+				rising: false,
+				vx: Math.round(rand(-MAX_DRIFT, MAX_DRIFT)),
+				colour: c,
+				done: false
+			});
 		}
+		this.fresh = true;
 	};
 
-	Gravity.prototype.walls = function (ball, w, h) {
-		if (ball.x < ball.radius) {
-			ball.x = ball.radius;
-			ball.vx = Math.abs(ball.vx) * RESTITUTION;
-		} else if (ball.x > w - ball.radius) {
-			ball.x = w - ball.radius;
-			ball.vx = -Math.abs(ball.vx) * RESTITUTION;
+	/** One step of one ball; h is the screen height, w its width. */
+	Gravity.prototype.move = function (b, w, h) {
+		var r = this.size / 2;
+		var floor = h - r;
+		if (b.done) {
+			return;
 		}
-		if (ball.y < ball.radius) {
-			ball.y = ball.radius;
-			ball.vy = Math.abs(ball.vy) * RESTITUTION;
-		} else if (ball.y > h - ball.radius) {
-			ball.y = h - ball.radius;
-			ball.vy = -Math.abs(ball.vy) * RESTITUTION;
+		b.x += b.vx;
+		if (b.x < r) {
+			b.x = 2 * r - b.x;
+			b.vx = -b.vx;
+		} else if (b.x > w - r) {
+			b.x = 2 * (w - r) - b.x;
+			b.vx = -b.vx;
 		}
-	};
-
-	Gravity.prototype.step = function (dt, w, h) {
-		var i, j, a, b, force, ax, ay, dx, dy, dist, overlap, nx, ny;
-		for (i = 0; i < this.balls.length; i += 1) {
-			a = this.balls[i];
-			ax = 0;
-			ay = 0;
-			for (j = 0; j < this.balls.length; j += 1) {
-				if (i === j) {
-					continue;
-				}
-				force = pull(a, this.balls[j]);
-				ax += force.x;
-				ay += force.y;
+		if (b.rising) {
+			b.fall = (b.fall - NUDGE) / GROW;
+			if (b.fall <= NUDGE) {
+				b.fall = 0;
+				b.rising = false;
 			}
-			a.vx = (a.vx + ax * dt) * DAMP;
-			a.vy = (a.vy + ay * dt) * DAMP;
+		} else {
+			b.fall = b.fall * GROW + NUDGE;
 		}
-		for (i = 0; i < this.balls.length; i += 1) {
-			a = this.balls[i];
-			a.x += a.vx * dt;
-			a.y += a.vy * dt;
-			this.walls(a, w, h);
-		}
-		/* Overlap: push apart so they do not sink into each other. */
-		for (i = 0; i < this.balls.length; i += 1) {
-			a = this.balls[i];
-			for (j = i + 1; j < this.balls.length; j += 1) {
-				b = this.balls[j];
-				dx = b.x - a.x;
-				dy = b.y - a.y;
-				dist = Math.hypot(dx, dy) || 0.001;
-				overlap = a.radius + b.radius - dist;
-				if (overlap > 0) {
-					nx = dx / dist;
-					ny = dy / dist;
-					a.x -= nx * overlap * 0.5;
-					a.y -= ny * overlap * 0.5;
-					b.x += nx * overlap * 0.5;
-					b.y += ny * overlap * 0.5;
-				}
+		b.y = b.apex + b.fall;
+		if (!b.rising && b.y >= floor) {
+			var height = (floor - b.apex) * KEEP;
+			if (height < DONE) {
+				b.y = floor;
+				b.done = true;
+				return;
 			}
+			b.apex = floor - height;
+			b.fall = height;
+			b.y = floor;
+			b.rising = true;
 		}
 	};
 
-	Gravity.prototype.drawBall = function (ctx, ball) {
-		var r = ball.radius;
-		var g = ctx.createRadialGradient(
-			ball.x - r * 0.35, ball.y - r * 0.38, r * 0.08,
-			ball.x, ball.y, r);
-		g.addColorStop(0, '#ffffff');
-		g.addColorStop(0.22, ball.colour);
-		g.addColorStop(1, '#111111');
-		ctx.fillStyle = g;
+	Gravity.prototype.stamp = function (ctx, b) {
+		var r = this.size / 2;
+		ctx.fillStyle = b.colour;
+		ctx.strokeStyle = '#000';
+		ctx.lineWidth = 1;
 		ctx.beginPath();
-		ctx.arc(ball.x, ball.y, r, 0, Math.PI * 2);
+		ctx.arc(Math.round(b.x), Math.round(b.y), r - 0.5, 0, Math.PI * 2);
 		ctx.fill();
+		ctx.stroke();
 	};
 
-	Gravity.prototype.draw = function (ctx, w, h) {
-		if (this.clearScreen) {
-			ctx.fillStyle = '#000';
-			ctx.fillRect(0, 0, w, h);
+	/** Advance whole steps for dt seconds, stamping as it goes. */
+	Gravity.prototype.run = function (dt, ctx, w, h) {
+		var i, b, live;
+		if (this.fresh) {
+			if (this.clearScreen || !this.started) {
+				ctx.fillStyle = '#000';
+				ctx.fillRect(0, 0, w, h);
+			}
+			this.started = true;
+			this.fresh = false;
+			for (i = 0; i < this.balls.length; i += 1) {
+				this.stamp(ctx, this.balls[i]);
+			}
 		}
-		for (var i = 0; i < this.balls.length; i += 1) {
-			this.drawBall(ctx, this.balls[i]);
+		this.clock += dt * STEPS_PER_SEC;
+		while (this.clock >= 1) {
+			this.clock -= 1;
+			live = false;
+			for (i = 0; i < this.balls.length; i += 1) {
+				b = this.balls[i];
+				if (!b.done) {
+					this.move(b, w, h);
+					this.stamp(ctx, b);
+					live = true;
+				}
+			}
+			if (!live) {
+				this.reset(w);
+				return;
+			}
 		}
 	};
 
@@ -185,23 +187,22 @@
 
 		var sim = new Gravity();
 		var balls = AfterDark.setting(self, 'balls');
-		var size = (AfterDark.setting(self, 'size') || 'medium').toLowerCase();
-		sim.count = Math.max(MIN_BALLS, Math.min(MAX_BALLS, parseInt(balls, 10) || 4));
-		sim.radius = SIZES[size] || parseInt(size, 10) || SIZES.medium;
-		sim.radius = Math.max(8, Math.min(40, sim.radius));
-		sim.colors = AfterDark.flag(self, 'colors');
+		var size = (AfterDark.setting(self, 'size') || 'large').toLowerCase();
+		sim.count = Math.max(MIN_BALLS, Math.min(MAX_BALLS, parseInt(balls, 10) || MAX_BALLS));
+		sim.size = SIZES[size] || parseInt(size, 10) || SIZES.large;
+		sim.size = Math.max(10, Math.min(30, sim.size));
 		sim.clearScreen = AfterDark.flag(self, 'clear-screen');
 
 		var screen = new AfterDark.Screen(self);
 		this._screen = screen;
 		this.sim = sim;
-		screen.onresize = function (width, height) {
-			sim.reset(width, height);
+		screen.onresize = function (width) {
+			sim.started = false;
+			sim.reset(width);
 		};
-		sim.reset(screen.width, screen.height);
+		sim.reset(screen.width);
 		screen.run(function (dt, ctx, width, height) {
-			sim.step(dt, width, height);
-			sim.draw(ctx, width, height);
+			sim.run(dt, ctx, width, height);
 		});
 	};
 
@@ -214,8 +215,8 @@
 
 	customElements.define('after-dark-gravity', GravityElement);
 	window.AfterDarkGravity = Gravity;
-	Gravity.pull = pull;
 	Gravity.SIZES = SIZES;
+	Gravity.PALETTE = PALETTE;
 	Gravity.MIN_BALLS = MIN_BALLS;
 	Gravity.MAX_BALLS = MAX_BALLS;
 }());

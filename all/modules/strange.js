@@ -9,53 +9,69 @@
  *    'Color Speed' adjusts how quickly the colors change while an image is
  *    being drawn. Original Mac version by Ed Hall."
  *
- * Each picture is one map, x' = sin(a y) + c cos(a x), y' = sin(b x) +
- * d cos(b y), iterated a few thousand times a frame, with parameters kept
- * only if the points neither settle nor repeat. The colour moves on as it
- * draws, so the order it was drawn in shows. Caps Lock still holds it.
+ * Checked against the real module under Wine (8-bit display, defaults): each
+ * picture is Barry Martin's "hopalong" map, x' = y - sign(x) sqrt|b x - c|,
+ * y' = a - x, started at the origin and plotted a dot at a time at a fixed
+ * scale, so it starts as a small figure in the middle of a black screen and
+ * spreads out past the edges within a few seconds, filling in as it goes -
+ * lattices of rings in a diamond, or lace round big black ovals, depending
+ * on a, b and c. A new picture every 20 seconds by default (the module's
+ * default Duration). Dots are solid, one pixel.
+ * Still inferred: the ranges a, b and c are drawn from, and the colour - the
+ * 8-bit grab reads pixels through the default colormap, not the module's
+ * palette, so the captures cannot show it; the colour drifting as it draws
+ * is from the description.
  *
- *   <after-dark-strange-attractors duration="1 minute" color-speed="normal">
+ *   <after-dark-strange-attractors duration="20 seconds" color-speed="normal">
  */
 (function () {
 	'use strict';
 
-	var DURATIONS = ['5 seconds', '10 seconds', '15 seconds', '30 seconds', '1 minute', '2 minutes',
-		'5 minutes', '10 minutes', '30 minutes', '1 hour'];
-	var SECONDS = [5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600];
+	var DURATIONS = ['5 seconds', '10 seconds', '15 seconds', '20 seconds', '30 seconds', '45 seconds',
+		'1 minute', '2 minutes', '5 minutes', '10 minutes', '15 minutes', '20 minutes', '30 minutes',
+		'45 minutes', '1 hour'];
+	var SECONDS = [5, 10, 15, 20, 30, 45, 60, 120, 300, 600, 900, 1200, 1800, 2700, 3600];
 	var COLOR_SPEEDS = ['none', 'slowest', 'slower', 'slow', 'normal', 'fast', 'faster', 'fastest'];
 	var HUE = [0, 2, 5, 10, 20, 40, 80, 160];
-	var PER_FRAME = 6000;
+	/* Dots a frame: the original covered the screen in a few seconds. */
+	var PER_FRAME = 1500;
+	/* Dots whose spread sets the scale: about what is down after three seconds. */
+	var SPREAD = 180000;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
 	}
 
-	/** Parameters whose points fill a good area without settling down. */
+	function hop(p, x, y) {
+		return [y - (x < 0 ? -1 : 1) * Math.sqrt(Math.abs(p.b * x - p.c)), p.a - x];
+	}
+
+	/**
+	 * Parameters for one picture, with how far its first few seconds reach:
+	 * box is that early orbit's extent, reach its 90th-percentile radius.
+	 */
 	function find() {
-		for (var tries = 0; tries < 200; tries += 1) {
-			var p = { a: rand(-3, 3), b: rand(-3, 3), c: rand(-2, 2), d: rand(-2, 2) };
-			var x = 0.1, y = 0.1, seen = {}, cells = 0, minX = 9, maxX = -9, minY = 9, maxY = -9;
-			for (var i = 0; i < 3000; i += 1) {
-				var nx = Math.sin(p.a * y) + p.c * Math.cos(p.a * x);
-				var ny = Math.sin(p.b * x) + p.d * Math.cos(p.b * y);
-				x = nx;
-				y = ny;
-				if (i < 100) { continue; }
+		for (var tries = 0; tries < 50; tries += 1) {
+			var p = { a: rand(-15, 15), b: rand(0.02, 1.5) * (Math.random() < 0.5 ? -1 : 1), c: rand(-2, 2) };
+			var x = 0, y = 0, minX = 0, maxX = 0, minY = 0, maxY = 0, radii = [];
+			for (var i = 0; i < SPREAD; i += 1) {
+				var n = hop(p, x, y);
+				x = n[0];
+				y = n[1];
 				minX = Math.min(minX, x); maxX = Math.max(maxX, x);
 				minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-				var key = Math.floor(x * 20) + ',' + Math.floor(y * 20);
-				if (!seen[key]) { seen[key] = 1; cells += 1; }
+				if (i % 50 === 0) { radii.push(Math.sqrt(x * x + y * y)); }
 			}
-			if (cells > 700) {
-				p.box = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
-				return p;
-			}
+			radii.sort(function (u, v) { return u - v; });
+			p.reach = radii[Math.floor(radii.length * 0.9)];
+			p.box = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+			if (isFinite(p.reach) && p.reach > 0 && p.box.w > 0 && p.box.h > 0) { return p; }
 		}
-		return { a: -1.4, b: 1.6, c: 1.0, d: 0.7, box: { x: -2, y: -2, w: 4, h: 4 } };
+		return { a: 0.4, b: 1, c: 0, reach: 2.2, box: { x: -3, y: -3, w: 6, h: 6 } };
 	}
 
 	function Strange() {
-		this.duration = 60;
+		this.duration = 20;
 		this.hueRate = HUE[4];
 		this.hold = false;
 	}
@@ -74,8 +90,10 @@
 		g.fillStyle = '#000';
 		g.fillRect(0, 0, this.w, this.h);
 		this.p = find();
-		this.x = 0.1;
-		this.y = 0.1;
+		/* By the time the spread is down it reaches past the screen's corners. */
+		this.scale = Math.hypot(this.w, this.h) / 2 * 0.75 / this.p.reach;
+		this.x = 0;
+		this.y = 0;
 		this.age = 0;
 		this.hue = rand(0, 360);
 	};
@@ -83,18 +101,16 @@
 	Strange.prototype.step = function (dt, ctx, w, h) {
 		this.age += dt;
 		if (this.age > this.duration && !this.hold) { this.fresh(); }
-		var p = this.p, g = this.canvas.getContext('2d');
-		var fit = Math.min(w * 0.9 / p.box.w, h * 0.9 / p.box.h);
-		var ox = (w - p.box.w * fit) / 2 - p.box.x * fit, oy = (h - p.box.h * fit) / 2 - p.box.y * fit;
+		var p = this.p, g = this.canvas.getContext('2d'), s = this.scale, ox = w / 2, oy = h / 2;
 		this.hue = (this.hue + this.hueRate * dt) % 360;
-		/* Faint dots, so where it keeps coming back to gets brighter. */
-		g.fillStyle = 'hsla(' + this.hue.toFixed(1) + ',100%,60%,0.35)';
+		g.fillStyle = 'hsl(' + this.hue.toFixed(1) + ',60%,70%)';
 		var x = this.x, y = this.y;
 		for (var i = 0; i < PER_FRAME; i += 1) {
-			var nx = Math.sin(p.a * y) + p.c * Math.cos(p.a * x);
-			y = Math.sin(p.b * x) + p.d * Math.cos(p.b * y);
+			var nx = y - (x < 0 ? -1 : 1) * Math.sqrt(Math.abs(p.b * x - p.c));
+			y = p.a - x;
 			x = nx;
-			g.fillRect(ox + x * fit, oy + y * fit, 1, 1);
+			/* y runs down the screen, as it did in the original. */
+			g.fillRect(Math.floor(ox + x * s), Math.floor(oy + y * s), 1, 1);
 		}
 		this.x = x;
 		this.y = y;
@@ -103,7 +119,7 @@
 
 	AfterDark.define('after-dark-strange-attractors', function (el) {
 		var sim = new Strange();
-		sim.duration = SECONDS[AfterDark.choice(el, 'duration', DURATIONS, '1 minute')];
+		sim.duration = SECONDS[AfterDark.choice(el, 'duration', DURATIONS, '20 seconds')];
 		sim.hueRate = HUE[AfterDark.choice(el, 'color-speed', COLOR_SPEEDS, 'normal')];
 		window.addEventListener('keydown', function (e) {
 			if (e.getModifierState) { sim.hold = e.getModifierState('CapsLock'); }
@@ -113,4 +129,5 @@
 
 	window.AfterDarkStrange = Strange;
 	Strange.find = find;
+	Strange.hop = hop;
 }());

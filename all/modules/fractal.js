@@ -12,11 +12,18 @@
  * Forever). Each kind of tree is a TREEDATA resource, 24 numbers, in
  * all/art/fractal/. How the module used them was not decompiled; they are
  * read here as branching - how many branches, how deep, how wide they fan,
- * how hard they reach up, how much shorter each generation is - because
- * that is where the numbers differ the way the trees do: the pine and the
- * poplar reach straight up, the elm fans out, the sapling is small. Each tree
- * grows a generation at a time, and the seasons turn the leaves: blossom,
- * green, gold and falling, bare and snowed on.
+ * how hard they reach up, how much shorter each generation is.
+ *
+ * Checked against the real module under Wine (8-bit display, defaults: Num.
+ * of Trees 20 of 100, Type Random, Spring, Seasons Last 1 min.): there is no
+ * ground, just black; seventeen trees go up one after another, about one a
+ * second, back ones first, their feet scattered from 43% to 90% of the way
+ * down the screen and the farther ones smaller (about 85 to 190 pixels tall
+ * at 768 lines). Crowns are broad and made of small specks: round maples,
+ * umbrella elms, conical pines, narrow poplars, small sparse saplings.
+ * Still inferred: the TREEDATA reading, so the exact tree shapes; colours
+ * and the seasons (the 8-bit grab cannot show the module's colours, and the
+ * 45-second capture never reached a season change).
  *
  *   <after-dark-fractal-forest art="art/fractal" trees="some" type="random" season="spring" seasons-last="1 min.">
  */
@@ -24,7 +31,8 @@
 	'use strict';
 
 	var COUNTS = ['one', 'few', 'some', 'many'];
-	var HOW_MANY = [1, 3, 6, 11];
+	/* The slider's default (20 of 100) planted seventeen trees in the capture. */
+	var HOW_MANY = [1, 6, 17, 30];
 	var TYPES = ['maple', 'elm', 'pine', 'poplar', 'sapling', 'random'];
 	var SEASONS = ['spring', 'summer', 'fall', 'winter'];
 	var LASTS = ['10 sec.', '30 sec.', '1 min.', '5 min.', '10 min.', '30 min.', '1 hour', '1 day', '1 week', 'forever'];
@@ -59,13 +67,13 @@
 				var off = n === 1 ? 0 : (i / (n - 1) - 0.5) * spread;
 				/* Pull back toward straight up by the tree's upward reach. */
 				var a = ang + off + rand(-0.15, 0.15);
-				a = a + (-Math.PI / 2 - a) * up * 0.35;
+				a = a + (-Math.PI / 2 - a) * up * 0.2;
 				branch(x1, y1, a, len * vary(ratio, d[9] / 100), gen + 1, width * 0.68);
 			}
 			/* The strong-leadered trees carry the trunk on up the middle. */
 			if (up > 0.8 && gen < depth - 1) { branch(x1, y1, -Math.PI / 2 + rand(-0.05, 0.05), len * 0.85, gen + 1, width * 0.8); }
 		}
-		branch(x, y, -Math.PI / 2, height * trunk * 0.32, 0, Math.max(2, height * (d[6] || 15) / 900));
+		branch(x, y, -Math.PI / 2, height * trunk * 0.24, 0, Math.max(2, height * (d[6] || 15) / 900));
 		return out;
 	}
 
@@ -90,36 +98,35 @@
 		this.trees = [];
 		for (var i = 0; i < this.count; i += 1) {
 			var kind = this.type === 'random' ? names[Math.floor(Math.random() * 5)] : this.type;
-			var back = this.count === 1 ? 1 : rand(0.55, 1);
-			var height = h * (kind === 'sapling' ? 0.45 : 0.85) * back;
-			var ground = h * 0.93 - (1 - back) * h * 0.2;
-			var x = this.count === 1 ? w / 2 : rand(w * 0.06, w * 0.94);
+			/*
+			 * As captured: feet scattered from 43% to 90% of the way down, the
+			 * higher ones farther off and smaller - 85 to 190 pixels tall at 768
+			 * (grow() falls short of the height it is given, hence the 1.6).
+			 */
+			var far = this.count === 1 ? 1 : Math.random();
+			var ground = h * (0.43 + 0.47 * far);
+			var height = h * (0.11 + 0.14 * far) * 1.6 * (kind === 'sapling' ? 0.6 : 1);
+			var x = this.count === 1 ? w / 2 : rand(w * 0.03, w * 0.97);
+			var back = 0.55 + 0.45 * far;
 			var parts = grow(this.data.trees[kind], x, ground, height);
-			/* Keep the crown on the screen: shrink it about its foot if it grew too tall. */
-			var top = Math.min.apply(null, parts.map(function (q) { return Math.min(q.y0, q.y1); }));
-			if (top < h * 0.04) {
-				var fit = (ground - h * 0.04) / (ground - top);
-				parts.forEach(function (q) {
-					q.x0 = x + (q.x0 - x) * fit; q.x1 = x + (q.x1 - x) * fit;
-					q.y0 = ground + (q.y0 - ground) * fit; q.y1 = ground + (q.y1 - ground) * fit;
-					q.w *= fit;
-				});
-			}
-			this.trees.push({ kind: kind, parts: parts, back: back, leaves: this.leafy(parts, kind, back) });
+			this.trees.push({ kind: kind, parts: parts, back: back, ground: ground,
+				leaves: this.leafy(parts, kind, height) });
 		}
-		/* Back ones first. */
-		this.trees.sort(function (a, b) { return a.back - b.back; });
+		/* Painted from the back forward, one tree after another. */
+		this.trees.sort(function (a, b) { return a.ground - b.ground; });
+		this.trees.forEach(function (t, k) { t.start = k * 0.7; });
 		this.planted = true;
 		this.growth = 0;
 	};
 
 	/** Where the leaves go: clusters at the ends of the leafy branches. */
-	FractalForest.prototype.leafy = function (parts, kind, back) {
-		var d = this.data.trees[kind], size = Math.min(8, d[12] || 6) * 0.6 * back * Math.max(1, this.h / 480), out = [];
+	FractalForest.prototype.leafy = function (parts, kind, height) {
+		/* Leaves are specks, a couple of pixels, at the tips of the leafy branches. */
+		var d = this.data.trees[kind], size = Math.max(0.8, height / 150) * Math.min(8, d[12] || 6) / 7, out = [];
 		parts.forEach(function (p) {
 			if (!p.leaf) { return; }
-			for (var i = 0; i < 3; i += 1) {
-				out.push({ x: p.x1 + rand(-size, size) * 1.5, y: p.y1 + rand(-size, size) * 1.5, r: size * rand(0.6, 1.2),
+			for (var i = 0; i < 6; i += 1) {
+				out.push({ x: p.x1 + rand(-size, size) * 4, y: p.y1 + rand(-size, size) * 4, r: size * rand(0.6, 1.2),
 					pick: Math.random(), gen: p.gen });
 			}
 		});
@@ -136,20 +143,21 @@
 			this.t = 0;
 			this.season = (this.season + 1) % 4;
 		}
-		/* A generation of growth every second and a half, up to full size. */
-		this.growth = Math.min(20, this.growth + dt / 1.5);
+		this.growth += dt;
 		var season = SEASONS[this.season], p = Math.min(1, this.t / Math.min(this.length, 20));
 		var colours = LEAVES[season], i;
-		ctx.fillStyle = season === 'winter' ? '#d8dce8' : '#1c2a14';
-		ctx.fillRect(0, h * 0.93, w, h * 0.07);
+		/* No ground: the trees stand on the black. */
 		ctx.lineCap = 'round';
 		for (var t = 0; t < this.trees.length; t += 1) {
-			var tree = this.trees[t], shade = 0.45 + 0.55 * tree.back;
+			var tree = this.trees[t], shade = tree.back;
+			/* Each tree comes up in about half a second, a generation at a time. */
+			var grown = (this.growth - tree.start) * 16;
+			if (grown < 0) { break; }
 			ctx.strokeStyle = 'rgb(' + Math.round(96 * shade) + ',' + Math.round(70 * shade) + ',' + Math.round(48 * shade) + ')';
 			for (i = 0; i < tree.parts.length; i += 1) {
 				var b = tree.parts[i];
-				if (b.gen > this.growth) { continue; }
-				var k = Math.min(1, this.growth - b.gen);
+				if (b.gen > grown) { continue; }
+				var k = Math.min(1, grown - b.gen);
 				ctx.lineWidth = b.w * tree.back;
 				ctx.beginPath();
 				ctx.moveTo(b.x0, b.y0);
@@ -160,7 +168,7 @@
 			var show = season === 'spring' ? p : season === 'summer' ? 1 : season === 'fall' ? 1 - p * 0.9 : 0;
 			for (i = 0; i < tree.leaves.length; i += 1) {
 				var lf = tree.leaves[i];
-				if (lf.gen > this.growth || lf.pick > show) { continue; }
+				if (lf.gen > grown || lf.pick > show) { continue; }
 				ctx.fillStyle = colours[Math.floor(lf.pick * 997) % colours.length];
 				ctx.globalAlpha = shade;
 				ctx.beginPath();
@@ -171,12 +179,12 @@
 					this.falling.push({ x: lf.x, y: lf.y, c: ctx.fillStyle, r: lf.r * 0.6, v: rand(20, 50), s: rand(0, 6) });
 				}
 			}
-			if (season === 'winter' && this.growth >= 1) {
+			if (season === 'winter' && grown >= 1) {
 				/* Snow along the tops of the branches. */
 				ctx.fillStyle = 'rgba(240,244,255,' + (0.9 * p).toFixed(2) + ')';
 				for (i = 0; i < tree.parts.length; i += 1) {
 					var s = tree.parts[i];
-					if (s.gen <= this.growth && s.gen > 0) { ctx.fillRect(s.x1 - s.w, s.y1 - 2, s.w * 2 + 2, 2); }
+					if (s.gen <= grown && s.gen > 0) { ctx.fillRect(s.x1 - s.w, s.y1 - 2, s.w * 2 + 2, 2); }
 				}
 			}
 		}
@@ -184,7 +192,7 @@
 			var f = this.falling[i];
 			f.y += f.v * dt;
 			f.x += Math.sin(this.t * 2 + f.s) * 25 * dt;
-			if (f.y > h * 0.95) { this.falling.splice(i, 1); continue; }
+			if (f.y > h) { this.falling.splice(i, 1); continue; }
 			ctx.fillStyle = f.c;
 			ctx.fillRect(f.x, f.y, f.r * 2, f.r);
 		}

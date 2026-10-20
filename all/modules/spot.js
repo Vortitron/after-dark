@@ -12,12 +12,19 @@
  * screen goes dark except where the light falls, and the desktop under it is
  * the one ad.js paints, since a page cannot see what is behind it.
  *
- *   <after-dark-spotlight size="100" speed="medium" spots="1">
+ * Not checkable against the real module: under Wine its view of "the desktop"
+ * is black whatever is on screen (a full-screen window, the X root, 8- or
+ * 24-bit display all tried), so the capture is a black screen. The defaults
+ * are the panel's own (TYPE_1000): Size rests on Random, Speed at 48 of 100 (about 10 of its 1-20), Spots at
+ * 44 of 100, which is 2 of 1-4.
+ *
+ *   <after-dark-spotlight size="random" speed="medium" spots="2">
  */
 (function () {
 	'use strict';
 
-	var SIZES = ['random', '30', '50', '80', '100', '150', '200'];
+	var SIZES = ['random', '30', '40', '50', '60', '70', '80', '90', '100', '110', '120', '130', '140', '150',
+		'160', '170', '180', '190', '200'];
 	var SPEEDS = ['slow', 'medium', 'fast'];
 	var PACE = [70, 140, 260];
 	var SPOTS = ['1', '2', '3', '4'];
@@ -72,10 +79,10 @@
 
 	AfterDark.define('after-dark-spotlight', function (el) {
 		var sim = new Spotlight();
-		var size = SIZES[AfterDark.choice(el, 'size', SIZES, '100')];
+		var size = SIZES[AfterDark.choice(el, 'size', SIZES, 'random')];
 		sim.size = size === 'random' ? 0 : Number(size);
 		sim.pace = PACE[AfterDark.choice(el, 'speed', SPEEDS, 'medium')];
-		sim.count = Number(SPOTS[AfterDark.choice(el, 'spots', SPOTS, '1')]);
+		sim.count = Number(SPOTS[AfterDark.choice(el, 'spots', SPOTS, '2')]);
 		return sim;
 	});
 

@@ -1,5 +1,5 @@
 /**
- * bungee.js - Bungee Roulette, on the module's own artwork.
+ * bungee.js - Bungee Roulette, on the module's own artwork and its own film.
  *
  * BUNGEE.AD, 1995, from the 10th anniversary collection. Its own description:
  *
@@ -13,244 +13,363 @@
  *   Art by Robert Cuenca. Programming by Scott Garcia.
  *
  * The settings are its own, out of TYPE_1000: Jumper = Daredevil / Half
- * Daredevil / Cow / Fish / Half Fish / Random, Jumps = One / Few / Many /
- * Droves / Whole Bunches / Hundreds, Equipment = Safe / Reliable / Used /
- * So - So / Purfikt, and Clear Screen First.
+ * Daredevil / Cow / Fish / Half Fish / Random (default Daredevil), Jumps =
+ * One / Few / Many / Droves / Whole Bunches / Hundreds (default Many),
+ * Equipment = Safe / Reliable / Used / So - So / Purfikt (default Used), and
+ * Clear Screen First (on).
  *
- * Artwork, from tools/adweb.py. Two sequences, 171 frames, all of which
- * decode:
- *   9000  the jumpers and what is left of them
- *   9001  the impact, and the mess
+ * Like the Totally Twisted modules it is a film: an OFST timeline of 423
+ * ticks over the RLE frames of 9000 and 9001, each tick a cel of several
+ * frames - a cow is a body, a tail, legs and a head, and the rope is a stack
+ * of 33- or 66-pixel pieces that wriggle. tools/adfilm.py puts it in
+ * art/bungee/index.json; it has to run with VOTE=1, because 9001's frames are
+ * numbered straight on from 9000's with no spare number between them.
  *
- * Each jumper is a run of frames of the same creature at different lengths,
- * because it hangs upside down by the ankles and the rope stretches it: sort
- * that run by height and you have the tension ramp, which is what `stretch`
- * below is. The daredevil is drawn in two pieces, his lower half being the
- * seven frames at the start of 9001; everything else in that sequence is his
- * too, so nobody else gets a landing animation - the cow, the chicken and the
- * fish simply arrive. Then the joke, which the artwork makes plain and the module's
- * hint strings confirm - "Rhea, this cow is for you", "Anyone want a milk
- * shake?" - is what each one turns into. The cow leaves burgers, hot dogs and
- * steaks; the fish leaves sushi, a severed head and a pile of bones; the
- * chicken leaves nuggets; the daredevil leaves the concertina and the blood.
+ * The module exports its C++ symbols, and what follows is read off the code
+ * (NE segments 5 and 6) rather than guessed. Two sprites, one jumper at a time:
  *
- * The chicken is not on the module's own Jumper menu, which lists six entries
- * and no more. Its ramp and its remains are unmistakably in the artwork all
- * the same, so it is here, and Random will use it.
+ *   JumperSprite  SetUpEntry: a random x across the screen, starting half its
+ *                 own height above the top, looping the dangling take and
+ *                 dropping 10 px a tick (40 ms) to a random stop chosen so the
+ *                 top of the rope never shows. Equipment is the chance the rope
+ *                 holds, decided as it jumps: Safe always, Reliable 3 in 4,
+ *                 Used 1 in 2, So - So 1 in 4, Purfikt never.
+ *                 SetUpBounce: if it holds, the bounce plays once (80 ms a
+ *                 tick) and the jumper is left hanging there for good.
+ *                 SetUpSnap / SetUpRecoil: if not, the snap plays, the body
+ *                 is handed to the FallSprite, and the rope that is left
+ *                 springs back up and stays.
+ *   FallSprite    SetUpFall: falls from where the snap left it, 6 px lower,
+ *                 at 1, 3, 5 ... 11 px a tick, until its take's bottom is
+ *                 within (20 + a margin per jumper) of the bottom of the screen.
+ *                 SetUpSplat: then the splat plays once and is left there. The
+ *                 daredevil has two splats, one picked at random, and three
+ *                 times in four only the first 12 ticks of it play; the longer
+ *                 one has something crawling off out of the mess.
  *
- * What is not in the resources is the staging. There is no bridge, no gantry
- * and no rope anywhere in the 171 frames, so the drop, the recoil and the
- * rope itself are drawn here rather than lifted. Everything with pixels in it
- * is the original's.
+ * The next jumper waits until the faller has landed. "Jumps" is counted as
+ * each one sets off: One clears the screen every jump, Few after 4, Many 8,
+ * Droves 12, Whole Bunches 16 and Hundreds 250, by wiping whatever has been
+ * left on the background. The chicken of the earlier port was the cow's head.
  *
- * Jumps is the module's own "how many must die before the screen FINALLY
- * clears", and it also sets how many are in the air at once, because at one
- * at a time Hundreds would take all afternoon.
+ * The take starts and the take each sprite and jumper uses (state -> tick):
  *
- *   <after-dark-bungee jumper="random" jumps="many" equipment="so - so">
+ *               entry bounce snap recoil fall splat
+ *   Daredevil     72    82   115   339   122  128 or 363
+ *   Half Dd.      72    82   159   167   184  190 or 394
+ *   Cow            1     7    40   339    47   53
+ *   Fish         222   228   261   339   268  274
+ *   Half Fish    222   228   293   302   318  324
+ *
+ * A take runs to the last of its consecutive ticks (the code asks the film for
+ * its length). Positions are cel centres, as the code keeps them: the stop,
+ * the start above the screen and the landing are all tested on the centre of
+ * the current cel, and moving from one cel to the next keeps the picture where
+ * it was plus the entry's own offset - which only the recoiling rope has.
+ *
+ * Checked against a capture of the real thing at the defaults (Daredevil,
+ * Many, Used): one at a time, the drop at ~260 px/s, the snap high up, the
+ * rope left at the top wriggling back and the remains piling up along the
+ * bottom 740-757 px down a 768 screen, survivors left hanging, the screen
+ * wiped after eight. Not reproduced: the sounds (a moo, the scream, the
+ * splat).
+ *
+ *   <after-dark-bungee jumper="daredevil" jumps="many" equipment="used">
  */
 (function () {
   'use strict';
 
-  var JUMP = '9000', SPLAT = '9001';
+  var FILM = '9000';
 
-  /* Out of 9001, and all of it the daredevil - no other jumper has any art in
-     this sequence. 0-6 are his lower half; 7 on is him landing. */
-  var IMPACT = [7, 8, 9, 11, 12, 13, 14, 15, 16];
-  var MESS = [21, 22, 23, 24, 25, 26, 27, 28, 32, 33, 34, 35];
-  var BONES = [43, 44, 46];
+  /* From JumperSprite::SetUp* and FallSprite::SetUp*. `margin` is the
+     per-jumper slack FallSprite::AboutToHitRockBottom adds to its 20 px;
+     `short` is how much of the daredevil splats plays three times in four. */
+  var KINDS = {
+    'daredevil':      { entry: 72,  bounce: 82,  snap: 115, recoil: 339, fall: 122, margin: 16, splat: [128, 363], short: 11 },
+    'half daredevil': { entry: 72,  bounce: 82,  snap: 159, recoil: 167, fall: 184, margin: 20, splat: [190, 394], short: 12 },
+    'cow':            { entry: 1,   bounce: 7,   snap: 40,  recoil: 339, fall: 47,  margin: 6,  splat: [53] },
+    'fish':           { entry: 222, bounce: 228, snap: 261, recoil: 339, fall: 268, margin: 10, splat: [274] },
+    'half fish':      { entry: 222, bounce: 228, snap: 293, recoil: 302, fall: 318, margin: 10, splat: [324] }
+  };
+  var ORDER = ['daredevil', 'half daredevil', 'cow', 'fish', 'half fish'];
 
-  /* `stretch` is the creature's frames ordered slack to taut. `remains` is
-     what it leaves behind.
-
-     Two of the cow's frames, 4 and 5, are the animal cut clean off at the
-     belly - a full row of pixels along the bottom edge where a whole cow
-     tapers away to its legs - so they are not a shorter cow and do not belong
-     on the ramp. Presumably they are what the module's Half options used.
-
-     The daredevil is cut off at the waist for a different reason: he is drawn
-     in two pieces, and the seven frames at the start of 9001 are his lower
-     half - torso, arms and goggled head - waving about as he dangles. They sit
-     directly under the stretch frame, and where along it is exactly derivable:
-     line the first opaque pixel of the upper piece's bottom row up with the
-     first opaque pixel of the lower piece's top row and the join is seamless.
-     `joinTop` and `joinLeft` are those two runs. Nothing else in either
-     sequence joins anything - the cow, chicken and fish are whole. */
-  var JUMPERS = [
-    { name: 'daredevil', stretch: [102, 99, 100, 101], joinTop: [3, 0, 0, 1],
-      lower: [0, 1, 2, 3, 4, 5, 6], joinLeft: [15, 6, 2, 0, 20, 3, 0],
-      impact: IMPACT,
-      remains: [], stuck: [17, 18, 19, 20] },   // limbs out of a puddle, from 9001
-    { name: 'cow',       stretch: [3, 0, 1, 2],
-      remains: [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50] },
-    { name: 'chicken',   stretch: [27, 28, 29],
-      remains: [30, 31, 32, 33] },
-    { name: 'fish',      stretch: [54, 51, 52, 53, 55, 56, 57, 58],
-      remains: [74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86],
-      parts: [68, 69, 70, 71, 72, 73, 91, 92, 93, 94, 95, 96, 97, 98] }
-  ];
-
+  /* JumperSprite::theirMaxJumpCount: 1, then four a step, and Hundreds 250. */
   var JUMPS = {
-    'one': 1, 'few': 3, 'many': 6, 'droves': 12, 'whole bunches': 20, 'hundreds': 40
+    'one': 1, 'few': 4, 'many': 8, 'droves': 12, 'whole bunches': 16, 'hundreds': 250
   };
-  // Play God: how likely the rope is to let go. Purfikt is the joke.
-  var ROPE = {
-    'safe': 0.08, 'reliable': 0.22, 'used': 0.42, 'so - so': 0.62,
-    'so-so': 0.62, 'purfikt': 0.9
+  /* The chance the rope holds (theirSuccessJump against rand() % 100). */
+  var HOLDS = {
+    'safe': 1, 'reliable': 0.75, 'used': 0.5, 'so - so': 0.25, 'so-so': 0.25, 'purfikt': 0
   };
 
-  var GRAVITY = 900;          // px/s^2
-  var SPRING = 5.2;           // how hard the rope pulls back once it is taut
-  var DAMP = 0.55;            // energy left after each bounce
-  var HAUL = 220;             // px/s the survivors are pulled back up
-  var CRUSH = 22;             // impact frames per second
-  var WAVE = 9;               // the daredevil's arms, frames per second
+  var ENTRY_TICK = 0.04;      // the drop, and the fall
+  var PLAY_TICK = 0.08;       // bounce, snap, recoil and splat
+  var DROP = 10;              // px a tick on the way down
 
-  function rand(a, b) { return a + Math.random() * (b - a); }
-  function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+  function irand(n) { return Math.floor(Math.random() * Math.max(1, n)); }
 
-  function Bungee(art) {
-    this.jump = art.sequence(JUMP);
-    this.splat = art.sequence(SPLAT);
-    this.kinds = {};
+  /* ------------------------------------------------------------ the film */
+
+  function Film(art, film) {
+    this.art = art;
+    this.cels = film.cels;
+    this.at = {};
     var self = this;
-    JUMPERS.forEach(function (j) { self.kinds[j.name] = j; });
-    this.choice = 'random';
-    this.jumps = JUMPS.many;
-    this.rope = ROPE['so - so'];
-    this.clear = true;
-    this.mess = [];           // what has already hit the ground, and stays
-    this.jumpers = [];
-    this.done = 0;
+    film.entries.forEach(function (e) { self.at[e[0]] = e; });
+    // Each cel's rect is the union of its frames (it is in the OFTB too).
+    this.rect = film.cels.map(function (cel) {
+      var r = [Infinity, Infinity, -Infinity, -Infinity];
+      cel.forEach(function (q) {
+        var f = art.sequence(q[0]).frames[q[1]];
+        r[0] = Math.min(r[0], q[4]); r[1] = Math.min(r[1], q[5]);
+        r[2] = Math.max(r[2], q[4] + f.w); r[3] = Math.max(r[3], q[5] + f.h);
+      });
+      return r;
+    });
   }
 
-  /* "Jumps" is how many must die before the screen clears, which on its own
-     would mean waiting all day for Hundreds, so it sets how many are in the
-     air at once as well. */
-  Bungee.prototype.atOnce = function () {
-    return Math.max(1, Math.min(8, Math.round(this.jumps / 4)));
-  };
-
-  /** The whole creature, which for the daredevil is two frames stacked. */
-  Bungee.prototype.size = function (kind) {
-    var f = this.jump.frames[kind.stretch[kind.stretch.length - 1]];
-    var tall = f.h, wide = f.w;
-    if (kind.lower) {
-      var low = this.splat.frames[kind.lower[0]];
-      tall += low.h;
-      wide = Math.max(wide, low.w);
+  /** A take: from `start` to the last of its consecutive ticks, or `end`. */
+  Film.prototype.take = function (start, end) {
+    var last = start;
+    while (this.at[last + 1]) { last += 1; }
+    if (end === undefined || end > last) { end = last; }
+    var b = [Infinity, Infinity, -Infinity, -Infinity];
+    for (var t = start; t <= end; t += 1) {
+      var r = this.rect[this.at[t][1]];
+      b[0] = Math.min(b[0], r[0]); b[1] = Math.min(b[1], r[1]);
+      b[2] = Math.max(b[2], r[2]); b[3] = Math.max(b[3], r[3]);
     }
-    return { w: wide, h: tall };
+    return { start: start, end: end, w: b[2] - b[0], h: b[3] - b[1] };
   };
 
-  Bungee.prototype.setJumper = function (name) {
-    name = (name || 'random').toLowerCase().replace(/^half\s+/, '');
-    this.choice = this.kinds[name] ? name : 'random';
+  Film.prototype.centre = function (tick) {
+    var r = this.rect[this.at[tick][1]];
+    return [(r[0] + r[2]) / 2, (r[1] + r[3]) / 2];
   };
 
-  Bungee.prototype.reset = function (w, h) {
-    this.mess = [];
-    this.done = 0;
-    this.jumpers = [];
-    this.fill(w, h);
+  /** The entry's own offset, which is relative to its take, not cumulative. */
+  Film.prototype.offset = function (tick) {
+    var e = this.at[tick];
+    return [e[2], e[3]];
   };
 
-  /** Top up to however many should be going at once. */
-  Bungee.prototype.fill = function (w, h) {
-    while (this.jumpers.length < this.atOnce()) { this.jumpers.push(this.next(w, h)); }
-  };
-
-  Bungee.prototype.next = function (w, h) {
-    var kind = this.choice === 'random' ? pick(JUMPERS) : this.kinds[this.choice];
-    var size = this.size(kind);
-    // Where the rope runs out, which is what decides whether the ground is
-    // reached at all.
-    return {
-      kind: kind,
-      x: rand(size.w * 0.6, Math.max(size.w * 0.6 + 1, w - size.w * 0.6)),
-      y: -size.h - rand(0, h * 0.5),      // staggered, so they do not fall in step
-      vy: 0,
-      slack: rand(h * 0.36, h * 0.6),
-      snapped: Math.random() < this.rope,
-      roped: true,
-      tension: 0,
-      state: 'falling',
-      frame: rand(0, 6),
-      bounces: 0
-    };
-  };
-
-  /* The mess never moves once it is down, so it is placed as it lands, sitting
-     on the bottom rather than hanging off it. */
-  Bungee.prototype.land = function (j, w, h) {
-    var self = this;
-    function drop(seq, frame, x, lift) {
-      var f = seq.frames[frame];
-      self.mess.push({ seq: seq, frame: frame, x: x, y: h - f.h / 2 - lift });
+  /** Draw the cel at `tick` with film (0,0) at (tx, ty). */
+  Film.prototype.draw = function (ctx, tick, tx, ty) {
+    var cel = this.cels[this.at[tick][1]];
+    for (var i = 0; i < cel.length; i += 1) {
+      var q = cel[i];
+      var seq = this.art.sequence(q[0]);
+      var f = seq.frames[q[1]];
+      ctx.drawImage(seq.image, f.x, f.y, f.w, f.h,
+                    Math.round(q[4] + tx), Math.round(q[5] + ty), f.w, f.h);
     }
-    drop(this.splat, pick(MESS), j.x, rand(2, 10));
-    var extras = j.kind.remains.concat(j.kind.parts || []);
-    var n = 1 + Math.floor(Math.random() * 3);
-    for (var i = 0; i < n && extras.length; i += 1) {
-      drop(this.jump, pick(extras), j.x + rand(-42, 42), rand(2, 16));
-    }
-    if (j.kind.stuck) { drop(this.splat, pick(j.kind.stuck), j.x + rand(-16, 16), rand(0, 6)); }
-    drop(this.splat, pick(BONES), j.x + rand(-34, 34), rand(2, 14));
   };
 
-  Bungee.prototype.step = function (dt, w, h) {
-    for (var i = this.jumpers.length - 1; i >= 0; i -= 1) {
-      if (this.one(this.jumpers[i], dt, w, h)) { this.jumpers.splice(i, 1); }
-    }
-    this.fill(w, h);
+  /* -------------------------------------------------------------- sprites */
+
+  /* A sprite is a take, the tick it is on, and where film (0,0) is on the
+     screen. Moving from tick a to tick b keeps the picture registered and
+     adds the difference of the two entries' offsets. */
+  function Sprite(film) {
+    this.film = film;
+    this.state = 0;
+    this.take = null;
+    this.cur = 0;
+    this.tx = 0;
+    this.ty = 0;
+    this.every = PLAY_TICK;
+    this.acc = 0;
+  }
+
+  Sprite.prototype.shift = function (a, b) {
+    var da = this.film.offset(a), db = this.film.offset(b);
+    this.tx += db[0] - da[0];
+    this.ty += db[1] - da[1];
   };
 
-  /** One jumper. Returns true when it is finished with. */
-  Bungee.prototype.one = function (j, dt, w, h) {
-    var tall = this.size(j.kind).h;
-    var floor = h - 6;
+  /** Cut to the start of a take, keeping the picture where it is. */
+  Sprite.prototype.cut = function (take) {
+    this.shift(this.cur, take.start);
+    this.take = take;
+    this.cur = take.start;
+  };
 
-    if (j.state === 'falling' || j.state === 'rebound') {
-      j.vy += GRAVITY * dt;
-      // Past the slack the rope starts pulling, and stretches the jumper. Bad
-      // equipment lets go once it is nearly taut, which is the whole game.
-      var over = j.y - j.slack;
-      if (over > 0 && j.roped) {
-        j.tension = Math.min(1, over / (h * 0.22));
-        if (j.snapped && j.tension > 0.7) { j.roped = false; }
-        else { j.vy -= over * SPRING * dt * 10; }
-      } else {
-        j.tension = Math.max(0, j.tension - dt * 3);
-      }
-      j.y += j.vy * dt;
-      j.frame += WAVE * dt;
-
-      if (!j.roped && j.y + tall >= floor) {
-        // Only the daredevil has art for the landing. Everything else simply
-        // arrives, so it goes straight to being a mess.
-        if (j.kind.impact) { j.state = 'impact'; j.frame = 0; }
-        else { this.splatter(j, w, h); return true; }
-      } else if (j.roped && j.vy < 0 && over <= 0) {
-        j.bounces += 1;
-        j.vy *= DAMP;
-        if (j.bounces >= 3) { j.state = 'haul'; }
-      }
-    } else if (j.state === 'impact') {
-      j.frame += CRUSH * dt;
-      if (j.frame >= j.kind.impact.length) { this.splatter(j, w, h); return true; }
-    } else if (j.state === 'haul') {
-      j.y -= HAUL * dt;
-      j.tension = Math.max(0, j.tension - dt * 2);
-      if (j.y + tall < 0) { return true; }
-    }
+  /** One tick of a take played once; true when it has finished. */
+  Sprite.prototype.once = function () {
+    if (this.cur >= this.take.end) { return true; }
+    this.shift(this.cur, this.cur + 1);
+    this.cur += 1;
     return false;
   };
 
-  /** Down for good: leave the mess, and clear the screen on the count. */
-  Bungee.prototype.splatter = function (j, w, h) {
-    this.land(j, w, h);
-    this.done += 1;
-    if (this.done >= this.jumps) { this.mess = []; this.done = 0; }
+  /** One tick of a take on a loop, dropping `dy` as it goes. */
+  Sprite.prototype.loop = function (dy) {
+    var next = this.cur >= this.take.end ? this.take.start : this.cur + 1;
+    this.shift(this.cur, next);
+    this.cur = next;
+    this.ty += dy;
+  };
+
+  /** The centre of the current cel on the screen, which is what the code tests. */
+  Sprite.prototype.y = function () {
+    return this.film.centre(this.cur)[1] + this.ty;
+  };
+
+  Sprite.prototype.draw = function (ctx) {
+    this.film.draw(ctx, this.cur, this.tx, this.ty);
+  };
+
+  /* ------------------------------------------------------------- the module */
+
+  function Bungee(art, data) {
+    this.film = new Film(art, data.films[FILM]);
+    this.choice = 'daredevil';
+    this.max = JUMPS.many;
+    this.hold = HOLDS.used;
+    this.clear = true;
+  }
+
+  Bungee.prototype.setJumper = function (name) {
+    name = String(name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    this.choice = KINDS[name] || name === 'random' ? name : 'daredevil';
+  };
+
+  Bungee.prototype.reset = function (w, h) {
+    this.w = w;
+    this.h = h;
+    this.back = document.createElement('canvas');
+    this.back.width = Math.max(1, Math.round(w));
+    this.back.height = Math.max(1, Math.round(h));
+    this.count = 0;
+    this.handoff = null;
+    this.jumper = new Sprite(this.film);
+    this.faller = new Sprite(this.film);
+    this.jumper.state = 1;
+  };
+
+  /** Leave a sprite's current cel on the background for good. */
+  Bungee.prototype.stamp = function (s) {
+    var g = this.back.getContext('2d');
+    if (g) { s.draw(g); }
+  };
+
+  Bungee.prototype.wipe = function () {
+    var g = this.back.getContext('2d');
+    if (g) { g.clearRect(0, 0, this.back.width, this.back.height); }
+  };
+
+  /** JumperSprite::SetUpEntry. */
+  Bungee.prototype.entry = function () {
+    var j = this.jumper, f = this.film;
+    var name = this.choice === 'random' ? ORDER[irand(ORDER.length)] : this.choice;
+    j.kind = KINDS[name];
+    j.take = f.take(j.kind.entry);
+    var h = j.take.h, H = this.h;
+    var len = j.take.end - j.take.start + 1;
+    // Where it stops: low enough to see, never so low the rope's top shows.
+    var range = h - 30 < Math.trunc(H / 2) ?
+      Math.trunc(h / 2) + Math.trunc(h / 4) - 30 :
+      Math.trunc(H / 2) - Math.trunc(h / 2) + Math.trunc(h / 4) - 30;
+    j.target = irand(range) - Math.trunc(h / 4);
+    j.holds = Math.random() < this.hold;
+    j.cur = j.take.start + irand(len - 1);
+    var c = f.centre(j.cur);
+    j.tx = irand(this.w) - c[0];
+    j.ty = -Math.trunc(h / 2) - 2 - c[1];
+    j.every = ENTRY_TICK;
+    j.state = 2;
+  };
+
+  /** JumperSprite::DoState, one tick. */
+  Bungee.prototype.jumperTick = function () {
+    var j = this.jumper, k = j.kind;
+    switch (j.state) {
+    case 0:
+      j.state = 1;
+      break;
+    case 1:
+      // The next one goes once the last has landed; setting off counts as a
+      // jump, and one too many wipes the screen first.
+      if (!this.handoff) {
+        this.entry();
+        this.count += 1;
+        if (this.count > this.max) { this.wipe(); this.count = 1; }
+      }
+      break;
+    case 2:
+      j.loop(DROP);
+      if (j.y() >= j.target) {
+        j.cut(this.film.take(j.holds ? k.bounce : k.snap));
+        j.every = PLAY_TICK;
+        j.state = j.holds ? 3 : 4;
+      }
+      break;
+    case 3:
+      if (j.once()) { this.stamp(j); j.state = 0; }
+      break;
+    case 4:
+      if (j.once()) {
+        this.handoff = { kind: k, cur: j.cur, tx: j.tx, ty: j.ty };
+        j.cut(this.film.take(k.recoil));
+        j.state = 5;
+      }
+      break;
+    case 5:
+      if (j.once()) { this.stamp(j); j.state = 0; }
+      break;
+    }
+  };
+
+  /** FallSprite::DoState, one tick. */
+  Bungee.prototype.fallerTick = function () {
+    var s = this.faller, f = this.film, k;
+    switch (s.state) {
+    case 0:
+      if (this.handoff) {
+        k = s.kind = this.handoff.kind;
+        s.cur = this.handoff.cur;
+        s.tx = this.handoff.tx;
+        s.ty = this.handoff.ty;
+        s.cut(f.take(k.fall));
+        s.ty += 6;
+        s.speed = 1;
+        s.every = ENTRY_TICK;
+        s.state = 1;
+      }
+      break;
+    case 1:
+      k = s.kind;
+      if (s.y() + Math.trunc(s.take.h / 2) + k.margin + 20 > this.h) {
+        var start = k.splat[irand(k.splat.length)];
+        var end = k.short && Math.random() * 100 >= 26 ? start + k.short : undefined;
+        s.cut(f.take(start, end));
+        s.every = PLAY_TICK;
+        s.state = 2;
+      } else {
+        s.loop(s.speed);
+        if (s.speed < 10) { s.speed += 2; }
+      }
+      break;
+    case 2:
+      if (s.once()) {
+        this.stamp(s);
+        s.state = 0;
+        this.handoff = null;
+      }
+      break;
+    }
+  };
+
+  Bungee.prototype.step = function (dt) {
+    var self = this;
+    [[this.jumper, this.jumperTick], [this.faller, this.fallerTick]].forEach(function (p) {
+      var s = p[0];
+      s.acc = Math.min(s.acc + dt, 0.25);
+      while (s.acc >= s.every) {
+        s.acc -= s.every;
+        p[1].call(self);
+      }
+    });
   };
 
   Bungee.prototype.draw = function (ctx, w, h) {
@@ -260,53 +379,9 @@
     } else {
       ctx.clearRect(0, 0, w, h);
     }
-
-    var i;
-    for (i = 0; i < this.mess.length; i += 1) {
-      var m = this.mess[i];
-      m.seq.draw(ctx, m.frame, m.x, m.y);
-    }
-
-    for (i = 0; i < this.jumpers.length; i += 1) { this.drawJumper(ctx, this.jumpers[i], h); }
-  };
-
-  Bungee.prototype.drawJumper = function (ctx, j, h) {
-    if (j.state === 'impact') {
-      var fi = j.kind.impact[Math.min(j.kind.impact.length - 1, Math.floor(j.frame))];
-      var f = this.splat.frames[fi];
-      this.splat.draw(ctx, fi, j.x, h - f.h / 2 - 4);
-      return;
-    }
-
-    // The ramp is an approach as much as a stretch - the jumper comes at you
-    // as it drops and only comes apart once the rope has hold - so the first
-    // half of it follows the fall and the rope takes it the rest of the way.
-    var seq = this.jump;
-    var fall = Math.max(0, Math.min(1, j.y / Math.max(1, j.slack)));
-    var t = Math.max(fall * 0.5, j.tension);
-    var step = Math.round(t * (j.kind.stretch.length - 1));
-    var idx = j.kind.stretch[step];
-    var top = seq.frames[idx];
-
-    if (j.roped) {
-      ctx.strokeStyle = '#c8c8c8';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(Math.round(j.x) + 0.5, 0);
-      ctx.lineTo(Math.round(j.x) + 0.5, Math.round(j.y));
-      ctx.stroke();
-    }
-
-    seq.draw(ctx, idx, j.x, j.y + top.h / 2);
-
-    // The daredevil's lower half goes straight under, lined up so the two
-    // silhouettes meet - see joinTop/joinLeft above.
-    if (j.kind.lower) {
-      var li = Math.floor(j.frame) % j.kind.lower.length;
-      var low = this.splat.frames[j.kind.lower[li]];
-      var dx = (j.kind.joinTop[step] - top.w / 2) - (j.kind.joinLeft[li] - low.w / 2);
-      this.splat.draw(ctx, j.kind.lower[li], j.x + dx, j.y + top.h + low.h / 2);
-    }
+    ctx.drawImage(this.back, 0, 0, w, h);
+    if (this.faller.state > 0) { this.faller.draw(ctx); }
+    if (this.jumper.state > 1) { this.jumper.draw(ctx); }
   };
 
   /* ------------------------------------------------------------ element */
@@ -322,13 +397,13 @@
     var base = this.getAttribute('art') || 'art/bungee';
     this.style.display = this.style.display || 'block';
 
-    window.AfterDark.load(base).then(function (art) {
-      var sim = new Bungee(art);
-      sim.setJumper(AfterDark.setting(self, 'jumper'));
+    Promise.all([window.AfterDark.load(base), window.AfterDark.data(base)]).then(function (both) {
+      var sim = new Bungee(both[0], both[1]);
+      sim.setJumper(AfterDark.setting(self, 'jumper') || 'daredevil');
       var jumps = (AfterDark.setting(self, 'jumps') || 'many').toLowerCase();
-      sim.jumps = JUMPS[jumps] || parseInt(jumps, 10) || JUMPS.many;
-      var kit = (AfterDark.setting(self, 'equipment') || 'so - so').toLowerCase();
-      sim.rope = ROPE[kit] !== undefined ? ROPE[kit] : ROPE['so - so'];
+      sim.max = JUMPS[jumps] || parseInt(jumps, 10) || JUMPS.many;
+      var kit = (AfterDark.setting(self, 'equipment') || 'used').toLowerCase().trim();
+      sim.hold = HOLDS[kit] !== undefined ? HOLDS[kit] : HOLDS.used;
       sim.clear = AfterDark.setting(self, 'clear-screen') !== 'no';
       if (sim.clear) { self.style.background = '#000'; }
 
@@ -338,7 +413,7 @@
       screen.onresize = function (w, h) { sim.reset(w, h); };
       sim.reset(screen.width, screen.height);
       screen.run(function (dt, ctx, w, h) {
-        sim.step(dt, w, h);
+        sim.step(dt);
         sim.draw(ctx, w, h);
       });
     }).catch(function (err) {

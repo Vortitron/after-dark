@@ -85,10 +85,12 @@ def einstein(path):
         _zero, top, advance, _extra = struct.unpack('>hhhh', d[:8])
         steps = []
         for i in range(8, len(d) - 1, 2):
-            dx, dy = signed(d[i]), signed(d[i + 1])
-            if dx == 0 and dy == 0:
-                break
-            steps.extend([dx, dy])
+            steps.extend([signed(d[i]), signed(d[i + 1])])
+        # The resource is padded with zeros to 512 bytes. A (0, 0) step inside
+        # a glyph is real - '-' starts with one, '0' has one half way round -
+        # so only the run of zeros at the end is padding.
+        while steps and steps[-1] == 0 and steps[-2] == 0:
+            del steps[-2:]
         glyphs[r.id] = {'top': top, 'advance': advance, 'steps': steps}
     text = strings(path)
     return {

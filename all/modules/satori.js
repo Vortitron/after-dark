@@ -13,12 +13,22 @@
  * Its controls are Display (Fields, Pools, Rays, Waves, Leaves, Mix, Random),
  * Colors (Arizona, Siberia, Tijuana, Pacific, Hawaii, Nile, Louisiana,
  * Camelot, Colorado, Atlantis, Outback, Ithaca, Oz, Random), End Clarity
- * (1X1 to 16X16) and Knots. An image of palette indices is built up coarse to
- * fine - 16-pixel blocks first, down to End Clarity - and then only the
- * palette moves. The colour schemes are the module's names; what colours
- * they held is not in the resources, so these are what the names suggest.
+ * (1X1 to 16X16) and Knots. Display and Colors default to Random, End
+ * Clarity to 1X1.
  *
- *   <after-dark-satori display="mix" colors="random" end-clarity="2x2" knots="4">
+ * Checked against the real module under Wine (8-bit display, defaults): the
+ * image of palette indices is built coarse to fine, 16-pixel blocks first and
+ * halving down to End Clarity, and each pass is painted from the middle of
+ * the screen outward in square rings - so a square of detail sits in the
+ * middle, growing, with the coarser pass still showing round it. The bands
+ * are narrow, a few pixels to a band, so the finished image is a tangle of
+ * fine contour lines.
+ * Still inferred: the colours - the 8-bit grab reads pixels through the
+ * default colormap, not the module's palette, and Wine does not animate it,
+ * so the colour animation is from the description. The colour schemes are the module's names;
+ * what colours they held is not in the resources, so these are what the
+ * names suggest. The field shapes are guesses at what the names describe.
+ *   <after-dark-satori display="random" colors="random" end-clarity="1x1" knots="4">
  */
 (function () {
 	'use strict';
@@ -95,15 +105,15 @@
 	}
 
 	function Satori() {
-		this.display = 5;
+		this.display = 6;
 		this.colors = 'random';
-		this.clarity = 2;
+		this.clarity = 1;
 		this.knotCount = 4;
 	}
 
 	Satori.prototype.resize = function (w, h) {
-		this.bw = Math.ceil(w / 2);
-		this.bh = Math.ceil(h / 2);
+		this.bw = Math.ceil(w);
+		this.bh = Math.ceil(h);
 		this.canvas = document.createElement('canvas');
 		this.canvas.width = this.bw;
 		this.canvas.height = this.bh;
@@ -117,12 +127,13 @@
 		this.kind = this.display === 6 ? Math.floor(Math.random() * 6) : this.display;
 		this.knots = [];
 		for (var i = 0; i < this.knotCount; i += 1) {
-			this.knots.push({ x: rand(0, bw), y: rand(0, bh), f: rand(0.04, 0.14), n: 1 + Math.floor(rand(0, 4)),
+			/* Frequencies are per screen pixel: bands a few pixels wide, as captured. */
+			this.knots.push({ x: rand(0, bw), y: rand(0, bh), f: rand(0.04, 0.14) * 1.5, n: 1 + Math.floor(rand(0, 4)),
 				a: rand(0, Math.PI * 2), p: rand(0, 6) });
 		}
 		this.mixWith = Math.floor(Math.random() * 5);
 		this.block = 16;
-		this.row = 0;
+		this.ring(0);
 		this.pickColours();
 		this.offset = 0;
 		this.age = 0;
@@ -142,21 +153,42 @@
 		return field(this.kind, x, y, this.knots);
 	};
 
+	/** The cells of the square ring d blocks out from the middle, for this pass. */
+	Satori.prototype.ring = function (d) {
+		var b = this.block, nx = Math.ceil(this.bw / b), ny = Math.ceil(this.bh / b);
+		var ci = Math.floor(nx / 2), cj = Math.floor(ny / 2), cells = [];
+		for (var j = cj - d; j <= cj + d; j += 1) {
+			for (var i = ci - d; i <= ci + d; i += 1) {
+				if (Math.max(Math.abs(i - ci), Math.abs(j - cj)) !== d) { continue; }
+				if (i >= 0 && j >= 0 && i < nx && j < ny) { cells.push(i, j); }
+			}
+		}
+		this.d = d;
+		this.cells = cells;
+		this.at = 0;
+		/* Past the corners: this pass is done. */
+		this.done = d > Math.max(ci, cj, nx - ci, ny - cj);
+	};
+
 	Satori.prototype.step = function (dt, ctx, w, h) {
-		var bw = this.bw, bh = this.bh, b = this.block, end = this.clarity;
-		/* Build: a band of rows a frame at this block size, then finer. */
-		var budget = 5, t0 = (window.performance || Date).now();
-		while (b >= end && (window.performance || Date).now() - t0 < budget) {
-			for (var x = 0; x < bw; x += b) {
-				var v = ((Math.round(this.value(x + b / 2, this.row + b / 2)) % 256) + 256) % 256;
-				for (var yy = this.row; yy < Math.min(bh, this.row + b); yy += 1) {
+		var bw = this.bw, bh = this.bh, end = this.clarity;
+		/* Build: square rings of blocks from the middle out, then the next finer pass. */
+		var budget = 6, t0 = (window.performance || Date).now();
+		while (this.block >= end && (window.performance || Date).now() - t0 < budget) {
+			var b = this.block;
+			for (var n = 0; n < 64 && this.at < this.cells.length; n += 1, this.at += 2) {
+				var x = this.cells[this.at] * b, y0 = this.cells[this.at + 1] * b;
+				var v = ((Math.round(this.value(x + b / 2, y0 + b / 2)) % 256) + 256) % 256;
+				for (var yy = y0; yy < Math.min(bh, y0 + b); yy += 1) {
 					for (var xx = x; xx < Math.min(bw, x + b); xx += 1) { this.index[yy * bw + xx] = v; }
 				}
 			}
-			this.row += b;
-			if (this.row >= bh) {
-				this.row = 0;
-				b = this.block = b / 2;
+			if (this.at >= this.cells.length) {
+				this.ring(this.d + 1);
+				if (this.done) {
+					this.block = b / 2;
+					if (this.block >= end) { this.ring(0); }
+				}
 			}
 		}
 		this.age += dt;
@@ -172,14 +204,14 @@
 		}
 		this.canvas.getContext('2d').putImageData(this.image, 0, 0);
 		ctx.imageSmoothingEnabled = false;
-		ctx.drawImage(this.canvas, 0, 0, bw * 2, bh * 2);
+		ctx.drawImage(this.canvas, 0, 0, bw, bh);
 	};
 
 	AfterDark.define('after-dark-satori', function (el) {
 		var sim = new Satori();
-		sim.display = AfterDark.choice(el, 'display', DISPLAYS, 'mix');
+		sim.display = AfterDark.choice(el, 'display', DISPLAYS, 'random');
 		sim.colors = COLORS[AfterDark.choice(el, 'colors', COLORS, 'random')];
-		sim.clarity = Math.max(1, Math.pow(2, AfterDark.choice(el, 'end-clarity', CLARITIES, '2x2')) / 2);
+		sim.clarity = Math.pow(2, AfterDark.choice(el, 'end-clarity', CLARITIES, '1x1'));
 		sim.knotCount = Number(KNOTS[AfterDark.choice(el, 'knots', KNOTS, '4')]);
 		window.addEventListener('keydown', function (e) {
 			if (e.key === 'CapsLock') { sim.pickColours(); }

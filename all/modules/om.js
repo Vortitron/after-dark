@@ -14,19 +14,25 @@
  * The settings are its own, out of TYPE_1000: Life Energy = 1000-5000 kWH,
  * Defrost = Never / Rarely / Occasionally / Often / Very Often / Almost
  * Always / Constantly, and Washer Karma = None / A Little / Some / Average /
- * Lots / Complete. Entities was a slider whose labels did not survive the
- * resource table, so it is reconstructed as Few / Some / More / Lots.
+ * Lots / Complete. Entities is a popup of the numbers 1 to 20 (the old
+ * Few / Some / More / Lots names still work: 3, 6, 10, 16).
  *
  * Artwork, from tools/adclassic.py, the 256-colour band:
  *   2101-2104  a front-loader, laundry tumbling
  *   2105       fridge, doors shut
  *   2106-2107  fridge, freezer open onto two different shelves
  *
- * They drift the way the toasters do, wrapping the screen, because nothing in
- * the resources records a floor for them to sit on.
+ * Checked against the real module under Wine at 1024x768 (40 s, defaults):
+ * the appliances rise straight up the screen, cord dangling, all at the same
+ * ~41 px/s, each coming in at the bottom at a random x and leaving at the top,
+ * to be replaced by another from below. The screen starts empty and fills from
+ * the bottom; six are up at once at the default Entities (6). Of 13 seen, 9
+ * were fridges, which fits the default Washer Karma of A Little.
+ * Still inferred: how Life Energy scales the speed (taken as proportional,
+ * 3000 kWH being the measured 41 px/s) and the other settings' rates.
  *
- *   <after-dark-om entities="some" life-energy="3000 kwh" defrost="often"
- *     washer-karma="average">
+ *   <after-dark-om entities="6" life-energy="3000 kwh" defrost="very often"
+ *     washer-karma="a little">
  */
 (function () {
 	'use strict';
@@ -35,12 +41,14 @@
 	var FRIDGE = ['2105', '2106', '2107'];
 
 	var ENTITIES = { few: 3, some: 6, more: 10, lots: 16 };
+	var DEFAULT_ENTITIES = 6;
+	/* Rising speed, px/s. */
 	var ENERGY = {
-		'1000 kwh': 22,
-		'2000 kwh': 34,
-		'3000 kwh': 48,
-		'4000 kwh': 64,
-		'5000 kwh': 82
+		'1000 kwh': 14,
+		'2000 kwh': 27,
+		'3000 kwh': 41,
+		'4000 kwh': 55,
+		'5000 kwh': 68
 	};
 	/* Chance a fridge is showing an open-freezer frame. */
 	var DEFROST = {
@@ -55,7 +63,7 @@
 	/* Share of the crowd that is a washer rather than a fridge. */
 	var KARMA = {
 		none: 0,
-		'a little': 0.2,
+		'a little': 0.3,
 		some: 0.4,
 		average: 0.55,
 		lots: 0.8,
@@ -63,7 +71,7 @@
 	};
 
 	var TUMBLE = 6;
-	var HEADING = { x: -1, y: 0.28 };
+	var HEADING = { x: 0, y: -1 };           // straight up
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -78,10 +86,10 @@
 			.filter(Boolean);
 		console.assert(this.washer.length === 4, 'washer tumble cycle');
 		console.assert(this.fridge.length >= 1, 'at least a closed fridge');
-		this.count = ENTITIES.some;
+		this.count = DEFAULT_ENTITIES;
 		this.speed = ENERGY['3000 kwh'];
-		this.defrost = DEFROST.often;
-		this.karma = KARMA.average;
+		this.defrost = DEFROST['very often'];
+		this.karma = KARMA['a little'];
 		this.things = [];
 	}
 
@@ -106,9 +114,11 @@
 			frames: frames,
 			frame: rand(0, frames.length),
 			open: Math.random() < this.defrost,
-			x: anywhere ? rand(-halfW, w + halfW) : w + halfW + rand(0, 80),
-			y: rand(halfH, Math.max(halfH + 1, h - halfH)),
-			speed: this.speed * rand(0.75, 1.25)
+			x: rand(halfW, Math.max(halfW + 1, w - halfW)),
+			// in from below; at the start, queued up below the screen so they
+			// arrive one after another rather than all at once
+			y: h + halfH + (anywhere ? rand(-h / 4, h) : 0),
+			speed: this.speed
 		};
 	};
 
@@ -133,15 +143,8 @@
 			} else if (Math.random() < dt * 0.35) {
 				t.open = Math.random() < this.defrost;
 			}
-			var bm = t.frames[0];
-			if (t.x < -bm.width) {
-				t.x = w + bm.width;
-				t.y = rand(bm.height / 2, Math.max(bm.height / 2 + 1, h - bm.height / 2));
-			}
-			if (t.y > h + bm.height) {
-				t.y = -bm.height;
-			} else if (t.y < -bm.height) {
-				t.y = h + bm.height;
+			if (t.y < -t.frames[0].height / 2) {
+				this.things[i] = this.spawn(w, h, false);
 			}
 		}
 	};
@@ -183,14 +186,15 @@
 
 		window.AfterDark.load(base).then(function (art) {
 			var sim = new Om(art);
-			var entities = (AfterDark.setting(self, 'entities') || 'some').toLowerCase();
+			var entities = (AfterDark.setting(self, 'entities') || String(DEFAULT_ENTITIES)).toLowerCase();
 			var energy = (AfterDark.setting(self, 'life-energy') || '3000 kwh').toLowerCase();
-			var defrost = (AfterDark.setting(self, 'defrost') || 'often').toLowerCase();
-			var karma = (AfterDark.setting(self, 'washer-karma') || 'average').toLowerCase();
-			sim.count = ENTITIES[entities] || parseInt(entities, 10) || ENTITIES.some;
+			var defrost = (AfterDark.setting(self, 'defrost') || 'very often').toLowerCase();
+			var karma = (AfterDark.setting(self, 'washer-karma') || 'a little').toLowerCase();
+			sim.count = ENTITIES[entities] || parseInt(entities, 10) || DEFAULT_ENTITIES;
+			sim.count = Math.max(1, Math.min(20, sim.count));
 			sim.speed = ENERGY[energy] || ENERGY['3000 kwh'];
-			sim.defrost = DEFROST[defrost] !== undefined ? DEFROST[defrost] : DEFROST.often;
-			sim.karma = KARMA[karma] !== undefined ? KARMA[karma] : KARMA.average;
+			sim.defrost = DEFROST[defrost] !== undefined ? DEFROST[defrost] : DEFROST['very often'];
+			sim.karma = KARMA[karma] !== undefined ? KARMA[karma] : KARMA['a little'];
 
 			var screen = new AfterDark.Screen(self);
 			self._screen = screen;

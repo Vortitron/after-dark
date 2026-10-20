@@ -10,11 +10,24 @@
  * The bitmaps it came with sit beside the modules in BITMAPS/: EARTH.BMP, a
  * 322x156 16-colour map of the world with its clouds on, the After Dark logo
  * and a toaster. Those are what `map` picks between, straight out of the
- * install, in all/art/globe/. The width of the map is once round the equator,
- * which makes the globe about 100 pixels across - small, as it was on a 640x480
- * screen - and it wanders the screen while it turns.
+ * install, in all/art/globe/.
  *
- *   <after-dark-globe art="art/globe" map="earth" speed="medium" tilt="23">
+ * Checked against the real module under Wine (8-bit). It reads its picture
+ * from AD_PREFS.INI, [After Dark] GlobeFile=; with none it says "No picture
+ * is selected." Given EARTH.BMP:
+ *   - The globe is the map's height across - 150x154 px for the 322x156
+ *     Earth - at the same size on any screen, the map stretched round it.
+ *   - The axis is upright; nothing is shaded. The panel's "Rotation" is a
+ *     spin rate in degrees (at 0 the globe stood still), not a tilt, so the
+ *     tilt below is ours and defaults to none.
+ *   - It travels only on the diagonals, bouncing off the edges. Under Wine it
+ *     did that (unthrottled, several hundred px/s) only with no settings
+ *     stored; with the panel's defaults written out it stayed put, and with
+ *     Speed 0 it crept at 14 px/s. Which of those a real install showed is
+ *     not settled; this keeps the wandering, at a modest pace.
+ *   - Mirror (None, Horizontal, Vertical, Both) flips the picture.
+ *
+ *   <after-dark-globe art="art/globe" map="earth" speed="medium" tilt="0" mirror="none">
  */
 (function () {
 	'use strict';
@@ -24,6 +37,11 @@
 	/* Turns a minute. */
 	var TURNS = [1.5, 3, 6, 12, 24];
 	var TILTS = ['0', '23', '45', '90'];
+	/* The control panel's Mirror: which way the picture is flipped on the globe. */
+	var MIRRORS = ['none', 'horizontal', 'vertical', 'both'];
+	/* Pixels a second along each axis. Under Wine it ran unthrottled, several
+	   hundred a second; this is a guess at a machine of its day. */
+	var DRIFT = 60;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -62,7 +80,8 @@
 
 	function Globe() {
 		this.turns = TURNS[2];
-		this.tilt = 23;
+		this.tilt = 0;
+		this.mirror = 0;
 		this.map = null;
 		this.spin = 0;
 	}
@@ -74,8 +93,10 @@
 		var g = c.getContext('2d');
 		g.drawImage(image, 0, 0);
 		this.map = { w: c.width, h: c.height, data: g.getImageData(0, 0, c.width, c.height).data };
-		/* Once round the equator is the map's width. */
-		this.proj = project(Math.max(30, Math.round(c.width / (2 * Math.PI))), this.tilt);
+		/* Pole to pole down the middle of the disc is the map's height (the
+		   156-row Earth came out 150x154 on a 1024x768 screen), so the map is
+		   stretched round the equator rather than drawn at its own width. */
+		this.proj = project(Math.max(30, Math.round(c.height / 2)), this.tilt);
 		this.canvas = document.createElement('canvas');
 		this.canvas.width = this.canvas.height = this.proj.size;
 		this.out = this.canvas.getContext('2d').createImageData(this.proj.size, this.proj.size);
@@ -85,15 +106,15 @@
 	Globe.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
-		this.scale = Math.max(1, Math.floor(Math.min(w, h) / 360));
+		/* Drawn at its own pixel size, as the original was on any screen. */
+		this.scale = 1;
 		if (!this.proj) { return; }
 		var d = this.proj.size * this.scale;
 		this.x = rand(0, Math.max(0, w - d));
 		this.y = rand(0, Math.max(0, h - d));
-		var a = rand(0, Math.PI * 2);
-		var speed = 40 * this.scale;
-		this.vx = Math.cos(a) * speed;
-		this.vy = Math.sin(a) * speed;
+		/* It only ever travels on the diagonals, bouncing off the edges. */
+		this.vx = (Math.random() < 0.5 ? -1 : 1) * DRIFT;
+		this.vy = (Math.random() < 0.5 ? -1 : 1) * DRIFT;
 	};
 
 	Globe.prototype.paint = function () {
@@ -109,6 +130,8 @@
 			mu -= Math.floor(mu);
 			var mx = Math.min(m.w - 1, Math.floor(mu * m.w));
 			var my = Math.min(m.h - 1, Math.floor(p.v[k] * m.h));
+			if (this.mirror & 1) { mx = m.w - 1 - mx; }
+			if (this.mirror & 2) { my = m.h - 1 - my; }
 			var s = (my * m.w + mx) * 4;
 			out[o] = m.data[s];
 			out[o + 1] = m.data[s + 1];
@@ -138,7 +161,8 @@
 	AfterDark.define('after-dark-globe', function (el) {
 		var sim = new Globe();
 		sim.turns = TURNS[AfterDark.choice(el, 'speed', SPEEDS, 'medium')];
-		sim.tilt = Number(TILTS[AfterDark.choice(el, 'tilt', TILTS, '23')]);
+		sim.tilt = Number(TILTS[AfterDark.choice(el, 'tilt', TILTS, '0')]);
+		sim.mirror = AfterDark.choice(el, 'mirror', MIRRORS, 'none');
 		var which = MAPS[AfterDark.choice(el, 'map', MAPS, 'earth')];
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/globe').then(function (art) {
 			var bmp = art.bitmap(which) || art.bitmap('earth');

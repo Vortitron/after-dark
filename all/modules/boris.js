@@ -17,7 +17,20 @@
  * out by its own mask. The 1-bit set the module drew with when Color was off
  * is not used; here Color off draws him in grey.
  *
- *   <after-dark-boris art="art/boris" cats="1" butterfly="occasionally" color>
+ * Checked against the module running under Wine at 1024x768 (2026-10-15).
+ * Its colours there are wrong (the 8-bit display mapped its palette badly),
+ * but the rest is to be trusted: at the defaults there are three cats, each
+ * drawn at its own size; they use the whole height of the screen; they walk
+ * at about 33 px a second and run at about 140; they run off the sides and
+ * leap off the top and bottom, are gone a while, and come back in from an
+ * edge - one dropping in from the top in the pounce; they sit for anything
+ * from two to ten seconds. The butterfly is about most of the time and
+ * cruises at about 150 px a second. Number of Cats is a slider whose
+ * default (44 of 100) gives three; how it maps to other counts could not be
+ * seen (the module crashes under Wine whenever its settings are written), so
+ * the 1-4 here is still a guess, as are how often each thing happens.
+ *
+ *   <after-dark-boris art="art/boris" cats="3" butterfly="frequently" color>
  */
 (function () {
 	'use strict';
@@ -26,6 +39,9 @@
 	var BUTTERFLIES = ['never', 'rarely', 'seldom', 'occasionally', 'frequently', 'always'];
 	/* Chance a second that one turns up. */
 	var FLUTTER = [0, 0.01, 0.025, 0.05, 0.12, Infinity];
+	/* Pixels a second at 1024x768, measured off the module running: he walks
+	   at about 33 and runs at about 140; the butterfly cruises at about 150. */
+	var WALK_SPEED = 33, RUN_SPEED = 140, FLY_SPEED = 150;
 	var WALK = [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007];
 	var RUN = [1350, 1351, 1352, 1353];
 	var PREEN = [1250, 1251, 1252, 1253];
@@ -41,8 +57,8 @@
 	}
 
 	function Boris() {
-		this.count = 1;
-		this.flutter = FLUTTER[3];
+		this.count = 3;
+		this.flutter = FLUTTER[4];
 		this.color = true;
 		this.art = null;
 	}
@@ -50,10 +66,11 @@
 	Boris.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
-		this.s = Math.max(1, Math.round(Math.min(w, h) / 400));
+		/* The module drew him at his own size on a 1024x768 screen. */
+		this.s = Math.max(1, Math.round(Math.min(w, h) / 768));
 		this.cats = [];
 		for (var i = 0; i < this.count; i += 1) {
-			var c = { x: rand(w * 0.1, w * 0.9), y: rand(h * 0.4, h * 0.95), dir: Math.random() < 0.5 ? 1 : -1, plan: [],
+			var c = { x: rand(w * 0.1, w * 0.9), y: rand(h * 0.15, h * 0.95), dir: Math.random() < 0.5 ? 1 : -1, plan: [],
 				frame: 1000 };
 			this.cats.push(c);
 			this.next(c);
@@ -75,7 +92,7 @@
 			var dx = f.x - c.x;
 			c.dir = dx > 0 ? 1 : -1;
 			if (Math.abs(dx) > 70 * s) {
-				p.push({ frames: RUN, fps: 12, time: Math.min(1.2, (Math.abs(dx) - 50 * s) / (140 * s)), vx: 140 * s,
+				p.push({ frames: RUN, fps: 12, time: Math.min(1.2, (Math.abs(dx) - 50 * s) / (RUN_SPEED * s)), vx: RUN_SPEED * s,
 					vy: Math.max(-60, Math.min(60, (f.y + 40 * s - c.y) * 0.8)) });
 				return;
 			}
@@ -91,15 +108,17 @@
 			return;
 		}
 		var r = Math.random();
-		if (r < 0.32) {
-			/* Wander somewhere. */
-			var tx = rand(w * 0.05, w * 0.95), ty = rand(h * 0.35, h * 0.97);
+		if (r < 0.1) {
+			this.leave(c, p, s);
+		} else if (r < 0.32) {
+			/* Wander somewhere - anywhere on the screen, top to bottom. */
+			var tx = rand(w * 0.05, w * 0.95), ty = rand(h * 0.08, h * 0.97);
 			c.dir = tx > c.x ? 1 : -1;
-			var dist = Math.abs(tx - c.x), t = Math.max(0.8, dist / (45 * s));
-			p.push({ frames: WALK, fps: 10, time: t, vx: 45 * s, vy: (ty - c.y) / t });
+			var dist = Math.abs(tx - c.x), t = Math.max(0.8, dist / (WALK_SPEED * s));
+			p.push({ frames: WALK, fps: 10, time: t, vx: WALK_SPEED * s, vy: (ty - c.y) / t });
 		} else if (r < 0.44) {
 			c.dir = Math.random() < 0.5 ? 1 : -1;
-			p.push({ frames: RUN, fps: 12, time: rand(0.8, 1.8), vx: 140 * s, vy: rand(-30, 30) * s });
+			p.push({ frames: RUN, fps: 12, time: rand(0.8, 1.8), vx: RUN_SPEED * s, vy: rand(-30, 30) * s });
 			if (Math.random() < 0.5) { this.leap(p, s); }
 		} else if (r < 0.52) {
 			this.leap(p, s);
@@ -121,8 +140,8 @@
 			/* Off to the nearest side, to scratch it. */
 			c.dir = c.x > w / 2 ? 1 : -1;
 			var edge = c.dir > 0 ? w - 24 * s : 24 * s;
-			var run = Math.abs(edge - c.x) / (45 * s);
-			p.push({ frames: WALK, fps: 10, time: run, vx: 45 * s, stopAt: edge });
+			var run = Math.abs(edge - c.x) / (WALK_SPEED * s);
+			p.push({ frames: WALK, fps: 10, time: run, vx: WALK_SPEED * s, stopAt: edge });
 			p.push({ frames: [1650], time: 0.3 }, { frames: [1651], time: 0.3 },
 				{ frames: [1700, 1701], fps: 6, time: rand(1.5, 3.5) }, { frames: [1651], time: 0.3 },
 				{ frames: [1650], time: 0.3 }, { turn: true, frames: [1000], time: 0.05 });
@@ -130,14 +149,56 @@
 	};
 
 	Boris.prototype.leap = function (p, s) {
-		p.push({ frames: [1351], time: 0.12, vx: 140 * s }, { frames: [1450], time: 0.55, vx: 220 * s, arc: 60 * s },
+		p.push({ frames: [1351], time: 0.12, vx: RUN_SPEED * s }, { frames: [1450], time: 0.55, vx: 220 * s, arc: 60 * s },
 			{ frames: [1353], time: 0.15, vx: 100 * s });
+	};
+
+	/**
+	 * He doesn't stay on the screen. The module's cats run off the sides and
+	 * leap off the top or bottom, are gone a while, and come back in from an
+	 * edge - one of them dropping in from the top in the pounce.
+	 */
+	Boris.prototype.leave = function (c, p, s) {
+		var w = this.w, h = this.h, up = c.y < h * 0.3, down = c.y > h * 0.8;
+		c.dir = c.x > w / 2 ? 1 : -1;
+		var edge = c.dir > 0 ? w - c.x : c.x;
+		if (up || down) {
+			/* Off the top or the bottom, the way he is nearest, on a slant. */
+			p.push({ frames: RUN, fps: 12, time: 0.3, vx: RUN_SPEED * s, leaving: true },
+				{ frames: up ? [1450] : [1752], time: 2, vx: RUN_SPEED * s, vy: (up ? -1 : 1) * 190 * s, leaving: true });
+		} else {
+			p.push({ frames: RUN, fps: 12, time: (edge + 80 * s) / (RUN_SPEED * s), vx: RUN_SPEED * s, leaving: true });
+		}
+		p.push({ away: true, frames: [1000], time: rand(1, 6) });
+	};
+
+	Boris.prototype.enter = function (c) {
+		var s = this.s, w = this.w, h = this.h, p = c.plan;
+		var r = Math.random();
+		c.dir = Math.random() < 0.5 ? 1 : -1;
+		c.x = c.dir > 0 ? -40 * s : w + 40 * s;
+		if (r < 0.3) {
+			/* Down from the top, in the pounce, and straight into a run. */
+			c.y = -10 * s;
+			c.x = c.dir > 0 ? rand(0, w * 0.3) : rand(w * 0.7, w);
+			p.unshift({ frames: [1752], time: rand(0.5, 1), vx: RUN_SPEED * s, vy: 120 * s, leaving: true },
+				{ frames: RUN, fps: 12, time: rand(0.6, 1.4), vx: RUN_SPEED * s });
+		} else {
+			c.y = rand(h * 0.15, h * 0.95);
+			p.unshift({ frames: WALK, fps: 10, time: rand(2, 5), vx: WALK_SPEED * s });
+		}
 	};
 
 	Boris.prototype.move = function (c, dt) {
 		var st = c.plan[0];
 		if (!st) { this.next(c); st = c.plan[0]; }
 		if (st.turn && !st.turned) { c.dir = -c.dir; st.turned = true; }
+		if (st.away) {
+			c.gone = true;
+			st.at = (st.at || 0) + dt;
+			if (st.at >= st.time) { c.plan.shift(); c.gone = false; this.enter(c); }
+			return;
+		}
 		st.at = (st.at || 0) + dt;
 		var fps = st.fps || 1;
 		c.frame = st.frames[Math.floor(st.at * fps) % st.frames.length];
@@ -151,11 +212,13 @@
 		}
 		if (st.vy) { c.y += st.vy * dt; }
 		c.lift = st.arc ? Math.sin(Math.min(1, st.at / st.time) * Math.PI) * st.arc : 0;
-		/* Stay on the screen; turn round at the sides. */
-		var margin = 30 * this.s;
-		if (c.x < margin && c.dir < 0 && !st.stopAt) { c.x = margin; c.dir = 1; }
-		if (c.x > this.w - margin && c.dir > 0 && !st.stopAt) { c.x = this.w - margin; c.dir = -1; }
-		c.y = Math.max(this.h * 0.3, Math.min(this.h - 2, c.y));
+		/* Unless he is on his way off, stay on the screen; turn round at the sides. */
+		if (!st.leaving) {
+			var margin = 30 * this.s;
+			if (c.x < margin && c.dir < 0 && !st.stopAt) { c.x = margin; c.dir = 1; }
+			if (c.x > this.w - margin && c.dir > 0 && !st.stopAt) { c.x = this.w - margin; c.dir = -1; }
+			c.y = Math.max(52 * this.s, Math.min(this.h - 2, c.y));
+		}
 		if (st.at >= st.time) { c.plan.shift(); }
 	};
 
@@ -174,7 +237,7 @@
 		var f = this.fly;
 		f.t += dt;
 		if (f.t > f.life) { f.leaving = true; }
-		var speed = (f.startle > 0 ? 170 : 55) * s;
+		var speed = (f.startle > 0 ? 190 : FLY_SPEED) * s;
 		f.startle = Math.max(0, f.startle - dt * 0.5);
 		/* Flutter: the heading wanders; startled, it climbs. */
 		f.a += rand(-3, 3) * dt;
@@ -227,6 +290,7 @@
 		var order = this.cats.slice().sort(function (a, b) { return a.y - b.y; });
 		for (i = 0; i < order.length; i += 1) {
 			var c = order[i];
+			if (c.gone) { continue; }
 			var flip = FACES_LEFT[c.frame] ? c.dir > 0 : c.dir < 0;
 			this.draw(ctx, c.frame, c.x, c.y - (c.lift || 0), flip);
 		}
@@ -239,8 +303,8 @@
 
 	AfterDark.define('after-dark-boris', function (el) {
 		var sim = new Boris();
-		sim.count = Number(CATS[AfterDark.choice(el, 'cats', CATS, '1')]);
-		sim.flutter = FLUTTER[AfterDark.choice(el, 'butterfly', BUTTERFLIES, 'occasionally')];
+		sim.count = Number(CATS[AfterDark.choice(el, 'cats', CATS, '3')]);
+		sim.flutter = FLUTTER[AfterDark.choice(el, 'butterfly', BUTTERFLIES, 'frequently')];
 		sim.color = AfterDark.flag(el, 'color');
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/boris').then(function (art) {
 			sim.art = art;

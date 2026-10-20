@@ -18,7 +18,10 @@ The RLE itself is a byte stream where the LOW nibble picks an operation and
 the HIGH nibble is usually its operand. This is a transcription of the 8-bit
 blitter's jump table in ADXPL510.DLL (CODE:0x431014):
 
-    0  end of row
+    0  end of row - hi nibble 1 (0x10). Hi 0 (0x00) ends the frame, and
+       0x30 HH LL appends a copy of the already-decoded row HHLL (big-endian)
+       as the next row, with no 0x10 after it. These two were missed for a
+       long time; BADDOG.AD's flat desktop parts are mostly copied rows.
     1  skip N transparent pixels          N = hi, or next byte when hi == 0
     2  run of <next byte> pixels          colour = map[hi]
     3  1 pixel                            colour = map[hi]
@@ -74,11 +77,10 @@ def read_chunks(buf):
 
 def decode_frame(src, width, height):
     """Run the opcode stream. Returns a height x width grid of colour indices."""
-    rows = [[TRANSPARENT] * width for _ in range(height)]
-    i, y = 0, 0
-    row = rows[0] if height else []
+    rows = []
+    row = [TRANSPARENT] * width
     x = 0
-    n = len(src)
+    i, n = 0, len(src)
 
     def put(idx, count):
         nonlocal x
@@ -87,70 +89,63 @@ def decode_frame(src, width, height):
                 row[x] = idx
             x += 1
 
-    while i < n and y < height:
-        b = src[i]; i += 1
-        op, hi = b & 0x0F, b >> 4
+    def operand():
+        nonlocal i
+        v = src[i]
+        i += 1
+        return v
 
-        if op == 0:                                   # end of row
-            y += 1
-            if y >= height:
-                break
-            row, x = rows[y], 0
-        elif op == 1:                                 # transparent skip
-            if hi == 0:
-                if i >= n: break
-                hi = src[i]; i += 1
-            x += hi
-        elif op == 2:                                 # run, length in stream
-            if i >= n: break
-            put(hi, src[i]); i += 1
-        elif op in (3, 4, 5):                         # 1, 2 or 3 pixels
-            put(hi, op - 2)
-        elif op == 6:                                 # run of one colour
-            if i >= n: break
-            colour = src[i]; i += 1                   # colour byte comes first
-            if hi == 0:
-                if i >= n: break
-                hi = src[i]; i += 1
-            put(colour, hi)
-        elif op == 7:
-            if hi == 0:                               # literals packed 2 per byte
-                if i >= n: break
-                count = src[i]; i += 1
-                while count >= 2 and i < n:
-                    pair = src[i]; i += 1
-                    put(pair >> 4, 1)
-                    put(pair & 0x0F, 1)
-                    count -= 2
-                if count == 1 and i < n:
-                    put(src[i] >> 4, 1); i += 1       # odd pixel uses the high nibble
-            elif hi == 1:                             # run of raw 8-bit indices
-                if i >= n: break
-                count = src[i]; i += 1
-                for _ in range(count):
-                    if i >= n: break
-                    put(src[i], 1); i += 1
-            # hi >= 2 carries no operand
-        elif op == 8:                                 # alternating nibble pair
-            if hi == 0:
-                if i >= n: break
-                hi = src[i]; i += 1
-            if i >= n: break
-            pair = src[i]; i += 1
-            a, b2 = pair >> 4, pair & 0x0F
-            for k in range(hi):
-                put(a if k % 2 == 0 else b2, 1)
-        elif op == 9:                                 # alternating byte pair
-            if hi == 0:
-                if i >= n: break
-                hi = src[i]; i += 1
-            if i + 1 >= n: break
-            a, b2 = src[i], src[i + 1]; i += 2
-            for k in range(hi):
-                put(a if k % 2 == 0 else b2, 1)
-        # ops 10-15: the byte is simply skipped
-
-    return rows
+    try:
+        while i < n and len(rows) < height:
+            b = operand()
+            op, hi = b & 0x0F, b >> 4
+            if op == 0:
+                if hi == 3:                               # copy an earlier row
+                    k = (src[i] << 8) | src[i + 1]
+                    i += 2
+                    rows.append(list(rows[k]) if k < len(rows) else [TRANSPARENT] * width)
+                    continue
+                rows.append(row)                          # 0x10 end of row, 0x00 end of frame
+                row, x = [TRANSPARENT] * width, 0
+                if hi == 0:
+                    break
+            elif op == 1:
+                x += hi if hi else operand()
+            elif op == 2:
+                put(hi, operand())
+            elif op in (3, 4, 5):
+                put(hi, op - 2)
+            elif op == 6:
+                colour = operand()
+                put(colour, hi if hi else operand())
+            elif op == 7:
+                if hi == 0:
+                    count = operand()
+                    while count >= 2:
+                        pair = operand()
+                        put(pair >> 4, 1)
+                        put(pair & 0x0F, 1)
+                        count -= 2
+                    if count == 1:
+                        put(operand() >> 4, 1)
+                elif hi == 1:
+                    for _ in range(operand()):
+                        put(operand(), 1)
+            elif op == 8:
+                count = hi if hi else operand()
+                pair = operand()
+                for k in range(count):
+                    put(pair >> 4 if k % 2 == 0 else pair & 0x0F, 1)
+            elif op == 9:
+                count = hi if hi else operand()
+                a, b2 = operand(), operand()
+                for k in range(count):
+                    put(a if k % 2 == 0 else b2, 1)
+    except IndexError:
+        pass
+    while len(rows) < height:
+        rows.append([TRANSPARENT] * width)
+    return rows[:height]
 
 
 def read_ctab(chunks):

@@ -15,15 +15,24 @@
  * cross the colours mix, and whatever was on the screen comes back untouched
  * once they have passed. With Clear Screen First off, that is the desktop.
  *
- *   <after-dark-hard-rain drops="some" drop-size="medium" clear-screen>
+ * "Clear Screen First" is off by default, so it rains on the desktop.
+ *
+ * Not checked against a capture: under Wine (8- and 24-bit) the engine says
+ * "Unable to load selected module" for RAIN.AD. The counts and sizes above
+ * are the control panel's ranges, read as drops and pixels.
+ *
+ *   <after-dark-hard-rain drops="some" drop-size="medium">
  */
 (function () {
 	'use strict';
 
 	var DROPS = ['few', 'some', 'many', 'lots'];
-	var COUNT = [6, 14, 28, 50];
+	/* The panel's "# of Drops" is a slider from 1 to 9 (default 22%, about 3)
+	   and "Drop Size" one from 5 to 35 (default 43%, about 18): drops at once,
+	   and how far a drop's rings run, in pixels. */
+	var COUNT = [1, 3, 6, 9];
 	var SIZES = ['small', 'medium', 'large'];
-	var REACH = [25, 50, 100];
+	var REACH = [10, 18, 35];
 	var RINGS = 3;
 	var GAP = 5;
 	/* Buffer pixels a second. */

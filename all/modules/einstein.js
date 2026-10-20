@@ -19,11 +19,23 @@
  *    steady hand?' And look where it's got me."
  *
  * The controls are Errors (Never to Almost Always), Neatness (Very to Chalk
- * Disaster) and # of Lines (1, 5, 10, 20, Fill Screen). Mistakes get rubbed
- * out and written again; each board is wiped with the eraser when it is done,
- * and the dust builds up.
+ * Disaster) and # of Lines (1, 5, 10, 20, Fill Screen); the panel's defaults
+ * are 52, 52 and 100 (Seldom, Pretty Bad, Fill Screen).
  *
- *   <after-dark-einstein art="art/einstein" errors="seldom" neatness="not very" lines="10">
+ * Checked against the real module under Wine (24- and 8-bit, five runs of
+ * 25-150 s, defaults and every control at 0 and at 100):
+ *   - Black screen, white chalk one pixel wide, the font at its own size.
+ *   - It writes equations, one after another along the top row from x 9
+ *     (baseline about 46), three spaces apart, at roughly 60 px of row a
+ *     second; when the next one will not fit, the whole board is wiped left
+ *     to right in a few tenths of a second and it starts again. Once (no
+ *     settings stored) it went on to a second row 80 px lower instead.
+ *   - Under Wine the controls made no visible difference, and no
+ *     written-out lines appeared at all. The lines, the mistakes and the
+ *     wobble below are therefore from the module's data and description, not
+ *     from a capture, and a board of lines is kept rare.
+ *
+ *   <after-dark-einstein art="art/einstein" errors="seldom" neatness="pretty bad" lines="fill screen">
  */
 (function () {
 	'use strict';
@@ -33,9 +45,20 @@
 	var NEATNESS = ['very', 'not very', 'pretty bad', 'really bad', 'ugly ugly ugly', 'chalk disaster'];
 	var WOBBLE = [0, 0.4, 0.9, 1.6, 2.6, 4];
 	var LINES = ['1', '5', '10', '20', 'fill screen'];
-	/* Chalk steps a second. */
-	var PACE = 420;
-	var BOARD = '#1d2e25';
+	/* Chalk steps a second: a row of equations ~950 px across took 13-15 s. */
+	var PACE = 240;
+	/* Black, with white chalk a pixel wide, as the captures show it. */
+	var BOARD = '#000000';
+	/* Where the first row's pen starts, the gap between equations, and how
+	   far down the next row would be (measured off 1024x768 captures). */
+	var LEFT = 9;
+	var BASE = 46;
+	var ROW = 80;
+	var GAP = '   ';
+	/* How often a board is lines rather than equations. Every capture (five
+	   runs, about seven minutes) wrote equations; the lines are in the module
+	   but when it writes them is not known, so they are kept rare. */
+	var LINES_CHANCE = 0.2;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -43,26 +66,22 @@
 
 	function Einstein() {
 		this.mistake = MISTAKE[2];
-		this.wobble = WOBBLE[1];
-		this.lines = 10;
+		this.wobble = WOBBLE[2];
+		this.lines = Infinity;
 		this.font = null;
 	}
 
 	Einstein.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
-		this.s = Math.max(1.2, Math.min(w, h) / 330);
+		/* The font's own pixels, on any screen. */
+		this.s = 1;
 		this.board = document.createElement('canvas');
 		this.board.width = Math.max(1, Math.round(w));
 		this.board.height = Math.max(1, Math.round(h));
 		var g = this.board.getContext('2d');
 		g.fillStyle = BOARD;
 		g.fillRect(0, 0, w, h);
-		/* Old dust, so it is not a new blackboard. */
-		for (var i = 0; i < 40; i += 1) {
-			g.fillStyle = 'rgba(220,230,220,' + rand(0.01, 0.035).toFixed(3) + ')';
-			g.fillRect(rand(-w * 0.2, w), rand(0, h), rand(w * 0.2, w * 0.6), rand(10, 40) * this.s);
-		}
 		this.queue = [];
 		this.state = 'wait';
 		this.timer = 0.6;
@@ -105,27 +124,37 @@
 		return out;
 	};
 
-	/** What goes on the next board: lines to write out, or some physics. */
+	/**
+	 * What goes on the next board. Usually physics: equations one after
+	 * another along the top, three spaces apart, until the next will not fit;
+	 * then the board is wiped and it starts again. Now and then a line to be
+	 * written out the chosen number of times.
+	 */
 	Einstein.prototype.plan = function () {
-		var s = this.s, room = (this.w * 0.88) / s;
-		var gap = 22, rows = Math.max(1, Math.floor((this.h / s - 30) / gap));
-		var text = [], self = this;
-		/* Equations cannot wrap, so only the ones that fit this board. */
-		var eqs = this.font.equations.filter(function (e) { return self.width(e) <= room; })
-			.sort(function () { return Math.random() - 0.5; });
-		if (Math.random() < 0.7 || !eqs.length) {
+		var s = this.s, room = (this.w - LEFT * 2) / s, self = this;
+		var text = [], gap = 22;
+		var eqs = this.font.equations.filter(function (e) { return self.width(e) <= room; });
+		if (Math.random() >= LINES_CHANCE && eqs.length) {
+			var row = '';
+			for (var tries = 0; tries < 40; tries += 1) {
+				var e = eqs[Math.floor(Math.random() * eqs.length)];
+				var next = row ? row + GAP + e : e;
+				if (this.width(next) > room) { break; }
+				row = next;
+			}
+			text.push(row);
+			gap = ROW;
+		} else {
+			var rows = Math.max(1, Math.floor((this.h / s - BASE) / gap) + 1);
 			var line = this.font.lines[Math.floor(Math.random() * this.font.lines.length)];
 			var wrapped = this.wrap(line, room);
 			var times = this.lines === Infinity ? Math.floor(rows / wrapped.length) : this.lines;
 			for (var k = 0; k < times; k += 1) { text = text.concat(wrapped); }
-		} else {
-			eqs.slice(0, Math.max(2, Math.floor(rows / 3))).forEach(function (e) { text.push(e, ''); });
-			gap = 26;
+			text = text.slice(0, rows);
 		}
-		text = text.slice(0, rows);
 		this.rows = [];
 		for (var r = 0; r < text.length; r += 1) {
-			this.rows.push({ text: text[r], x: this.w * 0.06, y: (30 + r * gap) * s + 14 * s,
+			this.rows.push({ text: text[r], x: LEFT, y: (BASE + r * gap) * s,
 				slope: rand(-1, 1) * this.wobble * 0.006 });
 		}
 		this.row = 0;
@@ -175,27 +204,20 @@
 	};
 
 	Einstein.prototype.stroke = function (g, a, b) {
-		g.strokeStyle = 'rgba(236,238,228,' + rand(0.7, 0.95).toFixed(2) + ')';
-		g.lineWidth = this.s * rand(1.1, 1.5);
-		g.lineCap = 'round';
+		g.strokeStyle = '#ffffff';
+		g.lineWidth = 1;
+		g.lineCap = 'square';
 		g.beginPath();
 		g.moveTo(a.x, a.y);
 		g.lineTo(b.x, b.y);
 		g.stroke();
 	};
 
-	/** One pass of the eraser along a band, leaving some dust behind. */
+	/** Rub out a patch: the board is plain black, so it is simply gone. */
 	Einstein.prototype.rub = function (x, y, w, h) {
 		var g = this.board.getContext('2d');
 		g.fillStyle = BOARD;
-		g.globalAlpha = 0.88;
 		g.fillRect(x, y, w, h);
-		g.globalAlpha = 1;
-		/* Felt drags the dust into streaks rather than lifting it. */
-		for (var i = 0; i < 6; i += 1) {
-			g.fillStyle = 'rgba(220,230,220,' + rand(0.005, 0.02).toFixed(3) + ')';
-			g.fillRect(x + rand(-w * 0.1, w * 0.3), y + rand(0, h), w * rand(0.3, 0.9), rand(1, 4) * this.s);
-		}
 	};
 
 	Einstein.prototype.step = function (dt, ctx, w, h) {
@@ -218,8 +240,9 @@
 				if (!this.current) {
 					this.current = this.nextChar();
 					if (!this.current) {
+						/* A full board is wiped almost at once. */
 						this.state = 'admire';
-						this.timer = 4;
+						this.timer = 0.3;
 						break;
 					}
 				}
@@ -255,37 +278,23 @@
 				this.sweep = 0;
 			}
 		} else if (this.state === 'erase') {
-			/* The eraser goes back and forth down the board. */
-			var band = 34 * this.s;
-			this.sweep += dt * 3.2;
-			var done = Math.floor(this.sweep);
-			while ((this.swept || 0) < done) {
-				var n = this.swept || 0;
-				this.rub(0, n * band * 0.8, w, band);
-				this.swept = n + 1;
-			}
-			if (this.swept * band * 0.8 > h) {
-				this.swept = 0;
+			/* The wipe runs left to right across the board in a few tenths of a second. */
+			var from = this.sweep * w;
+			this.sweep = Math.min(1, this.sweep + dt / 0.3);
+			this.rub(Math.floor(from), 0, Math.ceil(this.sweep * w - from) + 1, h);
+			if (this.sweep >= 1) {
 				this.state = 'wait';
-				this.timer = 1;
+				this.timer = 0.2;
 			}
 		}
 		ctx.drawImage(this.board, 0, 0, w, h);
-		if (this.state === 'erase') {
-			var y = (this.sweep % 1 + Math.floor(this.sweep)) * 34 * this.s * 0.8;
-			var x = (Math.floor(this.sweep) % 2 ? 1 - this.sweep % 1 : this.sweep % 1) * (w - 60 * this.s);
-			ctx.fillStyle = '#8a6a44';
-			ctx.fillRect(x, y, 60 * this.s, 12 * this.s);
-			ctx.fillStyle = '#d8d8d0';
-			ctx.fillRect(x, y + 12 * this.s, 60 * this.s, 8 * this.s);
-		}
 	};
 
 	AfterDark.define('after-dark-einstein', function (el) {
 		var sim = new Einstein();
 		sim.mistake = MISTAKE[AfterDark.choice(el, 'errors', ERRORS, 'seldom')];
-		sim.wobble = WOBBLE[AfterDark.choice(el, 'neatness', NEATNESS, 'not very')];
-		var lines = LINES[AfterDark.choice(el, 'lines', LINES, '10')];
+		sim.wobble = WOBBLE[AfterDark.choice(el, 'neatness', NEATNESS, 'pretty bad')];
+		var lines = LINES[AfterDark.choice(el, 'lines', LINES, 'fill screen')];
 		sim.lines = lines === 'fill screen' ? Infinity : Number(lines);
 		AfterDark.data(AfterDark.setting(el, 'art') || 'art/einstein').then(function (font) {
 			sim.font = font;

@@ -13,7 +13,13 @@
  * Shape is Circle, Oval, Square, Rectangle or Random. When there is nothing
  * left to punch it puts the desktop back and starts again.
  *
- *   <after-dark-punch-out shape="random" size="medium" speed="medium">
+ * Not checkable against the real module: under Wine its view of "the desktop"
+ * is black whatever is on screen (a full-screen window, the X root, 8- or
+ * 24-bit display all tried), so the capture is a black screen. The defaults
+ * are the panel's own (TYPE_1000): Shape Circle, Size at 50 of 100 (65 of its 10-120,
+ * our medium), Speed at 100 - the fastest.
+ *
+ *   <after-dark-punch-out shape="circle" size="medium" speed="fast">
  */
 (function () {
 	'use strict';
@@ -130,9 +136,9 @@
 
 	AfterDark.define('after-dark-punch-out', function (el) {
 		var sim = new PunchOut();
-		sim.shape = AfterDark.choice(el, 'shape', SHAPES, 'random');
+		sim.shape = AfterDark.choice(el, 'shape', SHAPES, 'circle');
 		sim.side = SIDE[AfterDark.choice(el, 'size', SIZES, 'medium')];
-		sim.pace = PACE[AfterDark.choice(el, 'speed', SPEEDS, 'medium')];
+		sim.pace = PACE[AfterDark.choice(el, 'speed', SPEEDS, 'fast')];
 		return sim;
 	});
 

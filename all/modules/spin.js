@@ -15,7 +15,20 @@
  * picks up a dab of paint and puts it down a little way round, or out, from
  * where it found it, thousands of times, and the picture runs.
  *
- *   <after-dark-spin-brush art="art/spin" switch-every="1 min." thickness="3" spin="random">
+ * Checked against SPIN.AD under Wine (8-bit, 1024x768, defaults): Spin, the
+ * default (the menu rests on its first entry), turns the whole pattern round
+ * one centre, off the middle of the screen, and the smears are arcs whose
+ * length grows with the distance out - the pattern's own tiles still show,
+ * barely smeared, at the centre, and the edges are long streaks. So a dab is
+ * carried round by a fixed angle, not a fixed distance. The screen is
+ * covered in rings within a few seconds. Still inferred: the angle, the
+ * dab count, Spiral/Star/Stretch (not captured), and the Switch Every and
+ * Thickness defaults read off the panel: a labelled slider's value is the
+ * first label whose position is at or above it (18 -> "30 sec.", 30 -> "2"),
+ * the rule that gives Artist's Delay and Worms' Wiggle as seen. Colours in the
+ * 8-bit capture are not to be trusted; the patterns are the module's DIBs.
+ *
+ *   <after-dark-spin-brush art="art/spin" switch-every="30 sec." thickness="2" spin="spin">
  */
 (function () {
 	'use strict';
@@ -26,17 +39,19 @@
 	var SPINS = ['spin', 'spiral', 'star', 'stretch', 'random'];
 	/* 103 and 205 are plain noise, which smears to grey; the rest have something to smear. */
 	var PATTERNS = ['100', '200', '203', '204'];
-	var DABS = 1500;
+	var DABS = 6000;
+	/* Radians a dab is carried round the centre. */
+	var TURN = 0.04;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
 	}
 
 	function SpinBrush() {
-		this.every = 60;
-		this.thick = 3;
+		this.every = 30;
+		this.thick = 2;
 		this.useScreen = false;
-		this.spin = 4;
+		this.spin = 0;
 		this.art = null;
 	}
 
@@ -65,47 +80,66 @@
 		this.cx = rand(w * 0.3, w * 0.7);
 		this.cy = rand(h * 0.3, h * 0.7);
 		this.age = 0;
+		this.px = null;
+	};
+
+	/* The brush works on the pixels themselves: thousands of dabs a frame. */
+	SpinBrush.prototype.grab = function () {
+		var g = this.canvas.getContext('2d');
+		this.image = g.getImageData(0, 0, this.canvas.width, this.canvas.height);
+		this.px = new Uint32Array(this.image.data.buffer);
 	};
 
 	SpinBrush.prototype.step = function (dt, ctx, w, h) {
 		this.age += dt;
 		if (this.age > this.every) { this.fresh(); }
-		var g = this.canvas.getContext('2d'), s = Math.max(1, Math.round(Math.min(w, h) / 400));
-		var cx = this.cx, cy = this.cy;
+		if (!this.px) { this.grab(); }
+		var px = this.px, W = this.image.width, H = this.image.height;
+		var s = Math.max(1, Math.round(Math.min(w, h) / 400));
+		var cx = this.cx, cy = this.cy, mode = this.mode;
+		var cos = Math.cos(TURN), sin = Math.sin(TURN);
 		var dabs = Math.round(DABS * Math.min(3, w * h / 300000));
 		for (var i = 0; i < dabs; i += 1) {
 			var t = (this.thick || Math.floor(rand(1, 6))) * s;
-			var x = rand(0, w), y = rand(0, h), dx = x - cx, dy = y - cy, r = Math.sqrt(dx * dx + dy * dy) || 1;
-			var nx, ny;
-			if (this.mode === 0) {
-				/* Spin: round the centre. */
-				nx = x - dy / r * 2 * s;
-				ny = y + dx / r * 2 * s;
-			} else if (this.mode === 1) {
-				/* Spiral: round and in. */
-				nx = x - dy / r * 2 * s - dx / r * 0.8 * s;
-				ny = y + dx / r * 2 * s - dy / r * 0.8 * s;
-			} else if (this.mode === 2) {
+			var x = Math.floor(Math.random() * (W - t)), y = Math.floor(Math.random() * (H - t));
+			var dx = x - cx, dy = y - cy, nx, ny;
+			if (mode === 0) {
+				/* Spin: the dab goes round the centre by a fixed angle, so the
+				   smears are short near the middle and long out at the edges. */
+				nx = cx + dx * cos - dy * sin;
+				ny = cy + dx * sin + dy * cos;
+			} else if (mode === 1) {
+				/* Spiral: round, and in a little. */
+				nx = cx + (dx * cos - dy * sin) * 0.98;
+				ny = cy + (dx * sin + dy * cos) * 0.98;
+			} else if (mode === 2) {
 				/* Star: straight out. */
-				nx = x + dx / r * 2 * s;
-				ny = y + dy / r * 2 * s;
+				nx = cx + dx * 1.03;
+				ny = cy + dy * 1.03;
 			} else {
 				/* Stretch: sideways, away from the middle line. */
-				nx = x + (dx > 0 ? 2 : -2) * s;
+				nx = cx + dx * 1.03;
 				ny = y;
 			}
-			g.drawImage(this.canvas, x, y, t, t, nx, ny, t, t);
+			nx = Math.round(nx);
+			ny = Math.round(ny);
+			if (nx < 0 || ny < 0 || nx > W - t || ny > H - t) { continue; }
+			for (var r = 0; r < t; r += 1) {
+				var from = (y + r) * W + x, to = (ny + r) * W + nx;
+				for (var c = 0; c < t; c += 1) { px[to + c] = px[from + c]; }
+			}
 		}
+		this.canvas.getContext('2d').putImageData(this.image, 0, 0);
 		ctx.drawImage(this.canvas, 0, 0, w, h);
 	};
 
 	AfterDark.define('after-dark-spin-brush', function (el) {
 		var sim = new SpinBrush();
-		sim.every = SECONDS[AfterDark.choice(el, 'switch-every', SWITCHES, '1 min.')];
-		var thick = THICKNESSES[AfterDark.choice(el, 'thickness', THICKNESSES, '3')];
+		sim.every = SECONDS[AfterDark.choice(el, 'switch-every', SWITCHES, '30 sec.')];
+		var thick = THICKNESSES[AfterDark.choice(el, 'thickness', THICKNESSES, '2')];
 		sim.thick = thick === 'variable' ? 0 : Number(thick);
 		sim.useScreen = AfterDark.flag(el, 'use-screen');
-		sim.spin = AfterDark.choice(el, 'spin', SPINS, 'random');
+		sim.spin = AfterDark.choice(el, 'spin', SPINS, 'spin');
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/spin').then(function (art) {
 			sim.art = art;
 			if (!sim.useScreen && sim.w) { sim.fresh(); }

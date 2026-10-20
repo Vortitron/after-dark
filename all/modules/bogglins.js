@@ -17,15 +17,33 @@
  * Sharp.
  *
  * Artwork, from tools/adclassic.py, the 256-colour band 2111-2120. Ten frames:
- *   2111-2114  squash to stretch, one bounce
+ *   2111-2114  squashed flat to stretched tall, one bounce
  *   2115-2118  he detonates, then the smoke thins
- *   2119       a small lump left behind
+ *   2119       a small lump
  *   2120       flattened into a puddle
  *
- * The blob sits low in a 153x156 bitmap, so drawing is from the feet rather
- * than the frame centre, otherwise the hop would float.
+ * Checked against the real module under Wine at 1024x768 (40 s at the
+ * defaults, 30 s at Evacuate!/Sharp; 15 fps):
+ *   - There is one Bogglin. He does not hop: he bounces on the spot, the four
+ *     bounce frames going up and back down about fifteen a second, while he
+ *     drifts across the screen at ~45 px/s on each axis, a step of about
+ *     (3, 3) px a frame. He changes direction now and then of his own accord,
+ *     and off the edges, and every so often stands still for half a second.
+ *   - Now and then he explodes where he is: 2115-2118 over about a third of a
+ *     second. Then a lump (2119) drops out of the top of the screen somewhere
+ *     else, too fast to see in more than one frame, lands as a puddle (2120)
+ *     for about a quarter of a second, and bounces off from there.
+ *   - At the default Explosivity that is every ~8 s (5 in 40 s); at
+ *     Evacuate! every ~2 s.
+ * Still inferred: the rates for Unstable and Dangerous (between those two);
+ * and Twanginess, which changed nothing visible between the default (54 of
+ * 100, shown as Rich) and Sharp - it is taken to be the pitch of his boing,
+ * so it is accepted here and does nothing.
  *
- *   <after-dark-bogglins explosivity="volatile" twanginess="zesty">
+ * The blob sits low in a 153x156 bitmap, so drawing is from the feet rather
+ * than the frame centre.
+ *
+ *   <after-dark-bogglins explosivity="volatile" twanginess="rich">
  */
 (function () {
 	'use strict';
@@ -35,25 +53,29 @@
 	var LUMP = '2119';
 	var PUDDLE = '2120';
 
-	/* How often a hop ends in a bang, and how high / how fast the hop is. */
+	/* Explosions per second. The module's default (54 of 100, which its popup
+	   shows as Volatile) measured one every ~8 s, Evacuate! one every ~2 s. */
 	var EXPLOSIVITY = {
-		unstable: 0.06,
-		volatile: 0.14,
-		dangerous: 0.32,
-		'evacuate!': 0.58
+		unstable: 0.07,
+		volatile: 0.125,
+		dangerous: 0.3,
+		'evacuate!': 0.5
 	};
-	var TWANG = {
-		mild: { hops: 1.35, height: 42, fps: 7 },
-		rich: { hops: 1.9, height: 64, fps: 9 },
-		zesty: { hops: 2.6, height: 92, fps: 12 },
-		sharp: { hops: 3.6, height: 118, fps: 16 }
-	};
+	/* Accepted, but nothing to see: it did not change the bounce or the drift. */
+	var TWANG = { mild: {}, rich: {}, zesty: {}, sharp: {} };
 
 	/* Feet of the idle frames, in bitmap space. Explosions share the same x. */
 	var FEET_X = 78;
 	var FEET_Y = 147;
-	var BOOM_FPS = 11;
-	var REFORM = 0.55;
+	var HALF_W = 60;              // half the widest bounce frame, for the edges
+	var TALL = 135;               // feet to the top of the tallest one
+	var BOUNCE_FPS = 15;
+	var DRIFT_MIN = 30, DRIFT_MAX = 70;   // px/s on each axis
+	var TURN_MIN = 1.5, TURN_MAX = 5;     // seconds between changes of mind
+	var PAUSE = 0.5, PAUSE_CHANCE = 0.2;
+	var BOOM_FPS = 12;
+	var DROP = 0.12;              // seconds the lump takes to fall in
+	var SPLAT = 0.27;             // and lies as a puddle
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -70,29 +92,31 @@
 		this.puddle = art.bitmap(PUDDLE);
 		console.assert(this.bounce.length === 4, 'bogglin bounce cycle');
 		this.chance = EXPLOSIVITY.volatile;
-		this.twang = TWANG.zesty;
 		this.crew = [];
 	}
 
-	Bogglins.prototype.spawn = function (w, h, anywhere) {
-		var pad = 50;
-		return {
-			x: anywhere ? rand(pad, Math.max(pad + 1, w - pad)) : rand(-40, w + 40),
-			floor: rand(h * 0.42, h - 8),
-			vx: rand(-55, 55),
-			phase: rand(0, 1),
-			state: 'hop',
+	Bogglins.prototype.heading = function (b) {
+		b.vx = rand(DRIFT_MIN, DRIFT_MAX) * (Math.random() < 0.5 ? -1 : 1);
+		b.vy = rand(DRIFT_MIN, DRIFT_MAX) * (Math.random() < 0.5 ? -1 : 1);
+		b.turn = rand(TURN_MIN, TURN_MAX);
+	};
+
+	Bogglins.prototype.spawn = function (w, h) {
+		var b = {
+			x: rand(HALF_W, Math.max(HALF_W + 1, w - HALF_W)),
+			y: rand(TALL, Math.max(TALL + 1, h)),
+			phase: 0,
+			state: 'bounce',
 			frame: 0,
-			wait: 0
+			wait: 0,
+			drop: 0
 		};
+		this.heading(b);
+		return b;
 	};
 
 	Bogglins.prototype.reset = function (w, h) {
-		var n = Math.max(2, Math.min(5, Math.round(w / 280)));
-		this.crew = [];
-		for (var i = 0; i < n; i += 1) {
-			this.crew.push(this.spawn(w, h, true));
-		}
+		this.crew = [this.spawn(w, h)];
 	};
 
 	Bogglins.prototype.drawAt = function (ctx, bitmap, x, y) {
@@ -103,56 +127,65 @@
 			Math.round(x - FEET_X), Math.round(y - FEET_Y));
 	};
 
+	/* Up the four frames and back down: 0 1 2 3 2 1 0 ... */
+	function bounceFrame(phase) {
+		var k = Math.floor(phase) % 6;
+		return k < 4 ? k : 6 - k;
+	}
+
 	Bogglins.prototype.step = function (dt, w, h) {
-		var hops = this.twang.hops;
-		var i, b, hop;
-		for (i = 0; i < this.crew.length; i += 1) {
-			b = this.crew[i];
-			if (b.state === 'hop') {
-				b.phase += dt * hops;
-				if (b.phase >= 1) {
-					b.phase -= 1;
-					if (Math.random() < this.chance && this.boom.length) {
-						b.state = 'boom';
-						b.frame = 0;
-						b.vx = 0;
-					} else {
-						b.vx = rand(-70, 70) * (this.twang.height / 80);
+		for (var i = 0; i < this.crew.length; i += 1) {
+			var b = this.crew[i];
+			if (b.state === 'bounce' || b.state === 'pause') {
+				if (Math.random() < this.chance * dt) {
+					b.state = 'boom';
+					b.frame = 0;
+					continue;
+				}
+				b.turn -= dt;
+				if (b.state === 'pause') {
+					if (b.turn <= 0) { b.state = 'bounce'; this.heading(b); }
+					continue;
+				}
+				b.phase += dt * BOUNCE_FPS;
+				b.frame = bounceFrame(b.phase);
+				if (b.turn <= 0) {
+					if (Math.random() < PAUSE_CHANCE) {
+						b.state = 'pause';
+						b.frame = 1;
+						b.turn = PAUSE;
+						continue;
 					}
+					this.heading(b);
 				}
-				hop = Math.sin(b.phase * Math.PI);
-				b.y = b.floor - hop * this.twang.height;
-				b.frame = Math.min(this.bounce.length - 1, Math.floor(hop * this.bounce.length));
 				b.x += b.vx * dt;
-				if (b.x < 40) {
-					b.x = 40;
-					b.vx = Math.abs(b.vx);
-				} else if (b.x > w - 40) {
-					b.x = w - 40;
-					b.vx = -Math.abs(b.vx);
-				}
+				b.y += b.vy * dt;
+				if (b.x < HALF_W) { b.x = HALF_W; b.vx = Math.abs(b.vx); }
+				if (b.x > w - HALF_W) { b.x = w - HALF_W; b.vx = -Math.abs(b.vx); }
+				if (b.y < TALL) { b.y = TALL; b.vy = Math.abs(b.vy); }
+				if (b.y > h) { b.y = h; b.vy = -Math.abs(b.vy); }
 			} else if (b.state === 'boom') {
-				b.y = b.floor;
 				b.frame += dt * BOOM_FPS;
 				if (b.frame >= this.boom.length) {
+					// and somewhere else, another one drops in
+					var next = this.spawn(w, h);
+					b.x = next.x;
+					b.y = next.y;
+					b.state = 'drop';
+					b.drop = 0;
+				}
+			} else if (b.state === 'drop') {
+				b.drop += dt / DROP;
+				if (b.drop >= 1) {
 					b.state = 'puddle';
-					b.wait = REFORM;
+					b.wait = SPLAT;
 				}
 			} else if (b.state === 'puddle') {
-				b.y = b.floor;
 				b.wait -= dt;
 				if (b.wait <= 0) {
-					b.state = 'lump';
-					b.wait = REFORM;
-				}
-			} else if (b.state === 'lump') {
-				b.y = b.floor;
-				b.wait -= dt;
-				if (b.wait <= 0) {
-					b.state = 'hop';
+					b.state = 'bounce';
 					b.phase = 0;
-					b.vx = rand(-55, 55);
-					b.floor = rand(h * 0.42, h - 8);
+					this.heading(b);
 				}
 			}
 		}
@@ -163,14 +196,14 @@
 		ctx.fillRect(0, 0, w, h);
 		for (var i = 0; i < this.crew.length; i += 1) {
 			var b = this.crew[i];
-			if (b.state === 'hop') {
+			if (b.state === 'bounce' || b.state === 'pause') {
 				this.drawAt(ctx, this.bounce[b.frame], b.x, b.y);
 			} else if (b.state === 'boom') {
 				this.drawAt(ctx, this.boom[Math.min(this.boom.length - 1, Math.floor(b.frame))], b.x, b.y);
-			} else if (b.state === 'puddle') {
-				this.drawAt(ctx, this.puddle, b.x, b.y);
+			} else if (b.state === 'drop') {
+				this.drawAt(ctx, this.lump, b.x, b.drop * b.y);
 			} else {
-				this.drawAt(ctx, this.lump, b.x, b.y);
+				this.drawAt(ctx, this.puddle, b.x, b.y);
 			}
 		}
 	};
@@ -194,9 +227,9 @@
 		window.AfterDark.load(base).then(function (art) {
 			var sim = new Bogglins(art);
 			var bang = (AfterDark.setting(self, 'explosivity') || 'volatile').toLowerCase();
-			var twang = (AfterDark.setting(self, 'twanginess') || 'zesty').toLowerCase();
+			var twang = (AfterDark.setting(self, 'twanginess') || 'rich').toLowerCase();
 			sim.chance = EXPLOSIVITY[bang] || EXPLOSIVITY.volatile;
-			sim.twang = TWANG[twang] || TWANG.zesty;
+			sim.twang = TWANG[twang] ? twang : 'rich';
 
 			var screen = new AfterDark.Screen(self);
 			self._screen = screen;

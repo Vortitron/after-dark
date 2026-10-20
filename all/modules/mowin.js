@@ -16,12 +16,20 @@
  * height, bright at the tip and dark at the root.
  *
  * So the grass comes up over the screen a blade at a time, flowers and all,
- * and he mows it in stripes, back and forth, a lane at a time down the
- * screen, leaving it bare behind him to grow again at the Growth Rate. Mow
- * Every is how long he leaves it between mowings; a "day" here is fifteen
- * seconds of screen time.
+ * and he mows it in stripes, leaving it bare behind him to grow again at the
+ * Growth Rate. Mow Every is how long he leaves it between mowings; a "day"
+ * here is fifteen seconds of screen time.
  *
- *   <after-dark-mowin-man art="art/mowin" speed="normal" mow-every="always" growth-rate="medium">
+ * Checked against the module running under Wine (2026-10-15): he starts in
+ * the top left corner and mows the screen in vertical stripes one mower wide,
+ * down the first (the picture from in front), up the next (from behind), and
+ * so on to the right-hand edge, then is gone until the next mowing. He is
+ * drawn at his own size on a 1024x768 screen. The defaults are the module's
+ * own: Speed Hurried, Mow Every Day, Growth Rate Medium. How fast he goes is
+ * still a guess - under Wine he ran unthrottled, a stripe in under half a
+ * second - and so is what he looks like crossing from one stripe to the next.
+ *
+ *   <after-dark-mowin-man art="art/mowin" speed="hurried" mow-every="day" growth-rate="medium">
  */
 (function () {
 	'use strict';
@@ -50,7 +58,7 @@
 	MowinMan.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
-		this.s = Math.max(1, Math.round(Math.min(w, h) / 480));
+		this.s = Math.max(1, Math.round(Math.min(w, h) / 768));
 		this.lawn = document.createElement('canvas');
 		this.lawn.width = Math.max(1, Math.round(w));
 		this.lawn.height = Math.max(1, Math.round(h));
@@ -65,8 +73,9 @@
 		this.count = 0;
 		this.flowers = [];
 		this.mower = null;
-		/* Give the lawn a chance to come up before the first mowing. */
-		this.rest = 18 + this.every;
+		/* The module's lawn is in within a couple of seconds and he starts
+		   straight away. */
+		this.rest = 2.5;
 		this.t = 0;
 	};
 
@@ -124,12 +133,12 @@
 		});
 	};
 
-	/** A new mowing: from the top left, lane by lane. */
+	/** A new mowing: from the top left, a stripe at a time across the screen. */
 	MowinMan.prototype.start = function () {
-		var side = this.art.bitmap('left');
-		this.lane = Math.round(side.height * this.s * 0.45);
-		/* Placed so the first strip he cuts is the top of the screen. */
-		this.mower = { x: -side.width * this.s, y: this.lane - side.height * this.s, dir: 1, turning: 0 };
+		var front = this.art.bitmap('down');
+		this.lane = front.width * this.s;
+		/* Down the first stripe, from just above the top of the screen. */
+		this.mower = { x: 0, y: -front.height * this.s, dir: 1, turning: 0 };
 	};
 
 	MowinMan.prototype.step = function (dt, ctx, w, h) {
@@ -138,7 +147,7 @@
 		this.t += dt;
 		var i, s = this.s;
 		/* The lawn fills in; after that the mown blades grow back. */
-		var sprouts = Math.min(this.target - this.count, Math.ceil(this.target * dt / 25));
+		var sprouts = Math.min(this.target - this.count, Math.ceil(this.target * dt / 2.5));
 		for (i = 0; i < sprouts; i += 1) { this.sprout(); }
 		if (this.grow < Infinity) {
 			var g = this.lawn.getContext('2d');
@@ -160,42 +169,46 @@
 			return;
 		}
 		var m = this.mower, pace = this.pace * s;
-		var img = m.turning ? this.art.bitmap('down') : this.art.bitmap(m.dir > 0 ? 'right' : 'left');
+		/* Down a stripe seen from in front, up the next seen from behind,
+		   and sideways onto the next stripe in between. */
+		var img = this.art.bitmap(m.turning ? 'right' : m.dir > 0 ? 'down' : 'up');
 		var mw = img.width * s, mh = img.height * s;
 		if (m.turning) {
-			m.y += pace * dt;
+			m.x += pace * dt;
 			m.turning -= pace * dt;
+			this.mow(m.x, m.dir > 0 ? h - mh * 0.6 : 0, mw * 0.6, mh * 0.6);
 			if (m.turning <= 0) {
 				m.turning = 0;
+				m.x = m.next;
 				m.dir = -m.dir;
+				m.y = m.dir > 0 ? -mh * 0.2 : h - mh * 0.8;
 			}
-			this.mow(m.x + mw * 0.1, m.y + mh * 0.5, mw * 0.8, mh * 0.5);
 		} else {
-			m.x += m.dir * pace * dt;
-			/* The deck is under the middle of him; it cuts a lane's worth. */
-			this.mow(m.x + mw * 0.15, m.y + mh - this.lane - 2 * s, mw * 0.7, this.lane + 2 * s);
-			var off = m.dir > 0 ? m.x > w : m.x + mw < 0;
-			var atEnd = m.dir > 0 ? m.x + mw * 0.85 >= w : m.x + mw * 0.15 <= 0;
-			if (atEnd && m.y + mh + this.lane < h + this.lane * 0.6) {
-				/* Turn at the end of the lane: face the camera, come down one lane. */
+			m.y += m.dir * pace * dt;
+			/* The deck is under him; it cuts a stripe his own width. */
+			this.mow(m.x, m.y, this.lane, mh);
+			var atEnd = m.dir > 0 ? m.y + mh * 0.8 >= h : m.y + mh * 0.2 <= 0;
+			if (atEnd) {
+				m.next = m.x + this.lane;
+				if (m.next >= w) {
+					this.mower = null;
+					this.rest = Math.max(this.every, 1.5);
+					return;
+				}
+				/* Turn onto the next stripe. */
 				m.turning = this.lane;
-				var down = this.art.bitmap('down');
-				m.x = m.dir > 0 ? w - down.width * s : 0;
-			} else if (off) {
-				this.mower = null;
-				this.rest = Math.max(this.every, 1.5);
-				return;
+				m.y = m.dir > 0 ? h - this.art.bitmap('right').height * s : 0;
 			}
 		}
-		img = m.turning ? this.art.bitmap('down') : this.art.bitmap(m.dir > 0 ? 'right' : 'left');
+		img = this.art.bitmap(m.turning ? 'right' : m.dir > 0 ? 'down' : 'up');
 		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(img.image, Math.round(m.x), Math.round(m.y), img.width * s, img.height * s);
 	};
 
 	AfterDark.define('after-dark-mowin-man', function (el) {
 		var sim = new MowinMan();
-		sim.pace = PACE[AfterDark.choice(el, 'speed', SPEEDS, 'normal')];
-		sim.every = AfterDark.choice(el, 'mow-every', EVERY, 'always') * DAY;
+		sim.pace = PACE[AfterDark.choice(el, 'speed', SPEEDS, 'hurried')];
+		sim.every = AfterDark.choice(el, 'mow-every', EVERY, 'day') * DAY;
 		sim.grow = GROW[AfterDark.choice(el, 'growth-rate', GROWTH, 'medium')];
 		sim.clearScreen = AfterDark.flag(el, 'clear-screen');
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/mowin').then(function (art) {

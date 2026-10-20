@@ -19,16 +19,28 @@
  *   1100-1118   the same nineteen, second frame
  *   1900, 900   two sea floors, 192x64, to tile along the bottom
  *
- * Index 0 of each band is seaweed rather than a creature, and index 12 is
- * empty in both. Everything is drawn facing left and mirrored to swim right.
+ * Index 0 of each band is seaweed rather than a creature, 1 is a crab and 12
+ * is a few bubbles. Everything is drawn facing left and mirrored to swim right.
  *
- *   <after-dark-aqua creatures="12" seaweed="5" sea-floor></after-dark-aqua>
+ * Checked against a capture of the real module (25 s at its defaults,
+ * 1024x768): Show Sea Floor is on by default (TYPE_1000 3, default word 1),
+ * the floor is the 192x64 strip tiled along the bottom, the seaweed stands
+ * with its foot in the top of it (bitmap centre ~60 px up), the crabs walk
+ * along the top of the floor rather than swimming, and the bubbles rise
+ * straight up on their own. About a dozen creatures are about at the default
+ * Creatures (25 on a 1-100 slider); the 4.0-era sizes are the bitmaps' own.
+ * Under Wine the module runs unthrottled - fish cross the screen in a couple
+ * of seconds - so the speeds here are still a guess, as is the slider scale.
+ *
+ *   <after-dark-aqua creatures="14" seaweed="6" sea-floor></after-dark-aqua>
  */
 (function () {
   'use strict';
 
   var FRAME_A = 1000, FRAME_B = 1100, SPAN = 19;
   var SEAWEED = 0;                     // index 0 of a band is the plant
+  var CRAB = 1;                        // walks the floor
+  var BUBBLES = 12;                    // rise
   var FLOOR = ['1900', '900'];
   var SWIM = 2.2;                      // frames per second of tail flick
 
@@ -41,7 +53,7 @@
     for (i = 0; i < SPAN; i += 1) {
       a = art.bitmap(String(FRAME_A + i));
       b = art.bitmap(String(FRAME_B + i)) || a;
-      if (a && i !== SEAWEED) { this.creatures.push([a, b]); }
+      if (a && i !== SEAWEED) { this.creatures.push([a, b, i]); }
     }
     this.weed = [art.bitmap(String(FRAME_A + SEAWEED)),
                  art.bitmap(String(FRAME_B + SEAWEED))];
@@ -51,7 +63,7 @@
     }
     this.count = 12;
     this.weeds = 5;
-    this.showFloor = false;
+    this.showFloor = true;
     this.fish = [];
     this.plants = [];
   }
@@ -60,12 +72,17 @@
     return this.showFloor && this.floor ? this.floor.height : 0;
   };
 
+  /** Where things stand on the bottom: the seaweed's and the crabs' centre. */
+  Aqua.prototype.ground = function (h) {
+    return h - this.floorHeight() * 0.45 - 32;
+  };
+
   Aqua.prototype.spawn = function (w, h, anywhere) {
     var pair = this.creatures[Math.floor(Math.random() * this.creatures.length)];
     var right = Math.random() < 0.5;
     var speed = rand(14, 46);
     var deep = h - this.floorHeight();
-    return {
+    var f = {
       art: pair,
       right: right,
       vx: right ? speed : -speed,
@@ -74,6 +91,20 @@
       drift: rand(-6, 6),
       frame: rand(0, 2)
     };
+    if (pair[2] === CRAB) {
+      // Along the top of the floor, sideways and slowly.
+      f.vx = right ? rand(8, 20) : -rand(8, 20);
+      f.y = this.ground(h) + 4;
+      f.drift = 0;
+    } else if (pair[2] === BUBBLES) {
+      // Up from the bottom, straight.
+      f.vx = 0;
+      f.x = rand(0, w);
+      f.y = anywhere ? rand(0, deep) : deep;
+      f.drift = -rand(30, 60);
+      f.rises = true;
+    }
+    return f;
   };
 
   Aqua.prototype.reset = function (w, h) {
@@ -87,7 +118,7 @@
       for (i = 0; i < this.weeds; i += 1) {
         this.plants.push({
           x: rand(0, w),
-          y: h - this.floorHeight() * 0.45 - this.weed[0].height / 2,
+          y: this.ground(h),
           phase: rand(0, 2)
         });
       }
@@ -101,9 +132,14 @@
       f.y += f.drift * dt;
       f.frame += SWIM * dt;
 
+      if (f.rises) {
+        f.x += Math.sin(f.frame * 2) * 6 * dt;
+        if (f.y < -f.art[0].height) { this.fish[i] = this.spawn(w, h, false); }
+        continue;
+      }
       var top = f.art[0].height * 0.6;
       var floor = h - this.floorHeight() - 10;
-      if (f.y < top || f.y > floor) { f.drift = -f.drift; }
+      if (f.drift && (f.y < top || f.y > floor)) { f.drift = -f.drift; }
 
       var edge = f.art[0].width;
       if ((f.right && f.x > w + edge) || (!f.right && f.x < -edge)) {
@@ -154,7 +190,8 @@
       sim.count = parseInt(AfterDark.setting(self, 'creatures'), 10) || sim.count;
       var weeds = AfterDark.setting(self, 'seaweed');
       if (weeds !== null) { sim.weeds = parseInt(weeds, 10) || 0; }
-      sim.showFloor = AfterDark.flag(self, 'sea-floor');
+      // On unless the page or URL says sea-floor="no": the module's default.
+      sim.showFloor = AfterDark.setting(self, 'sea-floor') === null || AfterDark.flag(self, 'sea-floor');
 
       var screen = new AfterDark.Screen(self);
       self._screen = screen;

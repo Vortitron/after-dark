@@ -17,15 +17,27 @@
  * they were shipped. `message` picks one by its text; anything else is taken
  * as your own message, in the first one's style.
  *
- *   <after-dark-messages message="out to lunch" move="floating" speed="medium">
+ * Checked against the real module under Wine (8-bit, defaults: Floating,
+ * Speed 56 = Moving). It needs MESG_AD3.DAT in the directory named by WIN.INI
+ * [Berkeley Systems] AD Data Files, or in C:\WINDOWS; without it, it says
+ * "No messages entered." With the shipped file it showed the sixth message,
+ * "After Dark - The Ultimate Screen Saver Collection", red, bold italic,
+ * centred: 32 px a line, 340x52 in all, so a message's size is its line
+ * height in pixels. Floating went on the diagonals only, 19.4 px/s each way,
+ * bouncing off the edges, on black. Popping, Sliding, the other speeds and
+ * how it picks a message are not confirmed.
+ *
+ *   <after-dark-messages message="after dark" move="floating" speed="moving">
  */
 (function () {
 	'use strict';
 
 	var MOVES = ['popping', 'floating', 'sliding'];
 	var SPEEDS = ['sluggish', 'slow', 'medium', 'moving', 'quick', 'flying', 'zoom!'];
-	/* Pixels a second for floating and sliding; seconds a pop for popping. */
-	var PACE = [25, 45, 80, 130, 200, 300, 450];
+	/* Pixels a second along each axis for floating and sliding; seconds a pop
+	   for popping. Moving (56 on the slider, the default) floated 19.4 px/s
+	   each way in the capture; the others assume speed goes with the slider. */
+	var PACE = [3, 8, 13, 19.4, 24, 29, 33];
 	var POP = [8, 6, 4, 3, 2, 1.2, 0.6];
 	var COLOURS = ['#ffffff', '#ff0000', '#00ff00', '#0000ff', '#00ffff', '#ff00ff', '#ffff00'];
 	/* The Windows 3.1 faces, and what a browser has that looks like them. */
@@ -80,7 +92,9 @@
 	/** The message drawn once, tight, so moving it is just a blit. */
 	Messages.prototype.render = function (w) {
 		var m = this.message;
-		var px = m.pt * 96 / 72;
+		/* The size is the line height in pixels, as Windows' CreateFont takes a
+		   positive height: 32 "points" came out 32 px a line, capitals 17 px. */
+		var px = m.pt * 0.8;
 		var lines = m.text.split('\n');
 		var c = document.createElement('canvas');
 		var g = c.getContext('2d');
@@ -96,7 +110,7 @@
 			g.font = font(px);
 			widest = w * 0.92;
 		}
-		var lineH = Math.ceil(px * 1.2);
+		var lineH = Math.ceil(px / 0.8);
 		c.width = Math.ceil(widest) + 8;
 		c.height = lineH * lines.length + 8;
 		g.font = font(px);
@@ -118,9 +132,9 @@
 	Messages.prototype.resize = function (w, h) {
 		this.sprite = this.render(w);
 		this.place(w, h);
-		var a = rand(0.3, 1.2) + Math.floor(rand(0, 4)) * Math.PI / 2;
-		this.vx = Math.cos(a) * this.pace;
-		this.vy = Math.sin(a) * this.pace;
+		/* Floating keeps to the diagonals. */
+		this.vx = (Math.random() < 0.5 ? -1 : 1) * this.pace;
+		this.vy = (Math.random() < 0.5 ? -1 : 1) * this.pace;
 		if (this.move === 2) {
 			this.x = w;
 		}
@@ -165,7 +179,7 @@
 		var sim = new Messages();
 		sim.message = pick(AfterDark.setting(el, 'message'));
 		sim.move = AfterDark.choice(el, 'move', MOVES, 'floating');
-		var speed = AfterDark.choice(el, 'speed', SPEEDS, 'medium');
+		var speed = AfterDark.choice(el, 'speed', SPEEDS, 'moving');
 		sim.pace = PACE[speed];
 		sim.pop = POP[speed];
 		return sim;

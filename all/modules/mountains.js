@@ -18,7 +18,18 @@
  * "fractal mathematics" - on a square grid, drawn a row at a time from the
  * back, the planet choosing its colours and how much sea it has.
  *
- *   <after-dark-mountains view="mountains" water="surface" planet="earth" complexity="medium" zoom="medium">
+ * Checked against the real module under Wine (8-bit display, defaults: View
+ * and Planet Random): the landscape fills the screen's width and runs off
+ * both sides, from a horizon about 30% down (peaks rising to about 28%) to
+ * a near edge near the bottom; the sky is plain black; the land is faceted
+ * into flat-shaded triangles, rough and spiky; "Mountains" is solid facets,
+ * another view is a wire web of triangles over a flat sheet of water; a
+ * finished picture stayed up for the whole 45-second capture.
+ * Still inferred: colours (the 8-bit grab cannot show them), the other views
+ * and water images, how long a picture stays (60 s here), and the drawing
+ * pace (Wine drew each landscape in well under a second).
+ *
+ *   <after-dark-mountains view="random" water="surface" planet="random" complexity="medium" zoom="medium">
  */
 (function () {
 	'use strict';
@@ -112,24 +123,27 @@
 		this.v = this.view === 'random' ? pick(VIEWS.slice(0, 5)) : this.view;
 		this.wv = this.water === 'random' ? pick(WATERS.slice(0, 5)) : this.water;
 		this.world = WORLDS[this.planet === 'random' ? pick(PLANETS.slice(0, 9)) : this.planet];
-		this.map = terrain(this.n, rand(0.45, 0.6));
+		this.map = terrain(this.n, rand(0.55, 0.7));
 		this.row = 0;
 		this.rest = 0;
-		var g = this.canvas.getContext('2d'), w = this.w, h = this.h;
-		var sky = g.createLinearGradient(0, 0, 0, h);
-		sky.addColorStop(0, '#000');
-		sky.addColorStop(1, this.world.sky);
-		g.fillStyle = this.v === 'webs' || this.v === 'boundaries' ? '#000' : sky;
-		g.fillRect(0, 0, w, h);
+		var g = this.canvas.getContext('2d');
+		/* The original's sky is plain black. */
+		g.fillStyle = '#000';
+		g.fillRect(0, 0, this.w, this.h);
 	};
 
 	/** Grid point to screen: the grid lies flat, seen from above the near edge. */
 	Mountains.prototype.project = function (gx, gy, z) {
 		var size = this.map.length - 1, w = this.w, h = this.h;
 		var X = gx / size - 0.5, Y = 1 - gy / size;
-		/* The eye is above the near edge; Zoom moves it in or out. */
-		var depth = this.distance + Y * 1.6;
-		return { x: w / 2 + X * w * 1.3 / depth, y: h * 0.2 + (0.9 - z * 0.8) * h * 0.9 / depth };
+		/*
+		 * As captured: the land runs off both sides, its far edge about 30% of
+		 * the way down the screen, its near edge about 90% (sea level lifts it
+		 * a little); Zoom moves the eye in or out.
+		 */
+		var depth = 1 + Y * 0.8, near = 1.15 / this.distance;
+		var ground = h * 0.30 + h * 0.72 * Math.pow(1 - Y, 1.4);
+		return { x: w / 2 + X * w * 1.5 * near / depth, y: ground - z * h * 0.32 * near / depth };
 	};
 
 	Mountains.prototype.colour = function (z, light) {
@@ -165,10 +179,14 @@
 				continue;
 			}
 			if (this.v === 'mountains') {
-				g.fillStyle = this.colour(avg, light);
-				g.strokeStyle = g.fillStyle;
+				/* Two flat-shaded triangles a cell, as the original's facets are. */
 				g.lineWidth = 1;
-				this.quad(g, pts, true);
+				var l1 = Math.max(0.35, Math.min(1.3, 0.85 + (zs[0] - zs[1]) * 4 + (zs[0] - zs[3]) * 3));
+				var l2 = Math.max(0.35, Math.min(1.3, 0.85 + (zs[3] - zs[2]) * 4 + (zs[1] - zs[2]) * 3));
+				g.fillStyle = g.strokeStyle = this.colour((zs[0] + zs[1] + zs[3]) / 3, l1);
+				this.tri(g, pts[0], pts[1], pts[3]);
+				g.fillStyle = g.strokeStyle = this.colour((zs[1] + zs[2] + zs[3]) / 3, l2);
+				this.tri(g, pts[1], pts[2], pts[3]);
 			} else if (this.v === 'webs') {
 				g.strokeStyle = this.colour(avg, 1.1);
 				g.lineWidth = 1;
@@ -195,6 +213,16 @@
 				g.fillRect(pts[0].x, pts[0].y, r, r);
 			}
 		}
+	};
+
+	Mountains.prototype.tri = function (g, a, b, c) {
+		g.beginPath();
+		g.moveTo(a.x, a.y);
+		g.lineTo(b.x, b.y);
+		g.lineTo(c.x, c.y);
+		g.closePath();
+		g.fill();
+		g.stroke();
 	};
 
 	Mountains.prototype.quad = function (g, pts, fill) {
@@ -258,16 +286,17 @@
 			if (this.row >= size) { this.finish(); }
 		} else {
 			this.rest += dt;
-			if (this.rest > 14) { this.begin(); }
+			/* The captured picture stayed up for the whole 45 seconds. */
+			if (this.rest > 60) { this.begin(); }
 		}
 		ctx.drawImage(this.canvas, 0, 0, w, h);
 	};
 
 	AfterDark.define('after-dark-mountains', function (el) {
 		var sim = new Mountains();
-		sim.view = VIEWS[AfterDark.choice(el, 'view', VIEWS, 'mountains')];
+		sim.view = VIEWS[AfterDark.choice(el, 'view', VIEWS, 'random')];
 		sim.water = WATERS[AfterDark.choice(el, 'water', WATERS, 'surface')];
-		sim.planet = PLANETS[AfterDark.choice(el, 'planet', PLANETS, 'earth')];
+		sim.planet = PLANETS[AfterDark.choice(el, 'planet', PLANETS, 'random')];
 		sim.n = SIZE[AfterDark.choice(el, 'complexity', COMPLEXITIES, 'medium')];
 		sim.distance = DISTANCE[AfterDark.choice(el, 'zoom', ZOOMS, 'medium')];
 		return sim;

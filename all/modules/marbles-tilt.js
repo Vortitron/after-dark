@@ -20,7 +20,7 @@
  * since the screen has not changed, it has only been rotated.
  *
  *   <after-dark-marbles-tilt art="art/marbles2" pins="many"
- *     pin-size="medium" speed="medium"></after-dark-marbles-tilt>
+ *     pin-size="big" speed="medium"></after-dark-marbles-tilt>
  */
 (function () {
   'use strict';
@@ -31,7 +31,9 @@
   var OH = 0.4;
 
   var PIN_SIZES = { 'x-small': '100', medium: '101', big: '102' };
-  var PIN_DENSITY = { none: 0, few: 26000, many: 11000, lots: 5200 };
+  /* The pins as the 1992 module lays them out (see modules/marbles.js, checked
+     against a capture): 28 Big pins on 1024x768 at its defaults. */
+  var PIN_DENSITY = { none: 0, few: 32800, many: 28000, lots: 16400 };
   var SPEEDS = { slow: 40, medium: 65, fast: 100 };
 
   var GRAVITY = 520;
@@ -41,7 +43,7 @@
   var MARBLE_BOUNCE = 0.08;
   var MARBLE_SLIDE = 0.97;
   var DAMP = 0.9994;
-  var PIN_HIT = 0.42;
+  var PIN_HIT = 0.5;                   // the pins are round to their edge
   var SOLVER_PASSES = 3;               // a deep pile needs more than a couple
 
   /* What keeps the bottom of a deep pile still. Below REST_SPEED a knock is
@@ -208,7 +210,7 @@
   function MarblesTilt(art) {
     this.strip = art.bitmap('marbles');
     this.pinArt = art;
-    this.setPinSize('medium');
+    this.setPinSize('big');
     this.pins = [];
     this.density = PIN_DENSITY.many;
     this.speed = SPEEDS.medium;
@@ -812,7 +814,7 @@
 
     window.AfterDark.load(base).then(function (art) {
       var sim = new MarblesTilt(art);
-      sim.setPinSize((AfterDark.setting(self, 'pin-size') || 'medium').toLowerCase());
+      sim.setPinSize((AfterDark.setting(self, 'pin-size') || 'big').toLowerCase());
 
       var pins = (AfterDark.setting(self, 'pins') || 'many').toLowerCase();
       sim.density = PIN_DENSITY[pins] !== undefined ? PIN_DENSITY[pins] : PIN_DENSITY.many;

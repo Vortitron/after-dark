@@ -19,10 +19,19 @@
  *   2000  41x20  7 frames   bacon
  *
  * Everything crosses the screen on the same heading, which is what makes a
- * loose scatter of sprites read as a squadron. Speed goes with size, so the
- * near ones overtake the far ones.
+ * loose scatter of sprites read as a squadron.
  *
- *   <after-dark-toasters objects="air wing"></after-dark-toasters>
+ * Checked against the real module under Wine at 1024x768 (25 s, defaults):
+ * seven objects up at once, all heading down-left at 2 across to 1 down, in
+ * off the top and right. Measured speeds across the screen: far toasters
+ * (3000) 46 px/s, toast (4000, 7000) 90, the flapping toasters (1000) 90-130,
+ * the banking one (1001) 170. Toast was the commonest thing in the sky, then
+ * far toasters, then the big ones; no 6000, bacon or smoke turned up.
+ * The default (37 of 100, which the popup shows as Squadron) and an explicit
+ * Squadron both had 7 up. Still inferred: Flight, Air Wing and Swarm (scaled
+ * from that by their 25/75/100), and how often 6000 appears.
+ *
+ *   <after-dark-toasters objects="squadron"></after-dark-toasters>
  */
 (function () {
   'use strict';
@@ -30,18 +39,19 @@
   // id, how often it turns up, and how fast its wings or its tumble runs.
   // 2000 is in the module but left out here: its seven frames are not one
   // animation, so cycling them just makes the sprite flicker.
+  // and its speed across the screen, px/s (a range where the capture showed one)
   var FLEET = [
-    { id: 6000, weight: 3, fps: 9 },
-    { id: 1000, weight: 6, fps: 12 },
-    { id: 1001, weight: 4, fps: 12 },
-    { id: 3000, weight: 4, fps: 9 },
-    { id: 4000, weight: 3, fps: 14 },
-    { id: 7000, weight: 1, fps: 2 }
+    { id: 6000, weight: 1, fps: 9, speed: [120, 140] },
+    { id: 1000, weight: 4, fps: 12, speed: [90, 130] },
+    { id: 1001, weight: 3, fps: 12, speed: [170, 170] },
+    { id: 3000, weight: 5, fps: 9, speed: [46, 46] },
+    { id: 4000, weight: 4, fps: 14, speed: [90, 90] },
+    { id: 7000, weight: 4, fps: 2, speed: [90, 90] }
   ];
 
-  var COUNTS = { squadron: 6, 'air wing': 12, swarm: 24 };
-  var HEADING = { x: -1, y: 0.52 };        // down and to the left, in formation
-  var BASE_SPEED = 1.9;                    // pixels per second per pixel of sprite
+  var COUNTS = { flight: 4, squadron: 7, 'air wing': 10, swarm: 14 };
+  var DEFAULT_COUNT = COUNTS.squadron;     // the default and Squadron both put up 7
+  var HEADING = { x: -1, y: 0.5 };         // down and to the left, in formation
 
   function rand(a, b) { return a + Math.random() * (b - a); }
 
@@ -50,14 +60,14 @@
     this.kinds = FLEET.filter(function (k) { return art.sequence(k.id); })
                       .map(function (k) {
                         var s = art.sequence(k.id);
-                        return { seq: s, weight: k.weight, fps: k.fps, size: s.width };
+                        return { seq: s, weight: k.weight, fps: k.fps, size: s.width, speed: k.speed };
                       });
     this.pool = [];
     var self = this;
     this.kinds.forEach(function (k) {
       for (var i = 0; i < k.weight; i += 1) { self.pool.push(k); }
     });
-    this.count = COUNTS['air wing'];
+    this.count = DEFAULT_COUNT;
     this.objects = [];
   }
 
@@ -65,7 +75,7 @@
      them across the screen instead or it takes a minute to fill up. */
   Toasters.prototype.launch = function (w, h, scattered) {
     var kind = this.pool[Math.floor(Math.random() * this.pool.length)];
-    var speed = kind.size * BASE_SPEED;
+    var speed = rand(kind.speed[0], kind.speed[1]);    // across the screen
     var o = {
       kind: kind,
       frame: rand(0, kind.seq.count),
@@ -132,8 +142,8 @@
 
     window.AfterDark.load(base).then(function (art) {
       var sim = new Toasters(art);
-      var objects = (AfterDark.setting(self, 'objects') || 'air wing').toLowerCase();
-      sim.count = COUNTS[objects] || parseInt(objects, 10) || COUNTS['air wing'];
+      var objects = (AfterDark.setting(self, 'objects') || '').toLowerCase();
+      sim.count = COUNTS[objects] || parseInt(objects, 10) || DEFAULT_COUNT;
 
       var screen = new AfterDark.Screen(self);
       self._screen = screen;

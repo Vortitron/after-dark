@@ -24,24 +24,31 @@ set -u
 
 AD_ROOT=${AD_ROOT:-$(cd "$(dirname "$0")/.." && pwd)/AD40}
 AD_SANDBOX=${AD_SANDBOX:?set AD_SANDBOX to the dir holding wine32/root and wineprefix}
+# A second prefix (cp -a wineprefix wineprefix1) on its own display can capture
+# at the same time as the first: stop_engine only touches its own prefix.
+AD_PREFIX=${AD_PREFIX:-$AD_SANDBOX/wineprefix}
 AD_OUT=${AD_OUT:-$AD_SANDBOX/capture}
 AD_DISPLAY=${AD_DISPLAY:-:97}
 AD_SIZE=${AD_SIZE:-1024x768}
 WINE_DIR="c:\\Program Files\\After Dark"
-UNIX_DIR="$AD_SANDBOX/wineprefix/drive_c/Program Files/After Dark"
+UNIX_DIR="$AD_PREFIX/drive_c/Program Files/After Dark"
 
 SB=$AD_SANDBOX/wine32/root
 WINE_BIN=$SB/usr/lib/wine/wine
 # `timeout` execs a real binary, so keep this an env prefix rather than a
 # shell function - a function here silently never runs.
 WINE_ENV=(env
-  "WINEPREFIX=$AD_SANDBOX/wineprefix"
+  "WINEPREFIX=$AD_PREFIX"
   "WINEDLLPATH=$SB/usr/lib/i386-linux-gnu/wine"
   "LD_LIBRARY_PATH=$SB/usr/lib/i386-linux-gnu:$SB/lib/i386-linux-gnu:$SB/usr/lib/i386-linux-gnu/wine"
   "WINELOADER=$WINE_BIN"
   "WINESERVER=$SB/usr/lib/wine/wineserver"
   "WINEDEBUG=${WINEDEBUG:--all}"
   "DISPLAY=$AD_DISPLAY")
+# The 3.x modules' AD_SND.DLL refuses to start without a wave device to open,
+# and then the module will not load. A silent ALSA default device is enough:
+#   pcm.!default { type null }   (after including /usr/share/alsa/alsa.conf)
+[ -f "$AD_SANDBOX/alsa/alsa.conf" ] && WINE_ENV+=("ALSA_CONFIG_PATH=$AD_SANDBOX/alsa/alsa.conf")
 
 wine32() { "${WINE_ENV[@]}" "$WINE_BIN" "$@"; }
 
@@ -60,13 +67,17 @@ src_of() { case $1 in AD10th) echo AD10th ;; AD40) echo AD40 ;; Classic) echo CL
 # reports a 9x platform id, so the prefix has to claim Windows 98 for those.
 # The 32-bit modules in turn only render correctly with the NT default, hence
 # one setting per module rather than one for the prefix.
+# winver_for <folder> <MODULE>: the folder's own copy first - BOGGLINS and
+# TOAST3 also exist as 32-bit modules in AD10th. Read the whole file: most 3.x
+# modules put their NE header at exactly 0x400, past a 0x400-byte read, and
+# were run as win7 ("Unable to load selected module").
 winver_for() {
   local f
-  for f in "$AD_ROOT"/*/"$1".[Aa][Dd]; do
+  for f in "$AD_ROOT/$(src_of "$1")/$2".[Aa][Dd] "$AD_ROOT"/*/"$2".[Aa][Dd]; do
     [ -e "$f" ] || continue
     python3 - "$f" <<'PY'
 import struct, sys
-b = open(sys.argv[1], "rb").read(0x400)
+b = open(sys.argv[1], "rb").read()
 sig = b[struct.unpack_from("<I", b, 0x3C)[0]:][:2]
 print("win98" if sig == b"NE" else "win7")
 PY
@@ -79,10 +90,12 @@ PY
 # the module's own settings panel (TYPE_1000 in the .AD resources).
 select_module() {
   local folder=$1 mod=$2; shift 2
-  local reg=$AD_SANDBOX/select.reg
+  # per prefix: slots run at once, and a shared file let one slot select
+  # another's module (a CLOCKS3 capture came out as CONFETTI's error)
+  local reg=$AD_PREFIX/select.reg
   {
     printf 'REGEDIT4\r\n\r\n'
-    printf '[HKEY_CURRENT_USER\\Software\\Wine]\r\n"Version"="%s"\r\n\r\n' "$(winver_for "$mod")"
+    printf '[HKEY_CURRENT_USER\\Software\\Wine]\r\n"Version"="%s"\r\n\r\n' "$(winver_for "$folder" "$mod")"
     printf '[HKEY_LOCAL_MACHINE\\Software\\Berkeley Systems\\After Dark\\4.00]\r\n'
     printf '"Path"="C:\\\\Program Files\\\\After Dark"\r\n\r\n'
     printf '[HKEY_CURRENT_USER\\Software\\Berkeley Systems\\After Dark]\r\n'
@@ -105,9 +118,9 @@ run_engine() {   # run_engine <seconds>
 # The engine takes over the whole display, so the previous run has to be gone
 # before the next one starts or the newcomer just shows a black screen.
 stop_engine() {
-  pkill -f 'AFTERDAR\.SCR' 2>/dev/null
-  local n=0
-  while pgrep -f 'AFTERDAR\.SCR' >/dev/null && [ "$n" -lt 20 ]; do sleep 0.5; n=$((n + 1)); done
+  # wineserver -k ends everything in this prefix and nothing in any other.
+  "${WINE_ENV[@]}" "$SB/usr/lib/wine/wineserver" -k 2>/dev/null
+  "${WINE_ENV[@]}" "$SB/usr/lib/wine/wineserver" -w 2>/dev/null
   sleep 1
 }
 

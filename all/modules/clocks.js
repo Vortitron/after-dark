@@ -19,22 +19,33 @@
  * drawn. Melting Digital is 75 frames of digits: the ten of them and then
  * each one melting into the next. Sounds are left out, as all sound is here.
  *
- *   <after-dark-clocks art="art/clocks" type="classic" drift-speed="slow" mutation-rate="10 secs.">
+ * Checked against the module running (8-bit captures of every type, and
+ * stills grabbed through the installed palette): the defaults are Mutating,
+ * a drift of 49 (slow - about 19 px a second, measured), Both sounds and a
+ * Mutation Rate of 95, which is GenX: a new background about nine times a
+ * second, and in order, 5000, 5010 ... 5090 and round again, not at random.
+ * Everything is drawn at its own size at 1024x768. The hands are plain
+ * strokes in one colour, the second hand too - black on Classic and Art Deco,
+ * white on Modern and Mutating - at the lengths measured below. How the hands
+ * are shaped at the pivot, and the exact pivots, remain read off the art.
+ *
+ *   <after-dark-clocks art="art/clocks" type="mutating" drift-speed="slow" mutation-rate="genx">
  */
 (function () {
 	'use strict';
 
 	var TYPES = ['melting digital', 'classic', 'modern', 'art deco', 'mutating'];
 	var DRIFTS = ['glacial', 'slow', 'medium', 'fast'];
-	var DRIFT = [6, 16, 36, 80];
+	var DRIFT = [8, 19, 40, 80];
 	var RATES = ['1 min.', '30 secs.', '15 secs.', '10 secs.', '5 secs.', '1 sec.', 'genx'];
-	var EVERY = [60, 30, 15, 10, 5, 1, 0.25];
-	/* Where each face's hands turn, and how long they may be. */
+	var EVERY = [60, 30, 15, 10, 5, 1, 0.11];
+	/* Where each face's hands turn, how long they are (hour, minute, second;
+	   px, measured off the captures) and how wide the hour and minute hands. */
 	var FACES = {
-		classic: { cx: 100, cy: 101, r: 58, ink: '#141008', second: '#8a1010' },
-		'art deco': { name: 'deco', cx: 96, cy: 88, r: 29, ink: '#101010', second: '#b08a20' },
-		modern: { cx: 91.5, cy: 91.5, r: 62, ink: '#f4f4f4', second: '#ff8a20' },
-		mutating: { cx: 71.5, cy: 72, r: 52, ink: '#000000', edge: '#ffffff', second: '#d01010' }
+		classic: { cx: 100, cy: 101, hour: 37, minute: 60, second: 52, hw: 2.2, mw: 1.3, ink: '#000000' },
+		'art deco': { name: 'deco', cx: 95, cy: 90, hour: 23, minute: 33, second: 33, hw: 1.6, mw: 1.1, ink: '#000000' },
+		modern: { cx: 91.5, cy: 91.5, hour: 40, minute: 57, second: 71, hw: 2.2, mw: 1.3, ink: '#ffffff' },
+		mutating: { cx: 71.5, cy: 72, hour: 32, minute: 60, second: 52, hw: 1.6, mw: 1.2, ink: '#ffffff' }
 	};
 	var DIGIT_W = 47;
 	var DIGIT_H = 70;
@@ -55,16 +66,18 @@
 	}
 
 	function Clocks() {
-		this.type = 'classic';
+		this.type = 'mutating';
 		this.drift = DRIFT[1];
-		this.every = EVERY[3];
+		this.every = EVERY[6];
+		this.objectIndex = 0;
 		this.art = null;
 	}
 
 	Clocks.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
-		this.k = Math.max(1, Math.round(Math.min(w, h) / 480));
+		/* Its own size on a 1024x768 screen; bigger only on a big one. */
+		this.k = Math.max(1, Math.floor(Math.min(w, h) / 768));
 		var a = rand(0, Math.PI * 2);
 		this.vx = Math.cos(a);
 		this.vy = Math.sin(a);
@@ -89,18 +102,13 @@
 		return this.art.bitmap(FACES[this.type].name || this.type);
 	};
 
-	Clocks.prototype.hand = function (ctx, cx, cy, angle, length, width, ink, edge) {
+	Clocks.prototype.hand = function (ctx, cx, cy, angle, length, width, ink) {
 		var dx = Math.sin(angle), dy = -Math.cos(angle);
 		ctx.beginPath();
-		ctx.moveTo(cx - dx * length * 0.15 - dy * width, cy - dy * length * 0.15 + dx * width);
+		ctx.moveTo(cx - dx * length * 0.08 - dy * width, cy - dy * length * 0.08 + dx * width);
 		ctx.lineTo(cx + dx * length, cy + dy * length);
-		ctx.lineTo(cx - dx * length * 0.15 + dy * width, cy - dy * length * 0.15 - dx * width);
+		ctx.lineTo(cx - dx * length * 0.08 + dy * width, cy - dy * length * 0.08 - dx * width);
 		ctx.closePath();
-		if (edge) {
-			ctx.lineWidth = Math.max(1, width * 0.6);
-			ctx.strokeStyle = edge;
-			ctx.stroke();
-		}
 		ctx.fillStyle = ink;
 		ctx.fill();
 	};
@@ -110,7 +118,7 @@
 		if (!face) { return; }
 		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(face.image, Math.round(x), Math.round(y), face.width * k, face.height * k);
-		var cx = x + spec.cx * k, cy = y + spec.cy * k, r = spec.r * k;
+		var cx = x + spec.cx * k, cy = y + spec.cy * k;
 		if (this.type === 'mutating') {
 			/* The numerals ring goes over the middle of whatever it is today. */
 			var ring = this.art.bitmap('numerals');
@@ -122,20 +130,16 @@
 		var s = now.getSeconds() + now.getMilliseconds() / 1000;
 		var m = now.getMinutes() + s / 60, hr = (now.getHours() % 12) + m / 60;
 		var TAU = Math.PI * 2;
-		this.hand(ctx, cx, cy, hr / 12 * TAU, r * 0.55, Math.max(1.5, r * 0.07), spec.ink, spec.edge);
-		this.hand(ctx, cx, cy, m / 60 * TAU, r * 0.85, Math.max(1.2, r * 0.05), spec.ink, spec.edge);
-		/* The second hand ticks, as the module's own tick did. */
+		this.hand(ctx, cx, cy, hr / 12 * TAU, spec.hour * k, spec.hw * k, spec.ink);
+		this.hand(ctx, cx, cy, m / 60 * TAU, spec.minute * k, spec.mw * k, spec.ink);
+		/* The second hand ticks, as the module's own tick did: one pixel, with a short tail. */
 		var tick = Math.floor(s) / 60 * TAU;
-		ctx.strokeStyle = spec.second;
-		ctx.lineWidth = Math.max(1, k);
+		ctx.strokeStyle = spec.ink;
+		ctx.lineWidth = k;
 		ctx.beginPath();
-		ctx.moveTo(cx - Math.sin(tick) * r * 0.2, cy + Math.cos(tick) * r * 0.2);
-		ctx.lineTo(cx + Math.sin(tick) * r * 0.92, cy - Math.cos(tick) * r * 0.92);
+		ctx.moveTo(cx - Math.sin(tick) * 8 * k, cy + Math.cos(tick) * 8 * k);
+		ctx.lineTo(cx + Math.sin(tick) * spec.second * k, cy - Math.cos(tick) * spec.second * k);
 		ctx.stroke();
-		ctx.fillStyle = spec.ink;
-		ctx.beginPath();
-		ctx.arc(cx, cy, Math.max(2, r * 0.05), 0, TAU);
-		ctx.fill();
 	};
 
 	Clocks.prototype.digital = function (ctx, x, y, now, dt) {
@@ -179,8 +183,11 @@
 		if (this.type === 'mutating') {
 			this.nextMutation -= dt;
 			if (this.nextMutation <= 0) {
-				this.object = 'object' + (5000 + 10 * Math.floor(Math.random() * 10));
-				this.nextMutation = this.every;
+				/* The backgrounds come round in order. */
+				this.object = 'object' + (5000 + 10 * this.objectIndex);
+				this.objectIndex = (this.objectIndex + 1) % 10;
+				this.nextMutation += this.every;
+				if (this.nextMutation <= 0) { this.nextMutation = this.every; }
 			}
 		}
 		var size = this.size();
@@ -205,9 +212,9 @@
 
 	AfterDark.define('after-dark-clocks', function (el) {
 		var sim = new Clocks();
-		sim.type = TYPES[AfterDark.choice(el, 'type', TYPES, 'classic')];
+		sim.type = TYPES[AfterDark.choice(el, 'type', TYPES, 'mutating')];
 		sim.drift = DRIFT[AfterDark.choice(el, 'drift-speed', DRIFTS, 'slow')];
-		sim.every = EVERY[AfterDark.choice(el, 'mutation-rate', RATES, '10 secs.')];
+		sim.every = EVERY[AfterDark.choice(el, 'mutation-rate', RATES, 'genx')];
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/clocks').then(function (art) {
 			sim.art = art;
 		}).catch(function (err) {

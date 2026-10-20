@@ -23,9 +23,18 @@
  * blob at 25400. There is also an FCTL resource per flock holding eight tuning
  * numbers; those are not mapped here, so the weights below are chosen by eye.
  *
- * Which sprite in a heading block faces which way is not recorded anywhere, so
- * the mapping from angle to block is an assumption. At 16 pixels a flock still
- * reads as a flock if it is rotated.
+ * The capture settles what the blocks are: birds all flying the same way show
+ * every one of the 48 poses at once - wings level, banked, edge on - so the
+ * strip is one long loop of a bird wheeling and flapping, played whichever
+ * way it flies, not a set of headings. Every kind is drawn that way here.
+ *
+ * Checked against the real module under Wine at 1024x768 (40 s, defaults,
+ * which are Birds, Spring): 30 birds, spread loosely over the whole screen
+ * rather than bunched, all flying much the same way (within ~20 degrees of
+ * each other) at ~315 px/s, wrapping round the edges. So alignment dominates
+ * here, cohesion is weak and nothing herds them back to the middle. Still
+ * inferred: the other flock types and sizes, and what Season does (it made
+ * no difference anyone could see in the default capture, which is Spring).
  *
  *   <after-dark-flocks kind="birds" size="40"></after-dark-flocks>
  */
@@ -43,17 +52,18 @@
     { name: 'dots',      base: 25000, headings: 1, frames: 1 }
   ];
 
-  var SIZES = { small: 18, medium: 40, large: 80 };
+  /* The original's Flock Size is a slider; its default put 30 birds up. */
+  var SIZES = { small: 15, medium: 30, large: 60 };
 
   // Sprites run from a 4px dot to a 32px gull, so the distances a member cares
   // about are set from its own size rather than fixed.
-  var NEIGHBOUR = 2.8;       // how far it looks for the rest of the flock
-  var CROWDING = 1.1;        // closer than this and it pulls away
-  var SPEED = 78;            // pixels per second, everyone flies at the same rate
+  var NEIGHBOUR = 6;         // how far it looks for the rest of the flock
+  var CROWDING = 4;          // closer than this and it pulls away
+  var SPEED = 315;           // pixels per second, everyone flies at the same rate
   var TURN = 2.6;            // radians per second it can swing its heading
-  var FLAP = 11;             // frames per second
+  var FLAP = 15;             // frames per second, through the whole strip
 
-  var W_SEPARATE = 1.7, W_ALIGN = 0.8, W_COHERE = 0.5, W_HOME = 0.35;
+  var W_SEPARATE = 1.2, W_ALIGN = 1.0, W_COHERE = 0.05;
 
   function rand(a, b) { return a + Math.random() * (b - a); }
 
@@ -92,7 +102,7 @@
       this.flock.push({
         x: rand(0, w), y: rand(0, h),
         angle: a,
-        frame: rand(0, this.kind.spec.frames)
+        frame: rand(0, this.kind.cells.length)
       });
     }
   };
@@ -134,14 +144,8 @@
         wy += hy / hd * W_COHERE;
       }
 
-      // Nothing bounces off the edges; a flock that wanders too far out is
-      // eased back towards the middle instead.
-      var mx = w / 2 - b.x, my = h / 2 - b.y;
-      var md = Math.hypot(mx, my) || 1;
-      if (md > Math.min(w, h) * 0.45) {
-        wx += mx / md * W_HOME;
-        wy += my / md * W_HOME;
-      }
+      // Nothing bounces off the edges: what flies off one side comes back
+      // on the other, as in the original.
 
       // Turn towards the wanted heading rather than snapping to it.
       var want = Math.atan2(wy, wx);
@@ -161,12 +165,10 @@
   Flocks.prototype.draw = function (ctx, w, h) {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, w, h);
-    var spec = this.kind.spec, cells = this.kind.cells;
+    var cells = this.kind.cells;
     for (var i = 0; i < this.flock.length; i += 1) {
       var b = this.flock[i];
-      var turn = Math.floor((b.angle / (Math.PI * 2) % 1 + 1) % 1 * spec.headings);
-      var frame = Math.floor(b.frame) % spec.frames;
-      cells[turn * spec.frames + frame].draw(ctx, b.x, b.y);
+      cells[Math.floor(b.frame) % cells.length].draw(ctx, b.x, b.y);
     }
   };
 

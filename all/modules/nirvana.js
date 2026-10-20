@@ -12,13 +12,22 @@
  * Its controls are Color (Smooth, Stripes, Contrast, Rainbow, Metal, Lines,
  * Enamel, Random), Redraw Every (3 to 60 min), Activity (Serene, Calm, Alert,
  * Busy, Frenetic) and Change Color (Never, Rarely, Often, Always); it only
- * ran in 256 colours. Nothing else survives about how it looked, so this is
- * built from those: slow brushes wander the screen laying down palette
- * indices, each stroke lifting whatever is under it a step, so the strokes
- * build up into contoured layers; the texture is the palette those indices
- * run through, and Change Color turns it. Caps Lock still changes texture.
+ * ran in 256 colours. Defaults: Random, 10 min, Serene, Never.
  *
- *   <after-dark-nirvana color="random" redraw-every="5 min" activity="calm" change-color="often">
+ * Checked against the real module under Wine (8-bit display, defaults) and a
+ * trace of its GDI calls: it stamps one big filled ellipse after another -
+ * 512 x 512 at 1024x768 to begin with - each in the next colour of its
+ * palette, the ellipse sliding a pixel or two and changing shape between
+ * stamps, so the stamps leave contour stripes behind them: small quatrefoils
+ * at first, then eyes and lenses, then striped melons. Only the top-left
+ * quarter of the screen is drawn; after each stamp it is copied (BitBlt) to
+ * the other three quarters, so the screen is the same picture two by two.
+ * The palette is animated (AnimatePalette) between stamps.
+ * Still inferred: the colours - the 8-bit grab cannot show them, though the
+ * trace shows one texture as a dark magenta ramp - the textures themselves,
+ * and the path and shape changes of the ellipse, which here wander smoothly.
+ * Caps Lock still changes texture.
+ *   <after-dark-nirvana color="random" redraw-every="10 min" activity="serene" change-color="never">
  */
 (function () {
 	'use strict';
@@ -27,10 +36,11 @@
 	var REDRAWS = ['3 min', '5 min', '10 min', '30 min', '60 min'];
 	var MINUTES = [3, 5, 10, 30, 60];
 	var ACTIVITIES = ['serene', 'calm', 'alert', 'busy', 'frenetic'];
-	var BRUSHES = [3, 5, 8, 12, 18];
-	var PACE = [15, 30, 55, 90, 150];
+	/* Stamps a second for each Activity. */
+	var RATE = [30, 45, 60, 90, 130];
 	var CHANGES = ['never', 'rarely', 'often', 'always'];
-	var CYCLE = [0, 4, 20, 70];
+	/* Seconds between new textures for each Change Color; 0 is never. */
+	var CYCLE = [0, 120, 30, 5];
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -70,33 +80,46 @@
 
 	function Nirvana() {
 		this.color = 'random';
-		this.redraw = MINUTES[1] * 60;
-		this.brushes = BRUSHES[1];
-		this.pace = PACE[1];
-		this.cycle = CYCLE[2];
+		this.redraw = MINUTES[2] * 60;
+		this.rate = RATE[0];
+		this.cycle = CYCLE[0];
 	}
 
 	Nirvana.prototype.resize = function (w, h) {
-		this.scale = Math.max(2, Math.floor(Math.min(w, h) / 300));
-		this.bw = Math.ceil(w / this.scale);
-		this.bh = Math.ceil(h / this.scale);
+		/* One quarter of the screen is drawn; the other three are copies. */
+		this.scale = Math.max(1, Math.floor(Math.min(w, h) / 600));
+		this.qw = Math.ceil(w / 2 / this.scale);
+		this.qh = Math.ceil(h / 2 / this.scale);
 		this.canvas = document.createElement('canvas');
-		this.canvas.width = this.bw;
-		this.canvas.height = this.bh;
-		this.image = this.canvas.getContext('2d').createImageData(this.bw, this.bh);
+		this.canvas.width = this.qw;
+		this.canvas.height = this.qh;
+		this.image = this.canvas.getContext('2d').createImageData(this.qw, this.qh);
 		this.begin();
 	};
 
+	/** A wandering value: where it is, where it is heading, how fast. */
+	function wander(lo, hi) {
+		return { v: rand(lo, hi), to: rand(lo, hi), lo: lo, hi: hi };
+	}
+
+	function drift(o, k) {
+		o.v += (o.to - o.v) * k;
+		if (Math.abs(o.to - o.v) < (o.hi - o.lo) * 0.02) { o.to = rand(o.lo, o.hi); }
+	}
+
 	Nirvana.prototype.begin = function () {
-		this.index = new Uint8Array(this.bw * this.bh);
+		var qw = this.qw, qh = this.qh;
+		this.index = new Uint8Array(qw * qh);
 		this.flavour();
 		this.offset = 0;
 		this.age = 0;
-		this.painters = [];
-		for (var i = 0; i < this.brushes; i += 1) {
-			this.painters.push({ x: rand(0, this.bw), y: rand(0, this.bh), a: rand(0, Math.PI * 2), turn: 0,
-				r: rand(4, 14), lift: 1 + Math.floor(rand(0, 3)) });
-		}
+		this.stamp = 0;
+		this.due = 0;
+		/* The ellipse starts a full screen-height circle at the right edge of the quarter. */
+		this.cx = wander(0, qw); this.cx.v = qw;
+		this.cy = wander(0, qh); this.cy.v = qh / 2;
+		this.rx = wander(qw * 0.05, qw * 0.6); this.rx.v = qw / 2;
+		this.ry = wander(qw * 0.05, qw * 0.6); this.ry.v = qw / 2;
 	};
 
 	Nirvana.prototype.flavour = function () {
@@ -104,54 +127,62 @@
 		this.pal = texture(name);
 	};
 
+	/** Fill the ellipse, clipped to the quarter, with the next colour. */
+	Nirvana.prototype.ellipse = function () {
+		var qw = this.qw, qh = this.qh, idx = this.index;
+		var cx = this.cx.v, cy = this.cy.v, rx = Math.max(1, this.rx.v), ry = Math.max(1, this.ry.v);
+		var v = this.stamp % 255 + 1;
+		this.stamp += 1;
+		for (var y = Math.max(0, Math.ceil(cy - ry)); y <= Math.min(qh - 1, Math.floor(cy + ry)); y += 1) {
+			var t = (y - cy) / ry, half = rx * Math.sqrt(Math.max(0, 1 - t * t));
+			var a = Math.max(0, Math.round(cx - half)), b = Math.min(qw - 1, Math.round(cx + half));
+			for (var x = a; x <= b; x += 1) { idx[y * qw + x] = v; }
+		}
+	};
+
 	Nirvana.prototype.step = function (dt, ctx, w, h) {
 		this.age += dt;
 		if (this.age > this.redraw) { this.begin(); }
-		var bw = this.bw, bh = this.bh, idx = this.index;
-		for (var i = 0; i < this.painters.length; i += 1) {
-			var p = this.painters[i];
-			p.turn += rand(-2, 2) * dt;
-			p.turn *= Math.pow(0.5, dt);
-			p.a += p.turn * dt;
-			p.x += Math.cos(p.a) * this.pace * dt;
-			p.y += Math.sin(p.a) * this.pace * dt;
-			/* Round the edges, like the screen was a bowl. */
-			p.x = (p.x + bw) % bw;
-			p.y = (p.y + bh) % bh;
-			var r = p.r, r2 = r * r;
-			for (var dy = -r; dy <= r; dy += 1) {
-				for (var dx = -r; dx <= r; dx += 1) {
-					if (dx * dx + dy * dy > r2) { continue; }
-					var x = Math.floor(p.x + dx), y = Math.floor(p.y + dy);
-					x = (x + bw) % bw;
-					y = (y + bh) % bh;
-					var k = y * bw + x;
-					idx[k] = (idx[k] + p.lift) & 255;
-				}
-			}
+		this.due += this.rate * dt;
+		while (this.due >= 1) {
+			this.due -= 1;
+			this.ellipse();
+			/* A pixel or two between stamps, as traced. */
+			drift(this.cx, 0.004); drift(this.cy, 0.004); drift(this.rx, 0.006); drift(this.ry, 0.006);
 		}
-		this.offset = (this.offset + this.cycle * dt) % 256;
-		var d = this.image.data, pal = this.pal, off = Math.floor(this.offset);
+		if (this.cycle) {
+			this.since = (this.since || 0) + dt;
+			if (this.since > this.cycle) { this.since = 0; this.flavour(); }
+		}
+		/* The palette turns between stamps. */
+		this.offset = (this.offset + this.rate * dt * 0.5) % 255;
+		var d = this.image.data, pal = this.pal, off = Math.floor(this.offset), idx = this.index;
 		for (var n = 0; n < idx.length; n += 1) {
-			var c = pal[(idx[n] + off) & 255], o = n * 4;
-			d[o] = c[0];
-			d[o + 1] = c[1];
-			d[o + 2] = c[2];
+			var o = n * 4, k = idx[n];
+			if (k) {
+				var c = pal[(k - 1 + off) % 255 + 1];
+				d[o] = c[0];
+				d[o + 1] = c[1];
+				d[o + 2] = c[2];
+			} else {
+				d[o] = d[o + 1] = d[o + 2] = 0;
+			}
 			d[o + 3] = 255;
 		}
 		this.canvas.getContext('2d').putImageData(this.image, 0, 0);
-		ctx.imageSmoothingEnabled = true;
-		ctx.drawImage(this.canvas, 0, 0, bw * this.scale, bh * this.scale);
+		ctx.imageSmoothingEnabled = false;
+		var sw = this.qw * this.scale, sh = this.qh * this.scale;
+		for (var j = 0; j < 2; j += 1) {
+			for (var i = 0; i < 2; i += 1) { ctx.drawImage(this.canvas, i * sw, j * sh, sw, sh); }
+		}
 	};
 
 	AfterDark.define('after-dark-nirvana', function (el) {
 		var sim = new Nirvana();
 		sim.color = COLORS[AfterDark.choice(el, 'color', COLORS, 'random')];
-		sim.redraw = MINUTES[AfterDark.choice(el, 'redraw-every', REDRAWS, '5 min')] * 60;
-		var act = AfterDark.choice(el, 'activity', ACTIVITIES, 'calm');
-		sim.brushes = BRUSHES[act];
-		sim.pace = PACE[act];
-		sim.cycle = CYCLE[AfterDark.choice(el, 'change-color', CHANGES, 'often')];
+		sim.redraw = MINUTES[AfterDark.choice(el, 'redraw-every', REDRAWS, '10 min')] * 60;
+		sim.rate = RATE[AfterDark.choice(el, 'activity', ACTIVITIES, 'serene')];
+		sim.cycle = CYCLE[AfterDark.choice(el, 'change-color', CHANGES, 'never')];
 		window.addEventListener('keydown', function (e) {
 			if (e.key === 'CapsLock') {
 				sim.shot = true;

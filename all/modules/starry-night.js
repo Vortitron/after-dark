@@ -15,9 +15,40 @@
  *
  * Its one bitmap, BITMAP 101, is the shooting star: a red and yellow fireball
  * in two 32x32 frames, falling to the right and falling to the left, in
- * all/art/starryni/. The rest is drawn: buildings in silhouette along the
- * bottom, their windows coming on one at a time, under a sky that slowly
- * fills with stars. The two sliders become four steps each here.
+ * all/art/starryni/. Everything else is SetPixel, and this follows the
+ * module's own code (a PE32 DLL, read with a disassembler) step by step:
+ *
+ *   Setup  Black screen. Buildings (default 27) each get a roof at
+ *          H - rand(H * Height%) (default 34%, never under 20 px), a width of
+ *          roof/16 + min(rand(roof/8), rand(roof/8)) + 8 (at least 16) - so
+ *          the short ones are the wide ones - centred on rand(W), and one of
+ *          eight window patterns. Nothing outlines them: a building is just
+ *          black that stars are not put on.
+ *   Frame  One star of a random RGB colour at (rand W, min(rand H, rand H))
+ *          unless that is inside a building; fifty black pixels at the same
+ *          kind of place and thirty anywhere, which is what makes stars and
+ *          windows wink out; and fifteen random spots which, inside a
+ *          building, set its 3x3 neighbourhood to its window pattern - an 8x8
+ *          bit table in the module's data, tiled from the building's corner.
+ *          Window colour is yellow, RGB(v, v, 0), v = 255 - (192 / N) * i: the
+ *          first building is the brightest, and where buildings overlap the
+ *          first one listed wins.
+ *          Every 60 frames, one chance in twelve of a shooting star: from a
+ *          random x along the top, 8 px across and 8 down a frame, drawn with
+ *          XOR, gone as soon as its head is inside a building.
+ *   Flash  Every 500 ms the flasher toggles between RGB(128, 0, 0) and black:
+ *          a 4x4 rounded dot 4 px above the middle of the tallest roof.
+ *
+ * Checked against the 24-bit captures in which the engine fell back on it
+ * (Classic/ARTIST.mp4 and others): the dense speckle of coloured stars over
+ * the top of the screen and none on the buildings, the cities picked out only
+ * by their window grids of dashes and dots, dimmer to the back, the red
+ * flasher dot, and the shooting star cut short at a roof. Under Wine it runs
+ * as fast as it can - about a thousand frames a second, a shooting star
+ * every second or so, across in one video frame - so the rate here, 240
+ * frames a second, is a choice: the sky and the city fill in over the first
+ * half-minute, the way it would on a 1990s machine. The 0-100 sliders are
+ * named steps here, with the module's own defaults in the middle.
  *
  *   <after-dark-starry-night art="art/starryni" buildings="some" height="medium" flasher>
  */
@@ -25,17 +56,31 @@
 	'use strict';
 
 	var BUILDINGS = ['none', 'few', 'some', 'many', 'lots'];
-	var COUNT = [0, 12, 30, 60, 100];
+	var COUNT = [0, 12, 27, 60, 100];          // some = the module's default, 27
 	var HEIGHTS = ['low', 'medium', 'tall', 'skyscrapers'];
-	/* Of the monitor's height; the module's own range is 5% to 95%. */
-	var TALL = [0.2, 0.4, 0.65, 0.95];
-	/* VGA's yellow, mostly, some white, and the dimmer yellow. */
-	var LIT = ['#ffff55', '#ffff55', '#ffff55', '#ffffff', '#aaaa55'];
-	var STARS = ['#ffffff', '#aaaaaa', '#aaaaaa', '#555555', '#555555', '#aaaaff'];
-	var BUILDING = '#0c0c16';
+	/* Of the monitor's height; the module's own range is 5% to 95%, default 34%. */
+	var TALL = [0.2, 0.34, 0.6, 0.95];
+	/* Eight window patterns, eight rows of eight bits each (bit n is x + n). */
+	var PATTERNS = [
+		0x00, 0x00, 0x00, 0x66, 0x66, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x44, 0x44, 0x00, 0x00, 0x44, 0x44,
+		0x88, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0xc6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc6,
+		0x00, 0x00, 0x54, 0x54, 0x54, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x48, 0x48, 0x48, 0x48, 0x00,
+		0x00, 0x00, 0x00, 0x54, 0x00, 0x00, 0x00, 0x00,
+		0x01, 0x01, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00
+	];
+	var RATE = 240;            // module frames a second (see above)
+	var BLACK = 0xff000000;
 
-	function rand(a, b) {
-		return a + Math.random() * (b - a);
+	function rnd(n) {
+		return n > 0 ? Math.floor(Math.random() * n) : 0;
+	}
+
+	/** min of two rolls, which is how the module leans things to the top. */
+	function low(n) {
+		return Math.min(rnd(n), rnd(n));
 	}
 
 	function layer(w, h) {
@@ -48,10 +93,12 @@
 	/** `count` buildings dropped along the bottom, none taller than `tall` of the screen. */
 	function skyline(w, h, count, tall) {
 		var out = [];
+		var most = Math.max(20, Math.floor(h * tall));
 		for (var i = 0; i < count; i += 1) {
-			var bw = Math.round(rand(18, 60));
-			var bh = Math.max(8, Math.round(h * tall * Math.pow(Math.random(), 0.7)));
-			out.push({ x: Math.round(rand(-bw / 2, w - bw / 2)), y: h - bh, w: bw, h: bh });
+			var top = h - rnd(most);
+			var bw = Math.max(16, (top >> 4) + low(top >> 3) + 8);
+			var x = rnd(w) - (bw >> 1);
+			out.push({ x: x, y: top, w: bw, h: h - top, style: rnd(8) });
 		}
 		return out;
 	}
@@ -64,135 +111,138 @@
 	}
 
 	StarryNight.prototype.resize = function (w, h) {
-		this.t = 0;
-		this.sky = layer(w, h);
-		this.city = layer(w, h);
-		this.buildings = skyline(w, h, this.count, this.tall);
-		this.windows = [];
-		this.starsLeft = Math.round(w * h / 700);
+		this.w = Math.max(1, Math.round(w));
+		this.h = Math.max(1, Math.round(h));
+		this.canvas = layer(this.w, this.h);
+		var g = this.canvas.getContext('2d');
+		this.image = g ? g.createImageData(this.w, this.h) : null;
+		this.px = this.image ? new Uint32Array(this.image.data.buffer) : new Uint32Array(this.w * this.h);
+		this.px.fill(BLACK);
+		this.buildings = skyline(this.w, this.h, this.count, this.tall);
+		var n = this.buildings.length;
+		var step = n ? Math.trunc(-192 / n) : 0;
+		this.buildings.forEach(function (b, i) {
+			var v = (step * i + 255) & 0xff;
+			b.colour = BLACK | (v << 8) | v;           // RGB(v, v, 0)
+		});
+		/* The flasher: 4 px above the tallest roof, 2 left of its middle. */
+		this.light = null;
+		if (this.flasher) {
+			var best = null;
+			this.buildings.forEach(function (b) { if (!best || b.y < best.y) { best = b; } });
+			if (best) { this.light = { x: best.x + (best.w >> 1) - 2, y: best.y - 4, on: false, t: 0 }; }
+		}
 		this.meteor = null;
-		this.nextMeteor = rand(3, 8);
+		this.frames = 0;
 		this.owed = 0;
-
-		var g = this.city.getContext('2d');
-		g.fillStyle = BUILDING;
-		var self = this;
-		this.buildings.forEach(function (b) {
-			g.fillRect(b.x, b.y, b.w, b.h);
-		});
-		/* Windows are laid out per building, but only where no building in
-		   front covers them - they are all one colour, so "in front" is
-		   simply whichever was placed later. */
-		this.buildings.forEach(function (b, n) {
-			for (var wy = b.y + 4; wy < h - 4; wy += 6) {
-				for (var wx = b.x + 3; wx < b.x + b.w - 4; wx += 4) {
-					var hidden = false;
-					for (var k = n + 1; k < self.buildings.length && !hidden; k += 1) {
-						var o = self.buildings[k];
-						hidden = wx + 2 > o.x && wx < o.x + o.w && wy + 3 > o.y;
-					}
-					if (!hidden) { self.windows.push({ x: wx, y: wy, lit: false }); }
-				}
-			}
-		});
-		/* The flasher sits on the tallest roof, on a short aerial. */
-		this.tallest = this.buildings.reduce(function (best, b) {
-			return !best || b.y < best.y ? b : best;
-		}, null);
-		if (this.tallest) {
-			var t = this.tallest;
-			t.mast = Math.round(rand(8, 16));
-			g.fillRect(t.x + Math.round(t.w / 2), t.y - t.mast, 1, t.mast);
-		}
-		/* Light them in a random order rather than row by row. */
-		for (var i = this.windows.length - 1; i > 0; i -= 1) {
-			var j = Math.floor(Math.random() * (i + 1));
-			var tmp = this.windows[i];
-			this.windows[i] = this.windows[j];
-			this.windows[j] = tmp;
-		}
-		this.nextWindow = 0;
 	};
 
-	StarryNight.prototype.window = function (win, on) {
-		var g = this.city.getContext('2d');
-		win.lit = on;
-		g.fillStyle = on ? LIT[Math.floor(Math.random() * LIT.length)] : BUILDING;
-		g.fillRect(win.x, win.y, 2, 3);
+	/** The first building with (x, y) in it, or -1. */
+	StarryNight.prototype.inside = function (x, y) {
+		var bs = this.buildings;
+		for (var i = 0; i < bs.length; i += 1) {
+			var b = bs[i];
+			if (b.y <= y && b.x <= x && b.x + b.w >= x) { return i; }
+		}
+		return -1;
+	};
+
+	StarryNight.prototype.set = function (x, y, c) {
+		if (x >= 0 && y >= 0 && x < this.w && y < this.h) { this.px[y * this.w + x] = c; }
+	};
+
+	StarryNight.prototype.window = function (x, y, i) {
+		var b = this.buildings[i];
+		if (x < b.x || x > b.x + b.w || y < b.y) { return; }
+		var row = PATTERNS[b.style * 8 + ((y + b.y) & 7)];
+		if ((row >> ((x + b.x) & 7)) & 1) { this.set(x, y, b.colour); }
+	};
+
+	/** One frame of the module. */
+	StarryNight.prototype.frame = function () {
+		var w = this.w, h = this.h, i, x, y;
+		x = rnd(w); y = low(h);
+		if (this.inside(x, y) < 0) {
+			this.set(x, y, BLACK | (rnd(255) << 16) | (rnd(255) << 8) | rnd(255));
+		}
+		for (i = 0; i < 50; i += 1) { this.set(rnd(w), low(h), BLACK); }
+		for (i = 0; i < 30; i += 1) { this.set(rnd(w), rnd(h), BLACK); }
+		for (i = 0; i < 15; i += 1) {
+			x = rnd(w); y = rnd(h);
+			var b = this.inside(x, y);
+			if (b < 0) { continue; }
+			for (var dy = -1; dy <= 1; dy += 1) {
+				for (var dx = -1; dx <= 1; dx += 1) { this.window(x + dx, y + dy, b); }
+			}
+		}
+		this.shootingStar();
+	};
+
+	StarryNight.prototype.shootingStar = function () {
+		var m = this.meteor;
+		if (m) {
+			var nx = m.x + (m.right ? 8 : -8), ny = m.y + 8;
+			if (this.inside(nx + 16, ny + 8) < 0 && nx >= 0 && nx < this.w && ny < this.h) {
+				m.x = nx;
+				m.y = ny;
+			} else {
+				this.meteor = null;
+			}
+			return;
+		}
+		this.frames += 1;
+		if (this.frames < 60) { return; }
+		this.frames = 0;
+		if (this.meteorArt && rnd(0x7fff) > 30000) {
+			var right = rnd(2) === 1;
+			this.meteor = { x: rnd(this.w), y: 0, right: right };
+		}
+	};
+
+	StarryNight.prototype.flash = function (dt) {
+		var f = this.light;
+		if (!f) { return; }
+		f.t += dt;
+		if (f.t < 0.5) { return; }
+		f.t = 0;
+		f.on = !f.on;
+		var c = f.on ? (BLACK | 0x80) : BLACK;
+		for (var r = 0; r < 2; r += 1) {
+			this.set(f.x + 1, f.y + r * 3, c);
+			this.set(f.x + 2, f.y + r * 3, c);
+			for (var k = 0; k < 4; k += 1) { this.set(f.x + k, f.y + r + 1, c); }
+		}
 	};
 
 	StarryNight.prototype.step = function (dt, ctx, w, h) {
-		this.t += dt;
-		var i;
-
-		/* Stars come out a few at a time until the sky is full. */
-		var sky = this.sky.getContext('2d');
-		for (i = 0; i < 3 && this.starsLeft > 0; i += 1) {
-			sky.fillStyle = STARS[Math.floor(Math.random() * STARS.length)];
-			var size = Math.random() < 0.06 ? 2 : 1;
-			sky.fillRect(Math.floor(rand(0, w)), Math.floor(rand(0, h)), size, size);
-			this.starsLeft -= 1;
-		}
-
-		/* Windows come on over about a minute, then the city just lives:
-		   now and then somebody goes to bed and somebody else gets up. */
-		var total = this.windows.length;
-		var target = Math.floor(total * 0.7);
-		this.owed += Math.max(1, total / 60) * dt;
-		while (this.owed >= 1 && this.nextWindow < target) {
-			this.window(this.windows[this.nextWindow], true);
-			this.nextWindow += 1;
+		this.owed = Math.min(this.owed + dt * RATE, RATE / 4);
+		while (this.owed >= 1) {
+			this.frame();
 			this.owed -= 1;
 		}
-		if (this.nextWindow >= target && total) {
-			this.owed = Math.min(this.owed, 2);
-			if (Math.random() < dt * 3) {
-				var win = this.windows[Math.floor(Math.random() * total)];
-				this.window(win, !win.lit);
-			}
-		}
+		this.flash(dt);
 
-		if (!this.meteor && this.meteorArt) {
-			this.nextMeteor -= dt;
-			if (this.nextMeteor <= 0) {
-				var right = Math.random() < 0.5;
-				var speed = rand(160, 260);
-				this.meteor = {
-					x: right ? rand(-32, w * 0.6) : rand(w * 0.4, w + 32), y: -32,
-					vx: (right ? 1 : -1) * speed * 0.85, vy: speed, frame: right ? 0 : 1
-				};
-			}
-		}
-
+		var g = this.canvas.getContext('2d');
+		if (g && this.image) { g.putImageData(this.image, 0, 0); }
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0, 0, w, h);
-		ctx.drawImage(this.sky, 0, 0, w, h);
-
-		/* It falls behind the city. */
+		ctx.drawImage(this.canvas, 0, 0, w, h);
 		var m = this.meteor;
 		if (m) {
-			m.x += m.vx * dt;
-			m.y += m.vy * dt;
-			ctx.drawImage(this.meteorArt, 0, m.frame * 32, 32, 32, Math.round(m.x - 16), Math.round(m.y - 16), 32, 32);
-			if (m.y > h + 32 || m.x < -64 || m.x > w + 64) {
-				this.meteor = null;
-				this.nextMeteor = rand(6, 20);
-			}
-		}
-
-		ctx.drawImage(this.city, 0, 0, w, h);
-
-		var top = this.tallest;
-		if (this.flasher && top && (this.t / 1.4) % 1 < 0.3) {
-			ctx.fillStyle = '#ff0000';
-			ctx.fillRect(top.x + Math.round(top.w / 2) - 1, top.y - top.mast - 2, 3, 3);
+			/* XOR on black is the picture itself; the frame for falling right
+			   is the top one. */
+			ctx.drawImage(this.meteorArt, 0, m.right ? 0 : 32, 32, 32, m.x, m.y, 32, 32);
 		}
 	};
 
 	AfterDark.define('after-dark-starry-night', function (el) {
 		var sim = new StarryNight();
-		sim.count = COUNT[AfterDark.choice(el, 'buildings', BUILDINGS, 'some')];
-		sim.tall = TALL[AfterDark.choice(el, 'height', HEIGHTS, 'medium')];
+		var b = AfterDark.setting(el, 'buildings');
+		sim.count = /^\d+$/.test(b || '') ? Math.min(100, Number(b)) :
+			COUNT[AfterDark.choice(el, 'buildings', BUILDINGS, 'some')];
+		var t = AfterDark.setting(el, 'height');
+		sim.tall = /^\d+$/.test(t || '') ? Math.max(5, Math.min(95, Number(t))) / 100 :
+			TALL[AfterDark.choice(el, 'height', HEIGHTS, 'medium')];
 		sim.flasher = AfterDark.flag(el, 'flasher');
 		AfterDark.load(AfterDark.setting(el, 'art') || 'art/starryni').then(function (art) {
 			var bmp = art.bitmap('meteor');

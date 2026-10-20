@@ -19,7 +19,15 @@
  * morphing into the next as it changes. Speed is Jerky, Stuttered, Fairly
  * Smooth or Smoother - how many steps a morph is drawn in.
  *
- *   <after-dark-drawmorph art="art/wmorph" morph="the athletes" speed="smoother">
+ * Checked against the module running (8-bit capture, default settings, and
+ * Pipecleaner Man): a morph is drawn at its own size, in one-pixel lines -
+ * the clock is h:mm:ss, eight 35x58 cells 40 px apart, about 300 px across -
+ * and the drawing bounces about the screen on the diagonals, off every edge.
+ * The defaults are Clock and Stuttered (the slider sits at 49). Under Wine it
+ * ran unthrottled, so how fast it travels and morphs here is a choice; Random
+ * is this port's addition, not one of the module's morphs.
+ *
+ *   <after-dark-drawmorph art="art/wmorph" morph="clock" speed="stuttered">
  */
 (function () {
 	'use strict';
@@ -29,6 +37,8 @@
 	var STEPS = [4, 8, 16, 0];
 	var MORPH_TIME = 1.6;
 	var HOLD = 1.2;
+	/* How fast the drawing travels, along each axis, in px a second. */
+	var DRIFT = 90;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -84,15 +94,36 @@
 	}
 
 	function DrawMorph() {
-		this.morph = 'random';
-		this.steps = STEPS[3];
+		this.morph = 'clock';
+		this.steps = STEPS[1];
 		this.data = null;
 	}
 
 	DrawMorph.prototype.resize = function (w, h) {
 		this.w = w;
 		this.h = h;
+		/* Drawn at its own size, as on a 1024x768 screen; bigger only on a big one. */
+		this.k = Math.max(1, Math.floor(Math.min(w, h) / 768));
+		this.x = null;
+		this.vx = (Math.random() < 0.5 ? -1 : 1) * DRIFT;
+		this.vy = (Math.random() < 0.5 ? -1 : 1) * DRIFT;
 		this.start();
+	};
+
+	/** Move the drawing's box (bw x bh) on, bouncing off the edges; its top left. */
+	DrawMorph.prototype.travel = function (dt, bw, bh) {
+		var w = this.w, h = this.h;
+		if (this.x === null) {
+			this.x = rand(0, Math.max(0, w - bw));
+			this.y = rand(0, Math.max(0, h - bh));
+		}
+		this.x += this.vx * this.k * dt;
+		this.y += this.vy * this.k * dt;
+		if (this.x < 0) { this.x = 0; this.vx = Math.abs(this.vx); }
+		if (this.y < 0) { this.y = 0; this.vy = Math.abs(this.vy); }
+		if (this.x + bw > w) { this.x = Math.max(0, w - bw); this.vx = -Math.abs(this.vx); }
+		if (this.y + bh > h) { this.y = Math.max(0, h - bh); this.vy = -Math.abs(this.vy); }
+		return [Math.round(this.x), Math.round(this.y)];
 	};
 
 	DrawMorph.prototype.start = function () {
@@ -106,13 +137,13 @@
 	DrawMorph.prototype.stroke = function (ctx, segs, ox, oy, k) {
 		ctx.lineCap = 'round';
 		ctx.lineJoin = 'round';
-		ctx.lineWidth = Math.max(1.5, k * 1.2);
+		ctx.lineWidth = k;
 		for (var i = 0; i < segs.length; i += 1) {
 			var s = segs[i], c = 'rgb(' + Math.round(s.rgb[0]) + ',' + Math.round(s.rgb[1]) + ',' + Math.round(s.rgb[2]) + ')';
 			if (s.dot) {
 				ctx.fillStyle = c;
 				ctx.beginPath();
-				ctx.arc(ox + s.pts[0] * k, oy + s.pts[1] * k, Math.max(1.5, k * 1.4), 0, Math.PI * 2);
+				ctx.arc(ox + s.pts[0] * k, oy + s.pts[1] * k, k, 0, Math.PI * 2);
 				ctx.fill();
 				continue;
 			}
@@ -134,11 +165,13 @@
 	DrawMorph.prototype.clock = function (dt, ctx, w, h) {
 		var m = this.data.morphs.clock, frames = m.frames;
 		var now = new Date(), hr = now.getHours() % 12 || 12;
-		var text = (hr < 10 ? ' ' + hr : String(hr)) + ':' + ('0' + now.getMinutes()).slice(-2);
+		var text = (hr < 10 ? ' ' + hr : String(hr)) + ':' + ('0' + now.getMinutes()).slice(-2) +
+			':' + ('0' + now.getSeconds()).slice(-2);
 		if (!this.digits) { this.digits = text.split('').map(function (c) { return { from: c, to: c, t: 1 }; }); }
-		var dw = m.size[0], dh = m.size[1];
-		var k = Math.min(w * 0.85 / (dw * 5), h * 0.5 / dh), ox = (w - dw * 5 * k) / 2, oy = (h - dh * k) / 2;
-		for (var i = 0; i < 5; i += 1) {
+		/* The cells are 35 wide and stand 40 apart. */
+		var dw = m.size[0] + 5, dh = m.size[1], k = this.k;
+		var at = this.travel(dt, (dw * text.length - 5) * k, dh * k), ox = at[0], oy = at[1];
+		for (var i = 0; i < text.length; i += 1) {
 			var d = this.digits[i], c = text.charAt(i);
 			if (d.to !== c) { d.from = d.to; d.to = c; d.t = 0; }
 			d.t = Math.min(1, d.t + dt / MORPH_TIME);
@@ -156,9 +189,8 @@
 			this.clock(dt, ctx, w, h);
 			return;
 		}
-		var m = this.data.morphs[this.current], frames = m.frames;
-		var k = Math.min(w * 0.9 / m.size[0], h * 0.9 / m.size[1]);
-		var ox = (w - m.size[0] * k) / 2, oy = (h - m.size[1] * k) / 2;
+		var m = this.data.morphs[this.current], frames = m.frames, k = this.k;
+		var at = this.travel(dt, m.size[0] * k, m.size[1] * k), ox = at[0], oy = at[1];
 		if (this.shown < HOLD) {
 			this.shown += dt;
 			this.stroke(ctx, between(frames[this.frame], frames[this.frame], 0), ox, oy, k);
@@ -179,8 +211,8 @@
 
 	AfterDark.define('after-dark-drawmorph', function (el) {
 		var sim = new DrawMorph();
-		sim.morph = MORPHS[AfterDark.choice(el, 'morph', MORPHS, 'random')];
-		sim.steps = STEPS[AfterDark.choice(el, 'speed', SPEEDS, 'smoother')];
+		sim.morph = MORPHS[AfterDark.choice(el, 'morph', MORPHS, 'clock')];
+		sim.steps = STEPS[AfterDark.choice(el, 'speed', SPEEDS, 'stuttered')];
 		AfterDark.data(AfterDark.setting(el, 'art') || 'art/wmorph').then(function (d) {
 			sim.data = d;
 		}).catch(function (err) {

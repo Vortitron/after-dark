@@ -6,7 +6,7 @@
   <title>After Dark in the Browser</title>
   <meta name="description" content="After Dark screensavers running in the browser — the CSS recreations, plus new ones built from artwork decoded straight out of the original Windows modules.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="img/favicon.png?v=2eae02b-260924211217" />
+  <link rel="shortcut icon" href="img/favicon.png?v=6fb4560-261020100654" />
   <style>
     /* ------------------------------------------------------------------
        Windows 95 Display Properties, which is where After Dark 4.0 for
@@ -357,7 +357,7 @@
 
   <div class="window">
     <div class="titlebar">
-      <img src="img/after-dark-icon.png?v=2eae02b-260924211217" alt="" width="16" height="16">
+      <img src="img/after-dark-icon.png?v=6fb4560-261020100654" alt="" width="16" height="16">
       <span class="grow">Display Properties</span>
       <span class="btn out" aria-hidden="true">_</span>
       <span class="btn out" aria-hidden="true">&#9633;</span>
@@ -437,7 +437,7 @@
 
   <div class="taskbar">
     <a class="start" href="https://github.com/Vortitron/after-dark">
-      <img src="img/favicon.png?v=2eae02b-260924211217" alt="" width="14" height="14"> Source
+      <img src="img/favicon.png?v=6fb4560-261020100654" alt="" width="14" height="14"> Source
     </a>
     <span>After Dark &copy; 1989&ndash;1998 Berkeley Systems</span>
     <span class="tray" id="build" title="Build stamp — bumps when GitHub Pages is updated">…</span>
@@ -445,7 +445,7 @@
   </div>
 
   <!-- ad-build -->
-  <script>window.AFTER_DARK_BUILD = {"rev": "2eae02b", "time": "2026-09-24T21:12:17Z", "label": "24 Sep 21:12 UTC", "v": "2eae02b-260924211217"};</script>
+  <script>window.AFTER_DARK_BUILD = {"rev": "6fb4560", "time": "2026-10-20T10:06:54Z", "label": "20 Oct 10:06 UTC", "v": "6fb4560-261020100654"};</script>
   <!-- /ad-build -->
 
   <script>
@@ -454,23 +454,29 @@
     var SAVERS = [
       /* Decoded modules, roughly by era, with variants kept beside their parent. */
       { name: 'Flying Toasters', file: 'all/toasters.html',        kind: 'ripped', tag: 'TOAST3.AD 1992',
-        js: 'toasters', el: 'after-dark-toasters', attrs: 'art="all/art/toast3" objects="air wing"' },
-      { name: 'Flying Toilets',  file: 'all/toilets.html',         kind: 'ripped', tag: 'TOILETS.AD 1992',
-        js: 'toilets', el: 'after-dark-toilets', attrs: 'art="all/art/toilets" crowd="more" paper="random" occupant="random"' },
+        js: 'toasters', el: 'after-dark-toasters', attrs: 'art="all/art/toast3" objects="squadron"' },
+      { name: 'Flying Toasters (1990)', file: 'all/toasters-2.html', kind: 'ripped', tag: 'Toast2.ad 1990',
+        js: 'toasters-2', el: 'after-dark-toasters-2', attrs: 'art="all/art/toast2" flying-things="7" toast="medium" color' },
+      { name: 'Flying Toasters!', file: 'all/toasters-40.html',    kind: 'ripped', tag: 'TOASTERS.AD 1996',
+        js: 'toasters-40', el: 'after-dark-toasters-40', attrs: 'art="all/art/toasters-40" objects="squadron" toasters="adults" music="always" display-karaoke' },
+      { name: 'Toaster 2K',      file: 'all/toaster-2k.html',      kind: 'ripped', tag: 'Toast2k.ad 1999',
+        js: 'toaster-2k', el: 'after-dark-toaster-2k', attrs: 'art="all/art/toast2k" objects="squadron" toasters="adults"' },
+      { name: 'Flying Toilets',  file: 'all/toilets.html',         kind: 'ripped', tag: 'TOILETS.AD 1995',
+        js: 'toilets', el: 'after-dark-toilets', attrs: 'art="all/art/toilets" crowd="more" paper="white" occupant="nobody"' },
       { name: 'Marbles',         file: 'all/marbles.html',         kind: 'ripped', tag: 'MARBLES2.AD 1992',
-        js: 'marbles', el: 'after-dark-marbles', attrs: 'art="all/art/marbles2" pins="many" pin-size="medium" speed="medium"' },
+        js: 'marbles', el: 'after-dark-marbles', attrs: 'art="all/art/marbles2" pins="many" pin-size="big" speed="medium" redraw="5 min"' },
       { name: 'Marbles (Tilt)',  file: 'all/marbles-tilt.html',    kind: 'ripped', tag: 'MARBLES2 + accel',
-        js: 'marbles-tilt', el: 'after-dark-marbles-tilt', attrs: 'art="all/art/marbles2" pins="many" pin-size="medium" speed="medium"' },
+        js: 'marbles-tilt', el: 'after-dark-marbles-tilt', attrs: 'art="all/art/marbles2" pins="many" pin-size="big" speed="medium"' },
       { name: 'Flocks',          file: 'all/flocks.html',          kind: 'ripped', tag: 'FLOCKS.AD 1992',
         js: 'flocks', el: 'after-dark-flocks', attrs: 'art="all/art/flocks" kind="birds" size="medium"' },
       { name: 'Rebound',         file: 'all/rebound.html',         kind: 'ripped', tag: 'REBOUND.AD 1992',
-        js: 'rebound', el: 'after-dark-rebound', attrs: 'art="all/art/rebound" ball-type="both" balls="more" wobbly clear-screen' },
+        js: 'rebound', el: 'after-dark-rebound', attrs: 'art="all/art/rebound" ball-type="both" balls="lots more" wobbly clear-screen' },
       { name: 'Bogglins',        file: 'all/bogglins.html',        kind: 'ripped', tag: 'BOGGLINS.AD 1992',
-        js: 'bogglins', el: 'after-dark-bogglins', attrs: 'art="all/art/bogglins" explosivity="volatile" twanginess="zesty"' },
+        js: 'bogglins', el: 'after-dark-bogglins', attrs: 'art="all/art/bogglins" explosivity="volatile" twanginess="rich"' },
       { name: 'Om Appliances',   file: 'all/om.html',              kind: 'ripped', tag: 'OM.AD 1992',
-        js: 'om', el: 'after-dark-om', attrs: 'art="all/art/om" entities="some" life-energy="3000 kwh" defrost="often" washer-karma="average"' },
+        js: 'om', el: 'after-dark-om', attrs: 'art="all/art/om" entities="6" life-energy="3000 kwh" defrost="very often" washer-karma="a little"' },
       { name: 'Gravity',         file: 'all/gravity.html',         kind: 'ripped', tag: 'GRAVITY.AD 3.x',
-        js: 'gravity', el: 'after-dark-gravity', attrs: 'balls="4" size="medium" colors clear-screen' },
+        js: 'gravity', el: 'after-dark-gravity', attrs: 'balls="7" size="large" clear-screen' },
       { name: 'Snake',           file: 'all/snake.html',           kind: 'ripped', tag: 'SNAKE.AD 3.x',
         js: 'snake', el: 'after-dark-snake', attrs: 'speed="medium" maze-complexity="medium" pause-when-done="5 sec"' },
       { name: 'Zot!',            file: 'all/zot.html',             kind: 'ripped', tag: 'ZOT.AD 3.x',
@@ -486,13 +492,13 @@
       { name: 'Warp!',           file: 'all/warp-ad.html',         kind: 'ripped', tag: 'WARP.AD 3.x',
         js: 'warp', el: 'after-dark-warp', attrs: 'speed="medium in" stars="some" size="both" color' },
       { name: 'Hard Rain',       file: 'all/hardrain.html',        kind: 'ripped', tag: 'RAIN.AD 3.x',
-        js: 'hardrain', el: 'after-dark-hard-rain', attrs: 'drops="some" drop-size="medium" clear-screen' },
+        js: 'hardrain', el: 'after-dark-hard-rain', attrs: 'drops="some" drop-size="medium"' },
       { name: 'Globe',           file: 'all/globe-ad.html',        kind: 'ripped', tag: 'GLOBE.AD 3.x',
-        js: 'globe', el: 'after-dark-globe', attrs: 'art="all/art/globe" map="earth" speed="medium" tilt="23"' },
+        js: 'globe', el: 'after-dark-globe', attrs: 'art="all/art/globe" map="earth" speed="medium" tilt="0" mirror="none"' },
       { name: 'Messages',        file: 'all/messages-ad.html',     kind: 'ripped', tag: 'MESSAGE3.AD 3.x',
-        js: 'messages', el: 'after-dark-messages', attrs: 'message="out to lunch" move="floating" speed="medium"' },
+        js: 'messages', el: 'after-dark-messages', attrs: 'message="after dark - the ultimate screen saver collection" move="floating" speed="moving"' },
       { name: 'Mandelbrot',      file: 'all/mandelbrot.html',      kind: 'ripped', tag: 'MANDELBR.AD 3.x',
-        js: 'mandelbrot', el: 'after-dark-mandelbrot', attrs: 'delay="5 sec" colors="random" blockiness="2"' },
+        js: 'mandelbrot', el: 'after-dark-mandelbrot', attrs: 'delay="5 sec" colors="random" blockiness="1"' },
       { name: 'Rose',            file: 'all/rose.html',            kind: 'ripped', tag: 'ROSE.AD 3.x',
         js: 'rose', el: 'after-dark-rose', attrs: 'speed="moving" trail-length="medium"' },
       { name: 'Spiral Gyra',     file: 'all/spiral.html',          kind: 'ripped', tag: 'SPIRAL.AD 3.x',
@@ -502,97 +508,149 @@
       { name: 'Tunnel',          file: 'all/tunnel.html',          kind: 'ripped', tag: 'TUNNEL.AD 3.x',
         js: 'tunnel', el: 'after-dark-tunnel', attrs: 'direction="in" shape="rect"' },
       { name: 'Zooommm!',        file: 'all/zoom.html',            kind: 'ripped', tag: 'ZOOM.AD 3.x',
-        js: 'zoom', el: 'after-dark-zoom', attrs: 'palettes="all/art/frost" colors="random" speed="medium" delay="short"' },
+        js: 'zoom', el: 'after-dark-zoom', attrs: 'palettes="all/art/zoom" colors="smooth" speed="medium" delay="shortest"' },
       { name: 'Spotlight',       file: 'all/spot.html',            kind: 'ripped', tag: 'SPOT.AD 3.x',
-        js: 'spot', el: 'after-dark-spotlight', attrs: 'size="100" speed="medium" spots="1"' },
+        js: 'spot', el: 'after-dark-spotlight', attrs: 'size="random" speed="medium" spots="2"' },
       { name: 'Punch Out',       file: 'all/punch.html',           kind: 'ripped', tag: 'PUNCH.AD 3.x',
-        js: 'punch', el: 'after-dark-punch-out', attrs: 'shape="random" size="medium" speed="medium"' },
+        js: 'punch', el: 'after-dark-punch-out', attrs: 'shape="circle" size="medium" speed="fast"' },
       { name: 'Puzzle',          file: 'all/puzzle.html',          kind: 'ripped', tag: 'PUZZLE.AD 3.x',
-        js: 'puzzle', el: 'after-dark-puzzle', attrs: 'size="medium" speed="medium"' },
+        js: 'puzzle', el: 'after-dark-puzzle', attrs: 'size="small" speed="slow"' },
       { name: 'Can of Worms',    file: 'all/worms.html',           kind: 'ripped', tag: 'WORMS.AD 3.x',
-        js: 'worms', el: 'after-dark-worms', attrs: 'wiggle="crawly" segments="20" worms="6" eat-screen' },
+        js: 'worms', el: 'after-dark-worms', attrs: 'wiggle="crawly" segments="14" worms="14" eat-screen' },
       { name: 'Einstein',        file: 'all/einstein.html',        kind: 'ripped', tag: 'EINSTEIN.AD 3.x',
-        js: 'einstein', el: 'after-dark-einstein', attrs: 'art="all/art/einstein" errors="seldom" neatness="not very" lines="10"' },
+        js: 'einstein', el: 'after-dark-einstein', attrs: 'art="all/art/einstein" errors="seldom" neatness="pretty bad" lines="fill screen"' },
       { name: 'Nonsense',        file: 'all/nonsense.html',        kind: 'ripped', tag: 'NONSENSE.AD 3.x',
-        js: 'nonsense', el: 'after-dark-nonsense', attrs: 'art="all/art/nonsense" how-many="sagacious" delay="medium" colored-background' },
+        js: 'nonsense', el: 'after-dark-nonsense', attrs: 'art="all/art/nonsense" how-many="laconic" delay="short"' },
       { name: 'DOS Shell',       file: 'all/dosshell.html',        kind: 'ripped', tag: 'DOSSHELL.AD 3.x',
-        js: 'dosshell', el: 'after-dark-dos-shell', attrs: 'color="amber" speed="normal" accuracy="medium"' },
+        js: 'dosshell', el: 'after-dark-dos-shell', attrs: 'color="green" speed="fast" accuracy="high"' },
       { name: 'Nocturnes',       file: 'all/nocturne.html',        kind: 'ripped', tag: 'NOCTURNE.AD 3.x',
-        js: 'nocturne', el: 'after-dark-nocturnes', attrs: 'art="all/art/nocturne" density="a bunch" color' },
+        js: 'nocturne', el: 'after-dark-nocturnes', attrs: 'art="all/art/nocturne" density="lots" color' },
       { name: 'Meadow',          file: 'all/meadow.html',          kind: 'ripped', tag: 'MEADOW.AD 3.x',
-        js: 'meadow', el: 'after-dark-meadow', attrs: 'art="all/art/meadow" season="spring" seasons-last="1 minute"' },
+        js: 'meadow', el: 'after-dark-meadow', attrs: 'art="all/art/meadow" season="spring" seasons-last="30 seconds"' },
       { name: 'Frost and Fire',  file: 'all/frost.html',           kind: 'ripped', tag: 'FROST.AD 3.x',
-        js: 'frost', el: 'after-dark-frost', attrs: 'art="all/art/frost" size="medium" palette="random"' },
+        js: 'frost', el: 'after-dark-frost', attrs: 'art="all/art/frost" size="medium" palette="bright"' },
       { name: 'Photon',          file: 'all/photon.html',          kind: 'ripped', tag: 'PHOTON.AD 3.x',
         js: 'photon', el: 'after-dark-photon', attrs: 'length="16" burst-delay="1 sec." burst="mixed"' },
       { name: 'Sunburst',        file: 'all/sunburst.html',        kind: 'ripped', tag: 'SUNBURST.AD 3.x',
         js: 'sunburst', el: 'after-dark-sunburst', attrs: 'delay="medium"' },
       { name: 'Vertigo',         file: 'all/vertigo.html',         kind: 'ripped', tag: 'VERTIGO.AD 3.x',
-        js: 'vertigo', el: 'after-dark-vertigo', attrs: 'palette="smooth" pitch="medium" color-speed="medium" delay="20 secs"' },
+        js: 'vertigo', el: 'after-dark-vertigo', attrs: 'palette="stingray" pitch="tight" color-speed="fast" delay="5 secs"' },
       { name: 'Stained Glass',   file: 'all/stained.html',         kind: 'ripped', tag: 'STAINED.AD 3.x',
-        js: 'stained', el: 'after-dark-stained-glass', attrs: 'complexity="medium" duplication="some" color="medium"' },
+        js: 'stained', el: 'after-dark-stained-glass', attrs: 'complexity="low" duplication="lots" color="lots"' },
       { name: 'Strange Attractors', file: 'all/strange.html',      kind: 'ripped', tag: 'STRANGE.AD 3.x',
-        js: 'strange', el: 'after-dark-strange-attractors', attrs: 'duration="1 minute" color-speed="normal"' },
+        js: 'strange', el: 'after-dark-strange-attractors', attrs: 'duration="20 seconds" color-speed="normal"' },
       { name: 'GeoBounce',       file: 'all/geobounce.html',       kind: 'ripped', tag: 'GEOBOUNC.AD 3.x',
         js: 'geobounce', el: 'after-dark-geobounce', attrs: 'shape="random" size="medium" speed="medium" faces="both"' },
       { name: 'Spin Brush',      file: 'all/spin.html',            kind: 'ripped', tag: 'SPIN.AD 3.x',
-        js: 'spin', el: 'after-dark-spin-brush', attrs: 'art="all/art/spin" switch-every="1 min." thickness="3" spin="random"' },
+        js: 'spin', el: 'after-dark-spin-brush', attrs: 'art="all/art/spin" switch-every="30 sec." thickness="2" spin="spin"' },
       { name: 'Satori',          file: 'all/satori.html',          kind: 'ripped', tag: 'SATORI.AD 3.x',
-        js: 'satori', el: 'after-dark-satori', attrs: 'display="mix" colors="random" end-clarity="2x2" knots="4"' },
+        js: 'satori', el: 'after-dark-satori', attrs: 'display="random" colors="random" end-clarity="1x1" knots="4"' },
       { name: 'Boris',           file: 'all/boris.html',           kind: 'ripped', tag: 'BORIS.AD 1993',
-        js: 'boris', el: 'after-dark-boris', attrs: 'art="all/art/boris" cats="1" butterfly="occasionally" color' },
+        js: 'boris', el: 'after-dark-boris', attrs: 'art="all/art/boris" cats="3" butterfly="frequently" color' },
       { name: 'Mowin’ Man',  file: 'all/mowin.html',           kind: 'ripped', tag: 'MOWIN.AD 1993',
-        js: 'mowin', el: 'after-dark-mowin-man', attrs: 'art="all/art/mowin" speed="normal" mow-every="always" growth-rate="medium" clear-screen' },
+        js: 'mowin', el: 'after-dark-mowin-man', attrs: 'art="all/art/mowin" speed="hurried" mow-every="day" growth-rate="medium" clear-screen' },
       { name: 'Clocks',          file: 'all/clocks.html',          kind: 'ripped', tag: 'CLOCKS3.AD 1994',
-        js: 'clocks', el: 'after-dark-clocks', attrs: 'art="all/art/clocks" type="classic" drift-speed="slow" mutation-rate="10 secs."' },
+        js: 'clocks', el: 'after-dark-clocks', attrs: 'art="all/art/clocks" type="mutating" drift-speed="slow" mutation-rate="genx"' },
       { name: 'Dominoes',        file: 'all/dominoes.html',        kind: 'ripped', tag: 'DOMINOES.AD 1993',
-        js: 'dominoes', el: 'after-dark-dominoes', attrs: 'art="all/art/dominoes" speed="medium" type="random"' },
+        js: 'dominoes', el: 'after-dark-dominoes', attrs: 'art="all/art/dominoes" speed="medium" type="wood"' },
       { name: 'Modern Art',      file: 'all/modern.html',          kind: 'ripped', tag: 'MODERN.AD 1993',
         js: 'modern', el: 'after-dark-modern-art', attrs: 'art="all/art/modern" style="random"' },
       { name: 'SlideShow',       file: 'all/slide.html',           kind: 'ripped', tag: 'SLIDE.AD 1994',
-        js: 'slide', el: 'after-dark-slideshow', attrs: 'art="all/art/slide" slides="pictures" effect="random" delay="5 sec."' },
+        js: 'slide', el: 'after-dark-slideshow', attrs: 'art="all/art/slide" slides="bitmaps" effect="random" delay="1 min."' },
       { name: 'Artist',          file: 'all/artist.html',          kind: 'ripped', tag: 'ARTIST.AD 1994',
-        js: 'artist', el: 'after-dark-artist', attrs: 'pictures="all/art/slide" medium="random" detail="coarse" delay="10 seconds" image="desktop"' },
+        js: 'artist', el: 'after-dark-artist', attrs: 'medium="random" detail="coarse" delay="15 seconds" image="desktop" pictures="all/art/slide"' },
       { name: 'Mountains',       file: 'all/mountains.html',       kind: 'ripped', tag: 'MOUNTAIN.AD 3.x',
-        js: 'mountains', el: 'after-dark-mountains', attrs: 'view="mountains" water="surface" planet="earth" complexity="medium" zoom="medium"' },
+        js: 'mountains', el: 'after-dark-mountains', attrs: 'view="random" water="surface" planet="random" complexity="medium" zoom="medium"' },
       { name: 'Fractal Forest',  file: 'all/fractal.html',         kind: 'ripped', tag: 'FRACTAL.AD 3.x',
         js: 'fractal', el: 'after-dark-fractal-forest', attrs: 'art="all/art/fractal" trees="some" type="random" season="spring" seasons-last="1 min."' },
       { name: 'Nirvana',         file: 'all/nirvana.html',         kind: 'ripped', tag: 'NIRVANA.AD 1994',
-        js: 'nirvana', el: 'after-dark-nirvana', attrs: 'color="random" redraw-every="5 min" activity="calm" change-color="often"' },
+        js: 'nirvana', el: 'after-dark-nirvana', attrs: 'color="random" redraw-every="10 min" activity="serene" change-color="never"' },
       { name: 'DrawMorph',       file: 'all/drawmorph.html',       kind: 'ripped', tag: 'WMORPH.AD 1994',
-        js: 'drawmorph', el: 'after-dark-drawmorph', attrs: 'art="all/art/wmorph" morph="random" speed="smoother"' },
+        js: 'drawmorph', el: 'after-dark-drawmorph', attrs: 'art="all/art/wmorph" morph="clock" speed="stuttered"' },
       { name: 'Confetti Factory', file: 'all/confetti.html',       kind: 'ripped', tag: 'CONFETTI.AD 1993',
-        js: 'confetti', el: 'after-dark-confetti-factory', attrs: 'art="all/art/confetti" ducks="seven" workshift="1 min." type="metal"' },
+        js: 'confetti', el: 'after-dark-confetti-factory', attrs: 'art="all/art/confetti" ducks="seven" workshift="30 sec." type="wood"' },
       { name: 'Daredevil Dan',   file: 'all/daredevil.html',       kind: 'ripped', tag: 'DAREDEVI.AD 1994',
         js: 'daredevil', el: 'after-dark-daredevil-dan', attrs: 'art="all/art/daredevi" risk="$5,000"' },
       { name: 'Rat Race',        file: 'all/ratrace.html',         kind: 'ripped', tag: 'RATRACE.AD 1994',
-        js: 'ratrace', el: 'after-dark-rat-race', attrs: 'art="all/art/ratrace" training="high school" track' },
+        js: 'ratrace', el: 'after-dark-rat-race', attrs: 'art="all/art/ratrace" training="collegiate" track' },
       { name: 'You Bet Your Head', file: 'all/ybyh.html',          kind: 'ripped', tag: 'YBYH.AD 1994',
-        js: 'ybyh', el: 'after-dark-you-bet-your-head', attrs: 'art="all/art/ybyh" contestants="3" timer="20 seconds" show-answers' },
+        js: 'ybyh', el: 'after-dark-you-bet-your-head', attrs: 'art="all/art/ybyh" contestants="3" timer="10 seconds" show-answers' },
       { name: 'Lunatic Fringe',  file: 'all/lunatic.html',         kind: 'ripped', tag: 'LUNATIC.AD 1993',
         js: 'lunatic', el: 'after-dark-lunatic-fringe', attrs: 'art="all/art/lunatic" level="1"' },
       { name: 'Aquatic Realm',   file: 'all/aqua.html',            kind: 'ripped', tag: 'Aqua.ad',
-        js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6"' },
+        js: 'aqua', el: 'after-dark-aqua', attrs: 'art="all/art/aqua" creatures="14" seaweed="6" sea-floor' },
       { name: 'Fish Pro',        file: 'all/fishpro.html',         kind: 'ripped', tag: 'FISHPRO.AD 1994',
-        js: 'fishpro', el: 'after-dark-fishpro', attrs: 'art="all/art/fishpro" fish="school" sea-floor="animated"' },
+        js: 'fishpro', el: 'after-dark-fishpro', attrs: 'art="all/art/fishpro" fish="school" sea-floor="static"' },
       { name: 'Fish World',      file: 'all/fish-world.html',      kind: 'ripped', tag: 'FISH.AD 4.0',
-        js: 'fish-world', el: 'after-dark-fish-world', attrs: 'art="all/art/fish" show-background' },
+        js: 'fish-world', el: 'after-dark-fish-world', attrs: 'art="all/art/fish" show-background bubbles' },
       { name: 'Bugs',            file: 'all/bugs.html',            kind: 'ripped', tag: 'BUGS.AD 1994',
-        js: 'bugs', el: 'after-dark-bugs', attrs: 'art="all/art/bugs" density="infestation" type="all"' },
+        js: 'bugs', el: 'after-dark-bugs', attrs: 'art="all/art/bugs" density="swarm" type="all"' },
       { name: 'Rainforest',      file: 'all/rainforest.html',      kind: 'ripped', tag: 'RAIN.AD 4.0',
-        js: 'rainforest', el: 'after-dark-rainforest', attrs: 'art="all/art/rain" number="some" background="leaves" foliage' },
+        js: 'rainforest', el: 'after-dark-rainforest', attrs: 'art="all/art/rain" number="many" background="random" foliage' },
       { name: 'Bungee Roulette', file: 'all/bungee.html',          kind: 'ripped', tag: 'BUNGEE.AD 1995',
-        js: 'bungee', el: 'after-dark-bungee', attrs: 'art="all/art/bungee" jumper="random" jumps="many" equipment="so - so"' },
+        js: 'bungee', el: 'after-dark-bungee', attrs: 'art="all/art/bungee" jumper="daredevil" jumps="many" equipment="used"' },
       { name: 'Chameleon',       file: 'all/cham.html',            kind: 'ripped', tag: 'CHAM.AD 1995',
-        js: 'cham', el: 'after-dark-cham', attrs: 'art="all/art/cham" quantity="some" zest="perky" vomiter="sick"' },
+        js: 'cham', el: 'after-dark-cham', attrs: 'art="all/art/cham" quantity="more" zest="perky" vomiter="upset tummy"' },
       { name: 'Toxic Swamp',     file: 'all/toxic.html',           kind: 'ripped', tag: 'Toxic.ad 1995',
-        js: 'toxic', el: 'after-dark-toxic', attrs: 'art="all/art/toxic" critters="fruitful" lung-capacity="quart" swamp-floor' },
+        js: 'toxic', el: 'after-dark-toxic', attrs: 'art="all/art/toxic" swamp-floor' },
       { name: 'Phlegm Boy',      file: 'all/phlegm.html',          kind: 'ripped', tag: 'PHLEGM_B.AD 1995',
-        js: 'phlegm', el: 'after-dark-phlegm', attrs: 'art="all/art/phlegm_b" behavior="ill-mannered" mess="nauseous"' },
+        js: 'phlegm', el: 'after-dark-phlegm', attrs: 'art="all/art/phlegm_b" behavior="ill-mannered" mess="disquieting"' },
       { name: 'Marbles!',        file: 'all/marbles-40.html',      kind: 'ripped', tag: 'MARBLES.AD 4.0',
-        js: 'marbles-40', el: 'after-dark-marbles-40', attrs: 'art="all/art/marbles" count="a jar full"' },
+        js: 'marbles-40', el: 'after-dark-marbles-40', attrs: 'art="all/art/marbles" count="a pouch full" pattern="random"' },
       { name: 'Guernsey Madness', file: 'all/guernsey.html',       kind: 'ripped', tag: 'GUERNSEY.AD 4.0',
         js: 'guernsey', el: 'after-dark-guernsey', attrs: 'art="all/art/guernsey" flavor="tutti-frutti"' },
+      { name: 'Ray',             file: 'all/ray.html',             kind: 'ripped', tag: 'RAY.AD 1994',
+        js: 'ray', el: 'after-dark-ray', attrs: 'art="all/art/ray" objects="3" shadows="black" backdrop="desktop" shape="random"' },
+      { name: 'Bad Dog!',        file: 'all/baddog.html',          kind: 'ripped', tag: 'BADDOG3.AD 1994',
+        js: 'baddog', el: 'after-dark-bad-dog', attrs: 'art="all/art/baddog3" discipline="moderate" shuffle-behaviors' },
+      { name: 'Bad Dog! (4.0)',  file: 'all/baddog-40.html',       kind: 'ripped', tag: 'BADDOG.AD 1996',
+        js: 'baddog-40', el: 'after-dark-bad-dog-40', attrs: 'art="all/art/baddog"' },
+      { name: 'Swan Lake',       file: 'all/swans.html',           kind: 'ripped', tag: 'SWANS.AD 1992',
+        js: 'swans', el: 'after-dark-swan-lake', attrs: 'art="all/art/swans" speed="too slow" num-swans="4"' },
+      { name: 'Mowin’ Boris',    file: 'all/mboris.html',          kind: 'ripped', tag: 'MBORIS.AD 1995',
+        js: 'mboris', el: 'after-dark-mowin-boris', attrs: 'art="all/art/mboris" mower-speed="normal" cats="1" revenge="rare"' },
+      { name: 'FrankenScreen',   file: 'all/franken.html',         kind: 'ripped', tag: 'FRANKEN.AD 1995',
+        js: 'franken', el: 'after-dark-frankenscreen', attrs: 'art="all/art/franken" coherency="humanoid" blemishes="teenager" lifespan="brief" music="never"' },
+      { name: 'Mime Hunt',       file: 'all/mimehunt.html',        kind: 'ripped', tag: 'MIMEHUNT.AD 1995',
+        js: 'mimehunt', el: 'after-dark-mime-hunt', attrs: 'art="all/art/mimehunt" mimes="one" weapon="shotgun" cybermood="postal" music="never"' },
+      { name: 'Mike’s So-called Life', file: 'all/mikes.html',     kind: 'ripped', tag: 'MIKES.AD 1995',
+        js: 'mikes', el: 'after-dark-mikes-life', attrs: 'art="all/art/mikes" activity-level="50"' },
+      { name: 'Voyeur',          file: 'all/voyeur.html',          kind: 'ripped', tag: 'VOYEUR.AD 1995',
+        js: 'voyeur', el: 'after-dark-voyeur', attrs: 'art="all/art/voyeur" pace="brisk" order="random" guy="random" music="never"' },
+      { name: 'Shadow Agents',   file: 'all/shadow.html',          kind: 'ripped', tag: 'SHADOW.AD 1996',
+        js: 'shadow', el: 'after-dark-shadow-agents', attrs: 'art="all/art/shadow" agents="few" clear-screen' },
+      { name: 'Out ’n About',    file: 'all/out.html',             kind: 'ripped', tag: 'OUT.AD 1996',
+        js: 'out', el: 'after-dark-out-n-about', attrs: 'art="all/art/out" crowd="lively"' },
+      { name: 'Super Guy',       file: 'all/superguy.html',        kind: 'ripped', tag: 'SUPERGUY.AD 1996',
+        js: 'superguy', el: 'after-dark-super-guy', attrs: 'art="all/art/superguy"' },
+      { name: 'Hula Twins',      file: 'all/hula.html',            kind: 'ripped', tag: 'HULA.AD 1996',
+        js: 'hula', el: 'after-dark-hula-twins', attrs: 'art="all/art/hula" music="always"' },
+      { name: 'CYb3r W@t',       file: 'all/cyber.html',           kind: 'ripped', tag: 'CYBER.AD 1996',
+        js: 'cyber', el: 'after-dark-cyber', attrs: 'art="all/art/cyber" color="random"' },
+      { name: 'Life & All',      file: 'all/life.html',            kind: 'ripped', tag: 'LIFE.AD 1996',
+        js: 'life', el: 'after-dark-life', attrs: 'art="all/art/life" calculate="life" years="5 million"' },
+      { name: 'Rodger Dodger',   file: 'all/rodger.html',          kind: 'ripped', tag: 'RODGER.AD 1996',
+        js: 'rodger', el: 'after-dark-rodger-dodger', attrs: 'art="all/art/rodger" load-saved-level' },
+      { name: 'Rock Paper Scissors', file: 'all/rps.html',          kind: 'ripped', tag: 'RPS.AD 1996',
+        js: 'rps', el: 'after-dark-rock-paper-scissors', attrs: 'art="all/art/rps" stars-to-win="2" display-score' },
+      { name: 'Art Critic',      file: 'all/critic.html',          kind: 'ripped', tag: 'CRITIC.AD 1996',
+        js: 'critic', el: 'after-dark-art-critic', attrs: 'art="all/art/critic" slides="all/art/slide" pictures="pictures" critic-appears="always" duration="10 seconds" display="random"' },
+      { name: 'Time Flies',      file: 'all/time.html',            kind: 'ripped', tag: 'TIME.AD 4.0',
+        js: 'time', el: 'after-dark-time-flies', attrs: 'art="all/art/time" type="random" sounds="both" drift-speed="slow"' },
+      { name: 'Messages 4.0',    file: 'all/messages-40.html',     kind: 'ripped', tag: 'MESSAGES.AD 4.0',
+        js: 'messages40', el: 'after-dark-messages-40', attrs: 'art="all/art/messages-40" duration="short" style="random" message="random"' },
+      { name: 'Magic Turtle',    file: 'all/turtle.html',          kind: 'ripped', tag: 'TURTLE.AD 4.0',
+        js: 'turtle', el: 'after-dark-magic-turtle', attrs: 'art="all/art/turtle" speed="racehorse" display="program 1" show-edit-message' },
+      { name: 'Points of View',  file: 'all/points.html',          kind: 'ripped', tag: 'POINTS.AD 4.0',
+        js: 'points', el: 'after-dark-points-of-view', attrs: 'art="all/art/points" new-shapes="10 seconds" color="white"' },
+      { name: 'Slow Burn',      file: 'all/slowburn.html',     kind: 'ripped', tag: 'SLOWBURN.AD 1996',
+        js: 'slowburn', el: 'after-dark-slow-burn', attrs: 'art="all/art/slowburn" burn="searing"' },
+      { name: 'Swirling Magic', file: 'all/swirling.html',     kind: 'ripped', tag: 'SWIRLING.AD 1996',
+        js: 'swirling', el: 'after-dark-swirling-magic', attrs: 'art="all/art/swirling" look="random" palette="random"' },
+      { name: 'Psycho Deli',    file: 'all/psycho.html',       kind: 'ripped', tag: 'PSYCHO.AD 1996',
+        js: 'psycho', el: 'after-dark-psycho-deli', attrs: 'picture="random" knots="random"' },
+      { name: 'Hall of Fame',   file: 'all/hall-of-fame.html', kind: 'ripped', tag: 'Hall of Fame.ad 1999',
+        js: 'hall-of-fame', el: 'after-dark-hall-of-fame', attrs: 'art="all/art/hall-of-fame"' },
       /* CSS recreations, A–Z. Hidden unless "Show the CSS recreations too" is on. */
       { name: 'Bouncing Ball',   file: 'all/bouncing-ball.html',   kind: 'css' },
       { name: 'Fade Out',        file: 'all/fade-out.html',        kind: 'css' },
@@ -618,7 +676,7 @@
        the module does when nothing is set. */
     var OPTIONS = {
       toasters: [
-        { name: 'objects', label: 'Objects', values: ['air wing', 'squadron', 'swarm'] }
+        { name: 'objects', label: 'Objects', values: ['squadron', 'flight', 'air wing', 'swarm'] }
       ],
       toilets: [
         { name: 'crowd', label: 'Crowd',
@@ -631,7 +689,8 @@
       marbles: [
         { name: 'pins', label: 'Pins', values: ['many', 'none', 'few', 'lots'] },
         { name: 'pin-size', label: 'Pin Size', values: ['medium', 'x-small', 'big'] },
-        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast'] }
+        { name: 'speed', label: 'Speed', values: ['medium', 'slow', 'fast'] },
+        { name: 'redraw', label: 'Redraw', values: ['5 min', '10 sec', '30 sec', '1 min', '10 min', '30 min', '1 hour', '2 hours'] }
       ],
       'marbles-tilt': [
         { name: 'pins', label: 'Pins', values: ['many', 'none', 'few', 'lots'] },
@@ -641,8 +700,7 @@
       'marbles-40': [
         { name: 'count', label: 'Marbles',
           values: ['a jar full', 'a few', 'a pouch full', 'a box full'] },
-        { name: 'pattern', label: 'Peg Pattern',
-          values: ['', '1', '2', '3', '4', '5', '6', '7', '8'], blank: 'Random' }
+        { name: 'pattern', label: 'Peg Pattern', values: ['random', '1', '2', '3', '4', '5', '6', '7', '8'], blank: 'Random' }
       ],
       aqua: [
         { name: 'creatures', label: 'Creatures', values: ['14', '4', '8', '19'] },
@@ -668,8 +726,7 @@
           values: ['zesty', 'mild', 'rich', 'sharp'] }
       ],
       om: [
-        { name: 'entities', label: 'Entities',
-          values: ['some', 'few', 'more', 'lots'] },
+        { name: 'entities', label: 'Entities', values: ['6', '1', '2', '3', '4', '5', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'] },
         { name: 'life-energy', label: 'Life Energy',
           values: ['3000 kwh', '1000 kwh', '2000 kwh', '4000 kwh', '5000 kwh'] },
         { name: 'defrost', label: 'Defrost',
@@ -682,7 +739,6 @@
         { name: 'balls', label: 'Number Balls',
           values: ['4', '1', '2', '3', '5', '6', '7'] },
         { name: 'size', label: 'Size', values: ['medium', 'small', 'large'] },
-        { name: 'colors', label: 'Colors', check: true, on: true },
         { name: 'clear-screen', label: 'Clear Screen First', check: true, on: true }
       ],
       snake: [
@@ -728,7 +784,8 @@
           values: ['', 'Blue Bird Wrasse', 'Boxfish', 'Sea Horse', 'Filefish',
                    'Mandarin', 'Pajama Cardinal', 'Picasso', 'Pufferfish', 'Tamarin'],
           blank: 'All' },
-        { name: 'show-background', label: 'Show Background', check: true, on: true }
+        { name: 'show-background', label: 'Show Background', check: true, on: true },
+        { name: 'bubbles', label: 'Bubbles', check: true, on: true }
       ],
       bugs: [
         { name: 'density', label: 'Bug Density',
@@ -758,9 +815,7 @@
       toxic: [
         { name: 'critters', label: 'Critters',
           values: ['fruitful', 'depopulated', 'lonely', 'swarming', 'festering'] },
-        { name: 'lung-capacity', label: 'Lung Capacity',
-          values: ['quart', 'thimble', 'cup', 'gallon', 'barrel'] },
-        { name: 'fish-only', label: 'Fish Only', check: true },
+        { name: 'lung-capacity', label: 'Lung Capacity', values: ['cup', 'thimble', 'quart', 'gallon', 'barrel'] },
         { name: 'swamp-floor', label: 'Show Swamp Floor', check: true, on: true }
       ],
       phlegm: [
@@ -798,7 +853,8 @@
       globe: [
         { name: 'map', label: 'Map', values: ['earth', 'after dark', 'toaster'] },
         { name: 'speed', label: 'Speed', values: ['medium', 'slowest', 'slow', 'fast', 'fastest'] },
-        { name: 'tilt', label: 'Tilt (degrees)', values: ['23', '0', '45', '90'] }
+        { name: 'tilt', label: 'Tilt (degrees, ours)', values: ['0', '23', '45', '90'] },
+        { name: 'mirror', label: 'Mirror', values: ['none', 'horizontal', 'vertical', 'both'] }
       ],
       messages: [
         { name: 'message', label: 'Message',
@@ -838,9 +894,7 @@
         { name: 'shape', label: 'Shape', values: ['rect', 'r-rect', 'random'] }
       ],
       zoom: [
-        { name: 'colors', label: 'Colors',
-          values: ['random', 'smooth', 'saw', 'ramped', 'ramped2', 'electric', 'crest', 'rainbows',
-                   'sine', 'cycloid', 'icycloid', 'oscillate', 'banded'] },
+        { name: 'colors', label: 'Colors', values: ['smooth', 'saw', 'saw2', 'saw3', 'saw4', 'ramped', 'ramped2', 'ramped3', 'electric', 'crest', 'rainbows', 'sine', 'sine2', 'sine3', 'cycloid', 'icycloid', 'icycloid2', 'oscillate', 'oscillate2', 'random', 'banded'] },
         { name: 'speed', label: 'Speed',
           values: ['medium', 'slowest', 'slow', 'fast', 'faster', 'zooommmin'] },
         { name: 'delay', label: 'Delay',
@@ -864,8 +918,8 @@
       ],
       worms: [
         { name: 'wiggle', label: 'Wiggle', values: ['crawly', 'straight', 'weavy', 'wiggly'] },
-        { name: 'segments', label: 'Segments', values: ['20', '5', '10', '40'] },
-        { name: 'worms', label: 'Worms', values: ['6', '1', '3', '10', '20'] },
+        { name: 'segments', label: 'Segments', values: ['14', '2', '5', '10', '20'] },
+        { name: 'worms', label: 'Worms', values: ['14', '1', '3', '6', '10', '20'] },
         { name: 'eat-screen', label: 'Eat Screen', check: true, on: true }
       ],
       einstein: [
@@ -898,8 +952,7 @@
       ],
       frost: [
         { name: 'size', label: 'Size', values: ['medium', 'small', 'large', 'huge'] },
-        { name: 'palette', label: 'Palette',
-          values: ['random', 'cycloid', 'icycloid', 'electric', 'rainbows', 'ramped2', 'sine', 'gray scale'] },
+        { name: 'palette', label: 'Palette', values: ['bright', 'stormy', 'gray scale', 'ramped', 'electric', 'rainbows', 'sine', 'plasma', 'cycloid', 'random', 'icycloid'] },
         { name: 'maximize-speed', label: 'Maximize Speed', check: true }
       ],
       photon: [
@@ -924,9 +977,7 @@
         { name: 'color', label: 'Color', values: ['medium', 'few', 'lots'] }
       ],
       strange: [
-        { name: 'duration', label: 'Duration',
-          values: ['1 minute', '5 seconds', '10 seconds', '15 seconds', '30 seconds', '2 minutes',
-                   '5 minutes', '10 minutes', '30 minutes', '1 hour'] },
+        { name: 'duration', label: 'Duration', values: ['20 seconds', '5 seconds', '10 seconds', '15 seconds', '30 seconds', '45 seconds', '1 minute', '2 minutes', '5 minutes', '10 minutes', '15 minutes', '20 minutes', '30 minutes', '45 minutes', '1 hour'] },
         { name: 'color-speed', label: 'Color Speed',
           values: ['normal', 'none', 'slowest', 'slower', 'slow', 'fast', 'faster', 'fastest'] }
       ],
@@ -1051,12 +1102,134 @@
         { name: 'level', label: 'Starting Level', values: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] }
       ],
       bungee: [
-        { name: 'jumper', label: 'Jumper',
-          values: ['random', 'daredevil', 'cow', 'chicken', 'fish'] },
+        { name: 'jumper', label: 'Jumper', values: ['daredevil', 'half daredevil', 'cow', 'fish', 'half fish', 'random'] },
         { name: 'jumps', label: 'Jumps',
           values: ['many', 'one', 'few', 'droves', 'whole bunches', 'hundreds'] },
-        { name: 'equipment', label: 'Equipment',
-          values: ['so - so', 'safe', 'reliable', 'used', 'purfikt'] }
+        { name: 'equipment', label: 'Equipment', values: ['used', 'safe', 'reliable', 'so - so', 'purfikt'] }
+      ],
+      'toaster-2k': [
+        { name: 'objects', label: 'Objects', values: ['squadron', 'flight', 'air wing', 'swarm'] },
+        { name: 'toasters', label: 'Toasters', values: ['adults', 'babies', 'random'] }
+      ],
+      'toasters-2': [
+        { name: 'flying-things', label: 'Flying Things', values: ['7', '1', '2', '3', '4', '5', '6', '8', '9', '10', '11', '12'] },
+        { name: 'toast', label: 'Toast', values: ['medium', 'light', 'dark'] },
+        { name: 'color', label: 'Color', check: true }
+      ],
+      'toasters-40': [
+        { name: 'objects', label: 'Objects', values: ['squadron', 'flight', 'air wing', 'swarm'] },
+        { name: 'toasters', label: 'Toasters', values: ['adults', 'babies', 'random'] },
+        { name: 'music', label: 'Music', values: ['always', 'never', '1 min.', '2 mins.', '5 mins.', '30 mins.'] },
+        { name: 'display-karaoke', label: 'Display Karaoke', check: true, on: true }
+      ],
+      ray: [
+        { name: 'objects', label: 'Objects', values: ['3', '1', '2', '4', '5'] },
+        { name: 'shadows', label: 'Shadows', values: ['black', 'none', 'grey'] },
+        { name: 'backdrop', label: 'Backdrop', values: ['desktop', 'pattern', 'boxes'] },
+        { name: 'shape', label: 'Shape', values: ['random', 'bouncsph', 'multisph', 'rotcube', 'rotpyra', 'diamond', 'diabounc', 'torus'] }
+      ],
+      baddog: [
+        { name: 'discipline', label: 'Discipline', values: ['moderate', 'lax', 'easygoing', 'strict', 'dictatorial'] },
+        { name: 'freeze-motion', label: 'FREEZE MOTION', check: true, on: false },
+        { name: 'shuffle-behaviors', label: 'Shuffle behaviors', check: true, on: true },
+        { name: 'debug', label: 'Debug', values: ['all', 'control panel', 'window', 'trash', 'inside desk', 'icons', 'other desktop', 'non-desktop', 'black screen'] }
+      ],
+      'baddog-40': [
+        { name: 'clear-screen', label: 'Clear Screen First', check: true, on: false }
+      ],
+      swans: [
+        { name: 'speed', label: 'Speed', values: ['too slow', 'just right', 'too fast', 'absurdly fast'] },
+        { name: 'num-swans', label: 'Num Swans', values: ['4', '1', '2', '3', '5', '6', '8', '10'] },
+        { name: 'synchronized-swim', label: 'Synchronized Swim', check: true, on: false }
+      ],
+      mboris: [
+        { name: 'mower-speed', label: 'Mower Speed', values: ['normal', 'sluggish', 'hurried', 'manic'] },
+        { name: 'cats', label: 'Cats', values: ['1', '2', '3', '4', '5', '6'] },
+        { name: 'revenge', label: 'Revenge', values: ['rare', 'never', 'sometimes', 'frequent', 'always'] }
+      ],
+      franken: [
+        { name: 'coherency', label: 'Coherence', values: ['humanoid', 'disfigured', 'mutated', 'horrific', 'hellspawned'] },
+        { name: 'blemishes', label: 'Blemishes', values: ['teenager', 'pretty boy', 'craterface', 'disfigured', 'scarface'] },
+        { name: 'lifespan', label: 'Lifespan', values: ['brief', 'short', 'medium', 'lengthy', 'interminable'] }
+      ],
+      mimehunt: [
+        { name: 'mimes', label: 'Mimes', values: ['one', 'few', 'more', 'even more', 'lots'] },
+        { name: 'weapon', label: 'Weapon', values: ['shotgun', 'bazooka', 'mimeslayer', 'random'] },
+        { name: 'cybermood', label: 'CyberMood', values: ['postal', 'benevolent', 'bored', 'sadistic', 'manic'] }
+      ],
+      mikes: [
+        { name: 'activity-level', label: 'Activity Level', values: ['50', '0', '25', '75', '100'] }
+      ],
+      voyeur: [
+        { name: 'pace', label: 'Pace', values: ['brisk', 'pokey', 'mellow', 'quick', 'fast'] },
+        { name: 'order', label: 'Order', values: ['random', 'in order'] }
+      ],
+      shadow: [
+        { name: 'agents', label: 'Agents', values: ['few', 'solo', 'many', 'lots', 'bunches'] },
+        { name: 'clear-screen', label: 'Clear Screen First', check: true, on: true }
+      ],
+      out: [
+        { name: 'crowd', label: 'Crowd', values: ['lively', 'calm', 'bustling'] }
+      ],
+      hula: [
+        { name: 'music', label: 'Music', values: ['always', 'never', '1 min.', '2 min.', '5 min.', '30 min.'] }
+      ],
+      cyber: [
+        { name: 'color', label: 'Color', values: ['random', 'cyan', 'blue', 'amber', 'green'] }
+      ],
+      life: [
+        { name: 'calculate', label: 'Calculate', values: ['life', 'universe', 'everything', 'nothing', 'love', 'money'] },
+        { name: 'years', label: 'Years', values: ['5 million', '1 million', '3 million', '7 million', '9 million'] }
+      ],
+      rodger: [
+        { name: 'load-saved-level', label: 'Load Saved Level', check: true, on: true }
+      ],
+      rps: [
+        { name: 'stars-to-win', label: 'Stars to Win', values: ['2', '1', '3', '4'] },
+        { name: 'display-score', label: 'Display Score', check: true, on: true }
+      ],
+      critic: [
+        { name: 'pictures', label: 'Pictures', values: ['pictures', 'bitmaps', 'none'] },
+        { name: 'critic-appears', label: 'Critic Appears', values: ['always', 'never', 'rarely', 'often'] },
+        { name: 'duration', label: 'Duration',
+          values: ['10 seconds', '20 seconds', '30 seconds', '45 seconds', '1 minute', '1.5 minutes', '2 minutes', '3 minutes', '5 minutes', '10 minutes', '15 minutes'] },
+        { name: 'display', label: 'Display', values: ['random', 'in order'] }
+      ],
+      time: [
+        { name: 'type', label: 'Type', values: ['random', 'liquid', 'transformer'] },
+        { name: 'sounds', label: 'Sounds', values: ['both', 'ticks', 'chimes', 'neither'] },
+        { name: 'drift-speed', label: 'Drift Speed', values: ['slow', 'still', 'very slow', 'moderate', 'fast'] }
+      ],
+      messages40: [
+        { name: 'duration', label: 'Duration', values: ['short', 'medium', 'long'] },
+        { name: 'style', label: 'Style', values: ['random', 'fontasia', 'foggy'] },
+        { name: 'message', label: 'Message',
+          values: ['random', 'out to lunch', 'gone for the day', 'i quit!', 'be right back', 'gone for a caffeine fix', 'custom'] }
+      ],
+      turtle: [
+        { name: 'speed', label: 'Speed', values: ['racehorse', 'snail', 'turtle', 'mule', 'rabbit'] },
+        { name: 'display', label: 'Display',
+          values: ['program 1', 'program 2', 'program 3', 'program 4', 'program 5', 'program 6', 'program 7', 'program 8', 'random'] },
+        { name: 'show-edit-message', label: 'Show Edit Message', check: true, on: true }
+      ],
+      points: [
+        { name: 'new-shapes', label: 'New Shapes', values: ['10 seconds', '30 seconds', '1 minute', '5 minutes', '10 minutes'] },
+        { name: 'color', label: 'Color', values: ['white', 'yellow', 'green', 'blue', 'random'] },
+        { name: 'bigger-dots', label: 'Bigger Dots', check: true }
+      ],
+      slowburn: [
+        { name: 'burn', label: 'Burn', values: ['searing', 'sizzling', 'crackling', 'scorching', 'scalding', 'inferno'] }
+      ],
+      swirling: [
+        { name: 'pixies', label: '# of Sea Pixies', values: ['', 'some', 'a few', 'plenty', 'loads', 'tons'], blank: 'Default' },
+        { name: 'look', label: 'Style', values: ['random', 'swirling magic', 'spaghetti magic', 'tiled magic', 'peacock image'] },
+        { name: 'palette', label: 'Palette', values: ['random', 'bluesreds', 'candy', 'desert', 'reds', 'rainbow', 'field', 'sparkle'] }
+      ],
+      psycho: [
+        { name: 'picture', label: 'Picture', values: ['random', 'tie-dye', 'the dome', 'peacock', 'the well', 'jagged',
+          'night train', 'splash', 'head cheese', 'pinwheel', 'gozar', 'crop circles'] },
+        { name: 'speed', label: 'Speed', values: ['', 'slow', 'fast', 'faster', 'fastest'], blank: 'Default' },
+        { name: 'knots', label: 'Knots', values: ['random', 'center', 'a few', 'some', 'many', 'lots'] }
       ]
     };
 

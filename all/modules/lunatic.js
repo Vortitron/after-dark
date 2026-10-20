@@ -16,10 +16,23 @@
  * Sludger that lays mines, and the enemy base - and every one of them is in
  * its art, most as 32 headings, in all/art/lunatic/.
  *
- * Here it plays itself, the way a screen saver should. Caps Lock enters the
- * Fringe, as it did: then J and L (or the arrows) turn, K or Up thrusts,
- * Space fires and P raises the shield. Its sounds are left out, as all
- * sound is here, and the rules are this port's, not a transcription.
+ * Checked against the module running (8-bit captures of 120 s at the
+ * defaults, and stills through the installed palette): as a screen saver it
+ * does not play itself. It shows its attract pages in a 640x480 field in the
+ * middle of the screen - the title, with the logo, the authors, "Press
+ * Control for Help", "Press Caps Lock to enter the Fringe...", the keys and
+ * the (empty) high score table, for about a minute; then the Lunatic Fringe
+ * Bestiary, every creature turning beside its description, for another;
+ * then the Lunatic Plot and the Credits - and round again. The words are
+ * read off the captures and set out where they stood; the headings are in
+ * a dotted face, imitated here. The colours - red logo, white text, magenta
+ * headings - are from a grab of the saver's window through its own colormap.
+ * How long the last page stays up is a guess.
+ *
+ * Caps Lock enters the Fringe, as it did: then J and L (or the arrows) turn,
+ * K or Up thrusts, Space fires and P raises the shield. Its sounds are left
+ * out, as all sound is here, and the game's rules are this port's, not a
+ * transcription.
  *
  *   <after-dark-lunatic-fringe art="art/lunatic" level="1">
  */
@@ -27,6 +40,44 @@
 	'use strict';
 
 	var LEVELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+	/* The attract pages, in a 640x480 field: how long each stays up. */
+	var PAGES = [57, 60, 60];
+	var TEXT = '#ffffff', HEAD = '#ff40ff';
+	var FONT = 'Geneva, Verdana, Arial, sans-serif';
+	var KEYS = [['Turn Left:', 'J', '4'], ['Turn Right:', 'L', '6'], ['Fire:', 'Space', 'Space'], ['Thrust:', 'K', '5'],
+		['Turbo Thrust:', 'I', '8'], ['Power Shield:', 'P', '0'], ['Abort Ship:', 'A', 'A']];
+	/* The bestiary: [column, icons [sprite, frame or -1 to turn, dx, dy], text y, lines]. */
+	var BEASTS = [
+		[0, [['ship', -1, 0, 76]], 78, ['Your ship. The ultimate battle', 'machine of the 21st century!']],
+		[0, [['shot0', 0, -12, 124], ['shot1', 0, 0, 124], ['shot2', 0, 14, 124]], 122, ['Your shots. Bigger is better, at', 'least in this case.']],
+		[0, [['yummies', 0, -14, 178], ['yummies', 1, 0, 178], ['yummies', 2, 14, 178]], 160,
+			['Extra fuel, spare parts, and', 'ship repairs. Commonly called', '"yummies".']],
+		[0, [['yummies', 3, -8, 238], ['yummies', 4, 8, 238]], 221, ['Invulnerability and Turbo Thrust.', 'You start with one each. The', 'rest is luck.']],
+		[0, [['orb', -2, 0, 288]], 281, ['This, for a limited time, gives you twice', 'as many points as you deserve.']],
+		[0, [['base', -2, 0, 344]], 322, ['Your base. Stop here to refuel,', 'repair, and recharge. Watch for the',
+			'enemy, though\u2014they know where', 'you live.']],
+		[0, [['rocks', 0, 0, 404], ['rocks', 1, 0, 438]], 373, ['Asteroids, named Rocko and', 'Pebbles. Accelerating this poor',
+			'hapless space debris to very very', 'high speeds is strictly forbidden by', 'Galactic Ordinance 729.881-ZT13.']],
+		[1, [['blaster', -1, 0, 88]], 78, ['The MultiBlaster. Four gun barrels so', 'he can shoot a lot if he wants to. He', 'wants to. Lucky he\'s butt-slow.']],
+		[1, [['puffer', -2, 0, 146]], 130, ['Affectionately known as the "Puffer".', 'He\'ll smoke you if you don\'t watch', 'out.']],
+		[1, [['alien1', -1, -6, 191], ['alien4', -1, 6, 213]], 194, ['The Hammerhead. Saving the', 'universe while hammered is fun at', 'parties.']],
+		[1, [['alien3', -1, 0, 264]], 253, ['It slices, it dices! The Slicer will catch', 'you with your pants down. Ow.']],
+		[1, [['alien2', -1, -18, 326], ['mines', -2, 18, 326]], 311, ['A sort of cosmic chicken, The', 'Sludger lays mines, but it\'s really', 'stupid.']],
+		[1, [['enemybase', 0, 0, 403]], 382, ['This is the enemy base. Exercise:', 'compare it to your base. Feel', 'small? The Lunatic\'s cafeteria', 'serves better food, too.']]
+	];
+	var PLOT = ['You are alone on patrol at the unexplored borders of the Interstellar',
+		'Alliance\'s territory. It\'s a remote, forbidding region known as the',
+		'Fringe. Suddenly you are attacked by a marauding band of aliens!',
+		'They are an unknown and belligerent race, whose battle tactics defy',
+		'belief. You are too far away for assistance to reach you. Can you',
+		'repel the invasion single-handedly, or is it only a matter of time',
+		'before the Interstellar Alliance falls into the hands of the Lunatics?'];
+	var CREDITS = [['Programming and Design:', 'Ben Haller'], ['Windows Programming:', 'Mike Overlin'],
+		['Lunatic Artwork:', 'Igor Gasowski'], ['MAD Scientist:', 'Marshall Goldberg'], ['Lunatic Coordination:', 'Maury Zeff'],
+		['Lunatic Engineering:', 'Paul Lamoreux'], ['Sage Advice:', 'Bruce Burkhalter & Greg Thatcher'],
+		['Lunatic Ideas:', 'Nick Rush, Jack Eastman'], ['Lunatic Permission:', 'Wes Boyd (Thanks, Wes!)'],
+		['Lunatic Testing:', 'Deborah Beccue, Monte Kampf'], ['', '& Henry "High-Score" Sohn'],
+		['Lunatic Pets:', 'Begonia Boyd & Turl Hamster']];
 	var ALIENS = ['alien1', 'alien2', 'alien3', 'alien4', 'blaster', 'puffer'];
 	var TAU = Math.PI * 2;
 
@@ -153,10 +204,111 @@
 		};
 	};
 
+	/* ---------------------------------------------------------- attract -- */
+
+	/** A sprite at its own size times k, frame -1 turning, -2 cycling. */
+	LunaticFringe.prototype.icon = function (ctx, name, frame, x, y) {
+		var sp = this.art.sprites[name];
+		if (!sp) { return; }
+		var n = sp.frames.length, i = frame === -1 ? Math.floor(this.page.t * 8) : frame === -2 ? Math.floor(this.page.t * 6) : frame;
+		var f = sp.frames[((i % n) + n) % n];
+		ctx.drawImage(this.art.images[name], 0, f[0], sp.w, f[1], Math.round(x - sp.w / 2), Math.round(y - f[1] / 2), sp.w, f[1]);
+	};
+
+	LunaticFringe.prototype.write = function (ctx, text, x, y, size, align, bold) {
+		ctx.font = (bold ? 'bold ' : '') + size + 'px ' + FONT;
+		ctx.textAlign = align || 'left';
+		ctx.textBaseline = 'middle';
+		ctx.fillStyle = TEXT;
+		ctx.fillText(text, x, y);
+	};
+
+	/** A heading in the dotted face: drawn solid, then every third row taken away. */
+	LunaticFringe.prototype.heading = function (ctx, text, x, y, align) {
+		var c = this.dotted || (this.dotted = document.createElement('canvas'));
+		c.width = 400;
+		c.height = 20;
+		var g = c.getContext('2d');
+		g.font = 'bold 16px "Courier New", Courier, monospace';
+		g.textBaseline = 'top';
+		g.fillStyle = HEAD;
+		var tw = Math.ceil(g.measureText(text).width);
+		g.fillText(text, 0, 2);
+		g.globalCompositeOperation = 'destination-out';
+		for (var r = 2; r < 20; r += 3) { g.fillRect(0, r, 400, 1); }
+		var left = align === 'center' ? x - tw / 2 : x;
+		ctx.drawImage(c, 0, 0, tw + 2, 20, Math.round(left), Math.round(y - 9), tw + 2, 20);
+	};
+
+	LunaticFringe.prototype.attract = function (dt, ctx, w, h) {
+		var page = this.page || (this.page = { n: 0, t: 0 });
+		page.t += Math.min(dt, 0.25);
+		if (page.t > PAGES[page.n]) { page.n = (page.n + 1) % PAGES.length; page.t = 0; }
+		var k = Math.min(w / 640, h / 480), i, j;
+		k = k >= 1 ? Math.floor(k) : k;
+		ctx.save();
+		ctx.translate(Math.round((w - 640 * k) / 2), Math.round((h - 480 * k) / 2));
+		ctx.scale(k, k);
+		ctx.imageSmoothingEnabled = false;
+		if (page.n === 0) {
+			var title = this.art.sprites.title;
+			ctx.drawImage(this.art.images.title, 0, title.frames[0][0], title.w, title.frames[0][1], -4, 6, title.w, title.frames[0][1]);
+			this.write(ctx, 'By Ben Haller', 171, 119, 10, 'right', true);
+			this.write(ctx, 'and Mike Overlin', 171, 136, 10, 'right', true);
+			this.write(ctx, 'Press Control', 319, 73, 12, 'center', true);
+			this.write(ctx, 'for Help', 319, 89, 12, 'center', true);
+			this.write(ctx, 'Press Caps Lock', 319, 117, 12, 'center', true);
+			this.write(ctx, 'to enter the Fringe...', 319, 133, 12, 'center', true);
+			this.write(ctx, 'Keyboard:', 523, 44, 9, 'center');
+			this.write(ctx, 'Keypad:', 578, 44, 9, 'center');
+			ctx.fillStyle = TEXT;
+			ctx.fillRect(503, 50, 41, 1);
+			ctx.fillRect(561, 50, 34, 1);
+			for (i = 0; i < KEYS.length; i += 1) {
+				this.write(ctx, KEYS[i][0], 488, 59 + i * 13, 9, 'right');
+				this.write(ctx, KEYS[i][1], 523, 59 + i * 13, 9, 'center');
+				this.write(ctx, KEYS[i][2], 578, 59 + i * 13, 9, 'center');
+			}
+			this.heading(ctx, 'NAME', 94, 184, 'center');
+			this.heading(ctx, 'SCORE', 465, 184, 'center');
+			this.heading(ctx, 'LEVEL', 565, 184, 'center');
+			for (i = 0; i < 10; i += 1) { this.heading(ctx, (i + 1) + '.', i < 9 ? 22 : 13, 214 + i * 22); }
+		} else if (page.n === 1) {
+			this.heading(ctx, 'LUNATIC FRINGE BESTIARY', 29, 37);
+			this.write(ctx, 'To see help and information,', 545, 32, 11, 'center');
+			this.write(ctx, 'press the Control key...', 545, 47, 11, 'center');
+			for (i = 0; i < BEASTS.length; i += 1) {
+				var b = BEASTS[i], ix = b[0] ? 370 : 50, tx = b[0] ? 422 : 108;
+				for (j = 0; j < b[1].length; j += 1) { this.icon(ctx, b[1][j][0], b[1][j][1], ix + b[1][j][2], b[1][j][3]); }
+				for (j = 0; j < b[3].length; j += 1) { this.write(ctx, b[3][j], tx, b[2] + j * 15, 10); }
+			}
+		} else {
+			this.heading(ctx, 'LUNATIC PLOT', 127, 65);
+			for (i = 0; i < PLOT.length; i += 1) { this.write(ctx, PLOT[i], 136, 87 + i * 17, 11); }
+			this.heading(ctx, 'CREDITS', 127, 207);
+			for (i = 0; i < CREDITS.length; i += 1) {
+				this.write(ctx, CREDITS[i][0], 296, 226 + i * 17, 11, 'right');
+				this.write(ctx, CREDITS[i][1], 304, 226 + i * 17, 11);
+			}
+		}
+		ctx.restore();
+		ctx.textAlign = 'left';
+	};
+
 	LunaticFringe.prototype.step = function (dt, ctx, w, h) {
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0, 0, w, h);
 		if (!this.art) { return; }
+		/* Not in the Fringe: the attract pages. Caps Lock starts a game. */
+		if (!this.playing) {
+			this.wasPlaying = false;
+			this.attract(dt, ctx, w, h);
+			return;
+		}
+		if (!this.wasPlaying) {
+			this.wasPlaying = true;
+			this.newGame();
+		}
 		var s = this.s, i, j, sh = this.ship, self = this;
 		for (i = 0; i < this.stars.length; i += 1) {
 			var st = this.stars[i];

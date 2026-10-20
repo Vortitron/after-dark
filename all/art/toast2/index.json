@@ -1,0 +1,102 @@
+{
+ "module": "Toast2",
+ "format": "dib",
+ "bitmaps": {
+  "127": {
+   "w": 64,
+   "h": 64,
+   "id": 127,
+   "file": "127.png"
+  },
+  "128": {
+   "w": 64,
+   "h": 64,
+   "id": 128,
+   "file": "128.png"
+  },
+  "129": {
+   "w": 64,
+   "h": 64,
+   "id": 129,
+   "file": "129.png"
+  },
+  "130": {
+   "w": 64,
+   "h": 64,
+   "id": 130,
+   "file": "130.png"
+  },
+  "131": {
+   "w": 64,
+   "h": 64,
+   "id": 131,
+   "file": "131.png"
+  },
+  "132": {
+   "w": 64,
+   "h": 64,
+   "id": 132,
+   "file": "132.png"
+  },
+  "133": {
+   "w": 64,
+   "h": 64,
+   "id": 133,
+   "file": "133.png"
+  },
+  "144": {
+   "w": 64,
+   "h": 64,
+   "id": 144,
+   "file": "144.png"
+  },
+  "145": {
+   "w": 64,
+   "h": 64,
+   "id": 145,
+   "file": "145.png"
+  },
+  "146": {
+   "w": 64,
+   "h": 64,
+   "id": 146,
+   "file": "146.png"
+  },
+  "bwing_dn": {
+   "w": 64,
+   "h": 64,
+   "id": 11,
+   "file": "bwing_dn.png"
+  },
+  "bwingmid": {
+   "w": 64,
+   "h": 64,
+   "id": 12,
+   "file": "bwingmid.png"
+  },
+  "bwing_md": {
+   "w": 64,
+   "h": 64,
+   "id": 13,
+   "file": "bwing_md.png"
+  },
+  "bwing_up": {
+   "w": 64,
+   "h": 64,
+   "id": 14,
+   "file": "bwing_up.png"
+  },
+  "bwmtoast": {
+   "w": 64,
+   "h": 64,
+   "id": 15,
+   "file": "bwmtoast.png"
+  }
+ },
+ "text": [
+  "ystems Inc.",
+  "Flying Toasters",
+  " FLYING TOASTERS (tm)\r\n\r\n \"I really just walked into the kitchen and said to myself, 'Flying Toasters!' and went back to the office and coded it.\"  -  Jack Eastman\r\n\r\nOriginal concept by Jack Eastman.\r\nToaster artwork by Tomoya Ikeda & Igor Gasowski. ",
+  "e.\r\n\r\n "
+ ]
+}

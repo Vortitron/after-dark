@@ -12,12 +12,25 @@
  *
  * Its controls are Delay (0 sec to 1 min, how long a finished picture stays
  * up), Colors (Earth, Air, Fire, Water, Random) and Blockiness (the size of
- * the pixels it computes). Each picture is computed a row at a time, the way
- * a 1993 PC would have painted it; then it picks somewhere interesting on the
- * edge of the set and dives in four times closer. When doubles run out of
- * digits it starts again from the whole set. Caps Lock still changes colours.
+ * the pixels it computes).
  *
- *   <after-dark-mandelbrot delay="5 sec" colors="random" blockiness="2">
+ * Checked against the real module under Wine (8-bit display, defaults):
+ * - The first picture is the whole set, about 3.67 units across the screen's
+ *   width, centred on (-0.63, 0).
+ * - Every picture is painted in passes, 32-pixel blocks first, then 16, 8, 4,
+ *   2 and 1, each pass a row at a time from the top, straight over whatever
+ *   was there - there is no clearing to black between pictures.
+ * - It then dives about two to two and a half times closer to somewhere on
+ *   the edge near the middle, three times, and goes back to the whole set
+ *   with new colours. The colours stay the same through one dive.
+ * - The colours run with the escape count without repeating: a broad pale
+ *   field far out, bright bands as the edge comes nearer, the set black.
+ * Still inferred: the palettes themselves (the 8-bit grab reads pixels
+ * through the default colormap, not the module's palette, so only where the
+ * bands fall shows), exactly how the zoom target is chosen,
+ * whether three dives is fixed, and the speed (Wine paints far slower).
+ * Caps Lock still changes colours.
+ *   <after-dark-mandelbrot delay="5 sec" colors="random" blockiness="1">
  */
 (function () {
 	'use strict';
@@ -28,6 +41,10 @@
 	var BLOCKS = ['1', '2', '4', '8', '16'];
 	/* Milliseconds of each frame spent computing. */
 	var BUDGET = 10;
+	/* The first pass paints 32-pixel blocks; each pass after halves them. */
+	var FIRST = 32;
+	/* Dives into the set before it starts again from the whole of it. */
+	var DIVES = 3;
 
 	/* Each scheme is a run of stops the escape count cycles through. */
 	var SCHEMES = {
@@ -38,13 +55,22 @@
 	};
 	var NAMES = ['earth', 'air', 'fire', 'water'];
 
-	/** 256 colours around a scheme's stops, the way a CLUT would hold them. */
+	/** Random colours: a pale or dark field, then three colours toward the edge. */
+	function randomStops() {
+		var out = [];
+		for (var i = 0; i < 4; i += 1) {
+			out.push([Math.random() * 255, Math.random() * 255, Math.random() * 255].map(Math.round));
+		}
+		return out;
+	}
+
+	/** 256 colours running once through a scheme's stops, the way a CLUT would hold them. */
 	function palette(name) {
-		var stops = SCHEMES[name];
+		var stops = name === 'random' ? randomStops() : SCHEMES[name];
 		var out = new Uint8Array(256 * 3);
 		for (var i = 0; i < 256; i += 1) {
-			var f = i / 256 * stops.length;
-			var a = stops[Math.floor(f) % stops.length], b = stops[(Math.floor(f) + 1) % stops.length];
+			var f = i / 256 * (stops.length - 1);
+			var a = stops[Math.floor(f)], b = stops[Math.floor(f) + 1];
 			var t = f - Math.floor(f);
 			for (var c = 0; c < 3; c += 1) { out[i * 3 + c] = Math.round(a[c] + (b[c] - a[c]) * t); }
 		}
@@ -70,7 +96,7 @@
 	function Mandelbrot() {
 		this.wait = WAIT[1];
 		this.scheme = 'random';
-		this.block = 2;
+		this.block = 1;
 	}
 
 	Mandelbrot.prototype.resize = function (w, h) {
@@ -81,27 +107,31 @@
 		this.canvas.height = this.bh;
 		this.image = this.canvas.getContext('2d').createImageData(this.bw, this.bh);
 		this.counts = new Int32Array(this.bw * this.bh);
+		this.started = false;
 		this.home();
 	};
 
 	Mandelbrot.prototype.home = function () {
-		this.cx = -0.6;
+		this.cx = -0.63;
 		this.cy = 0;
-		this.span = 3.2;
+		/* The whole set across the width, as the original framed it at 1024x768. */
+		this.span = Math.max(3.67, 2.75 * this.bw / this.bh);
 		this.depth = 0;
+		/* New colours for each dive. */
+		this.current = this.scheme;
+		this.pal = palette(this.current);
+		if (!this.started) {
+			this.started = true;
+			for (var k = 3; k < this.image.data.length; k += 4) { this.image.data[k] = 255; }
+		}
 		this.begin();
 	};
 
 	Mandelbrot.prototype.begin = function () {
-		if (this.scheme === 'random' || !this.pal) {
-			this.current = this.scheme === 'random' ? NAMES[Math.floor(Math.random() * 4)] : this.scheme;
-			this.pal = palette(this.current);
-		}
 		this.max = Math.round(120 + 60 * this.depth);
+		this.size = Math.max(1, Math.round(FIRST / this.block));
 		this.row = 0;
 		this.shown = 0;
-		this.image.data.fill(0);
-		for (var k = 3; k < this.image.data.length; k += 4) { this.image.data[k] = 255; }
 	};
 
 	Mandelbrot.prototype.colour = function (k) {
@@ -109,7 +139,8 @@
 		if (n < 0) {
 			d[o] = d[o + 1] = d[o + 2] = 0;
 		} else {
-			var p = ((n * 4) % 256) * 3;
+			/* Wide bands for the first few counts, closer ones toward the edge. */
+			var p = Math.min(255, Math.round(255 * Math.sqrt(n / 160))) * 3;
 			d[o] = this.pal[p];
 			d[o + 1] = this.pal[p + 1];
 			d[o + 2] = this.pal[p + 2];
@@ -145,31 +176,47 @@
 		};
 	};
 
+	/** Paint one block of the current pass: its corner's count fills it. */
+	Mandelbrot.prototype.block1 = function (i, j, n) {
+		var bw = this.bw, bh = this.bh, size = this.size;
+		for (var y = j; y < Math.min(bh, j + size); y += 1) {
+			for (var x = i; x < Math.min(bw, i + size); x += 1) {
+				var k = y * bw + x;
+				this.counts[k] = n;
+				this.colour(k);
+			}
+		}
+	};
+
 	Mandelbrot.prototype.step = function (dt, ctx, w, h) {
 		var start = (window.performance || Date).now();
 		var bw = this.bw, bh = this.bh;
 		var sx = this.span / bw, sy = sx;
 		var y0 = this.cy - bh / 2 * sy, x0 = this.cx - bw / 2 * sx;
-		while (this.row < bh && (window.performance || Date).now() - start < BUDGET) {
-			var y = y0 + (this.row + 0.5) * sy;
-			for (var i = 0; i < bw; i += 1) {
-				var k = this.row * bw + i;
-				this.counts[k] = escape(x0 + (i + 0.5) * sx, y, this.max);
-				this.colour(k);
+		/* Passes of halving blocks, each a row of blocks at a time from the top. */
+		while (this.size && (window.performance || Date).now() - start < BUDGET) {
+			var size = this.size, j = this.row;
+			var y = y0 + (j + 0.5) * sy;
+			for (var i = 0; i < bw; i += size) {
+				this.block1(i, j, escape(x0 + (i + 0.5) * sx, y, this.max));
 			}
-			this.row += 1;
+			this.row += size;
+			if (this.row >= bh) {
+				this.row = 0;
+				this.size = size > 1 ? size / 2 : 0;
+			}
 		}
-		if (this.row >= bh) {
+		if (!this.size) {
 			this.shown += dt;
 			if (this.shown >= this.wait) {
-				var t = this.target();
+				var t = this.depth < DIVES ? this.target() : null;
 				this.depth += 1;
-				if (!t || this.span / 4 < 1e-12) {
+				if (!t) {
 					this.home();
 				} else {
 					this.cx = t.x;
 					this.cy = t.y;
-					this.span /= 4;
+					this.span /= 2 + Math.random() * 0.5;
 					this.begin();
 				}
 			}
@@ -181,17 +228,17 @@
 
 	/* Caps Lock, as in the original, goes on to the next colour scheme. */
 	Mandelbrot.prototype.nextColours = function () {
-		var at = NAMES.indexOf(this.current || 'earth');
+		var at = NAMES.indexOf(this.current);
 		this.current = NAMES[(at + 1) % NAMES.length];
 		this.pal = palette(this.current);
-		for (var k = 0; k < this.row * this.bw; k += 1) { this.colour(k); }
+		for (var k = 0; k < this.bw * this.bh; k += 1) { this.colour(k); }
 	};
 
 	AfterDark.define('after-dark-mandelbrot', function (el) {
 		var sim = new Mandelbrot();
 		sim.wait = WAIT[AfterDark.choice(el, 'delay', DELAYS, '5 sec')];
 		sim.scheme = COLORS[AfterDark.choice(el, 'colors', COLORS, 'random')];
-		sim.block = Number(BLOCKS[AfterDark.choice(el, 'blockiness', BLOCKS, '2')]);
+		sim.block = Number(BLOCKS[AfterDark.choice(el, 'blockiness', BLOCKS, '1')]);
 		window.addEventListener('keydown', function (e) {
 			if (e.key === 'CapsLock') { sim.nextColours(); }
 		});

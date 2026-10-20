@@ -13,23 +13,68 @@
  * pictures, In Order: the After Dark logo and a flying toaster. The
  * 10th-anniversary set put a PICTURES folder of eleven more beside it.
  * Both are in all/art/slide/, as `slides="bitmaps"` and `slides="pictures"`.
- * The effects are the module's own list, Blink to Tetris Vert, plus Random.
  *
- *   <after-dark-slideshow art="art/slide" slides="pictures" effect="random" delay="5 sec.">
+ * Checked against SLIDE.AD running under Wine (8-bit, 1024x768, catalogue
+ * BITMAPS, FX Random, Delay No Delay): each picture is drawn at its own size,
+ * one bitmap pixel to a screen pixel, in the middle of a black screen - the
+ * logo is 220x106 of the 1024x768. A change is two halves, both confined to
+ * the picture's own rectangle: the old picture is taken off to black by an
+ * effect (vertical blinds thinning to nothing, say), then the new one is put
+ * on by another; each half took about half a second to a second there.
+ * The FX menu (TYPE_1000 #3) is Blink, Rain, Wipe, Split, Spiral, Blinds,
+ * Bars, Reveal, Dissolve or Random - families, each with variants; the long
+ * list of named variants (Radial CW ... Tetris Vert) is a hidden, leftover
+ * control (#2, "Posters..."), so those names are still accepted here but are
+ * not on the menu. Delay is the module's own list, No Delay to 1 hr.
+ * Still inferred: which variants each family really has, and the exact
+ * timings. Delay rests at 45 of 100 on its slider, which is
+ * "1 min." (the first label at or above it).
+ * Slide Show reads its catalogue from MODULES.INI [Slide Show]
+ * CatalogName=<name>, as C:\WINDOWS\<name>.ADC.
+ *
+ *   <after-dark-slideshow art="art/slide" slides="bitmaps" effect="random" delay="1 min.">
  */
 (function () {
 	'use strict';
 
+	/* The FX menu: families of effect, each a handful of variants. */
+	var FAMILIES = {
+		blink: ['blink'],
+		rain: ['rain'],
+		wipe: ['wipe horizontal', 'wipe vertical'],
+		split: ['split horiz in', 'split horiz out', 'split vert in', 'split vert out'],
+		spiral: ['spiral'],
+		blinds: ['blinds horiz', 'blinds vert'],
+		bars: ['bars'],
+		reveal: ['reveal checkers', 'reveal row', 'reveal column',
+			'reveal box ul', 'reveal box ur', 'reveal box ll', 'reveal box lr'],
+		dissolve: ['dissolve']
+	};
+	var FX = ['blink', 'rain', 'wipe', 'split', 'spiral', 'blinds', 'bars', 'reveal', 'dissolve', 'random'];
+	/* Every variant by name, the hidden list's too, for anyone who asks for one. */
 	var EFFECTS = ['blink', 'radial cw', 'radial ccw', 'wipe horizontal', 'wipe vertical',
 		'split horiz in', 'split horiz out', 'split vert in', 'split vert out',
 		'iris round in', 'iris round out', 'iris square in', 'iris square out',
 		'iris diamond in', 'iris diamond out', 'blinds horiz', 'blinds vert', 'tetris horiz', 'tetris vert',
 		'rain', 'spiral', 'bars', 'dissolve', 'reveal checkers', 'reveal row', 'reveal column',
-		'reveal box ul', 'reveal box ur', 'reveal box ll', 'reveal box lr', 'random'];
-	var DELAYS = ['no delay', '5 sec.', '10 sec.', '30 sec.', '1 min.', '2 min.', '5 min.'];
-	var WAIT = [0.3, 5, 10, 30, 60, 120, 300];
+		'reveal box ul', 'reveal box ur', 'reveal box ll', 'reveal box lr'];
+	var DELAYS = ['no delay', '5 sec.', '10 sec.', '30 sec.', '1 min.', '2 min.', '5 min.',
+		'10 min.', '20 min.', '30 min.', '1 hr.'];
+	var WAIT = [0.3, 5, 10, 30, 60, 120, 300, 600, 1200, 1800, 3600];
 	var SLIDES = ['pictures', 'bitmaps'];
-	var TRANSITION = 1.6;
+	/* Seconds for each half of a change: the old picture off, the new one on. */
+	var HALF = 0.7;
+
+	function pick(list) {
+		return list[Math.floor(Math.random() * list.length)];
+	}
+
+	/** A variant to run: the one asked for, or one of the family's, or any. */
+	function variant(effect) {
+		if (EFFECTS.indexOf(effect) >= 0) { return effect; }
+		if (FAMILIES[effect]) { return pick(FAMILIES[effect]); }
+		return pick(FAMILIES[pick(FX.slice(0, -1))]);
+	}
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
@@ -137,8 +182,8 @@
 
 	function SlideShow() {
 		this.effect = 'random';
-		this.wait = WAIT[1];
-		this.slides = 'pictures';
+		this.wait = WAIT[4];
+		this.slides = 'bitmaps';
 		this.art = null;
 	}
 
@@ -151,74 +196,85 @@
 		this.trans = null;
 	};
 
-	/** A whole screen with one picture in the middle, as big as whole pixels allow. */
-	SlideShow.prototype.frame = function (name) {
-		var bmp = this.art.bitmap(name), w = this.w, h = this.h;
-		var c = document.createElement('canvas');
-		c.width = Math.max(1, Math.round(w));
-		c.height = Math.max(1, Math.round(h));
-		var g = c.getContext('2d');
-		g.fillStyle = '#000';
-		g.fillRect(0, 0, w, h);
-		var k = Math.max(1, Math.floor(Math.min(w * 0.85 / bmp.width, h * 0.85 / bmp.height)));
-		g.imageSmoothingEnabled = false;
-		g.drawImage(bmp.image, Math.round((w - bmp.width * k) / 2), Math.round((h - bmp.height * k) / 2),
-			bmp.width * k, bmp.height * k);
-		return c;
+	/** One picture, one bitmap pixel to a CSS pixel, in the middle: where it sits. */
+	SlideShow.prototype.place = function (name) {
+		var bmp = this.art.bitmap(name);
+		return { image: bmp.image, w: bmp.width, h: bmp.height,
+			x: Math.round((this.w - bmp.width) / 2), y: Math.round((this.h - bmp.height) / 2) };
 	};
 
+	/** A half of a change: `kind` run over the picture's rectangle. */
+	function half(pic, kind) {
+		var size = Math.max(4, Math.round(Math.min(pic.w, pic.h) / 10));
+		return { pic: pic, kind: kind, p: 0, grid: { size: size, cells: cells(kind, pic.w, pic.h, size) } };
+	}
+
+	/* The part of the picture the effect has reached, clipped to its rectangle. */
+	function clipTo(ctx, hf, p) {
+		var pic = hf.pic;
+		ctx.beginPath();
+		ctx.rect(pic.x, pic.y, pic.w, pic.h);
+		ctx.clip();
+		ctx.translate(pic.x, pic.y);
+		region(ctx, hf.kind, p, pic.w, pic.h, hf.grid);
+		ctx.translate(-pic.x, -pic.y);
+		ctx.clip('evenodd');
+	}
+
 	SlideShow.prototype.step = function (dt, ctx, w, h) {
-		if (!this.art) {
-			ctx.fillStyle = '#000';
-			ctx.fillRect(0, 0, w, h);
-			return;
-		}
-		var list = this.catalog;
-		if (this.trans) {
-			var t = this.trans;
-			t.p += dt / TRANSITION;
-			if (t.p >= 1) {
-				this.shown = t.to;
-				this.trans = null;
-				this.timer = this.wait;
-			} else {
-				ctx.drawImage(t.from, 0, 0, w, h);
-				ctx.save();
-				region(ctx, t.kind, t.p, w, h, t.grid);
-				ctx.clip('evenodd');
-				ctx.drawImage(t.to, 0, 0, w, h);
-				ctx.restore();
-				return;
+		ctx.fillStyle = '#000';
+		ctx.fillRect(0, 0, w, h);
+		if (!this.art) { return; }
+		var list = this.catalog, t = this.trans;
+		if (t) {
+			var hf = t.out || t['in'];
+			hf.p += dt / HALF;
+			if (hf.p >= 1) {
+				if (t.out) {
+					t.out = null;
+				} else {
+					this.shown = hf.pic;
+					this.trans = null;
+					this.timer = this.wait;
+				}
 			}
-		}
-		this.timer -= dt;
-		if (this.timer <= 0) {
-			this.index = (this.index + 1) % list.length;
-			var kind = this.effect === 'random' ? EFFECTS[Math.floor(Math.random() * (EFFECTS.length - 1))] : this.effect;
-			var from = this.shown;
-			if (!from) {
-				from = document.createElement('canvas');
-				from.width = Math.max(1, Math.round(w));
-				from.height = Math.max(1, Math.round(h));
-				from.getContext('2d').fillRect(0, 0, w, h);
-			}
-			var size = Math.max(8, Math.round(Math.min(w, h) / 24));
-			this.trans = { from: from, to: this.frame(list[this.index]), p: 0, kind: kind,
-				grid: { size: size, cells: cells(kind, w, h, size) } };
-		}
-		if (this.shown) {
-			ctx.drawImage(this.shown, 0, 0, w, h);
 		} else {
-			ctx.fillStyle = '#000';
-			ctx.fillRect(0, 0, w, h);
+			this.timer -= dt;
+			if (this.timer <= 0) {
+				this.index = (this.index + 1) % list.length;
+				this.trans = {
+					out: this.shown ? half(this.shown, variant(this.effect)) : null,
+					'in': half(this.place(list[this.index]), variant(this.effect))
+				};
+				this.shown = null;
+			}
+		}
+		t = this.trans;
+		if (t && t.out) {
+			/* The old picture going: it stays wherever the effect has not reached. */
+			var o = t.out.pic;
+			ctx.drawImage(o.image, o.x, o.y);
+			ctx.save();
+			clipTo(ctx, t.out, Math.min(1, t.out.p));
+			ctx.fillRect(o.x, o.y, o.w, o.h);
+			ctx.restore();
+		} else if (t) {
+			var n = t['in'].pic;
+			ctx.save();
+			clipTo(ctx, t['in'], Math.min(1, t['in'].p));
+			ctx.drawImage(n.image, n.x, n.y);
+			ctx.restore();
+		} else if (this.shown) {
+			ctx.drawImage(this.shown.image, this.shown.x, this.shown.y);
 		}
 	};
 
 	AfterDark.define('after-dark-slideshow', function (el) {
 		var sim = new SlideShow();
-		sim.effect = EFFECTS[AfterDark.choice(el, 'effect', EFFECTS, 'random')];
-		sim.wait = WAIT[AfterDark.choice(el, 'delay', DELAYS, '5 sec.')];
-		sim.slides = SLIDES[AfterDark.choice(el, 'slides', SLIDES, 'pictures')];
+		var names = FX.concat(EFFECTS);
+		sim.effect = names[AfterDark.choice(el, 'effect', names, 'random')];
+		sim.wait = WAIT[AfterDark.choice(el, 'delay', DELAYS, '1 min.')];
+		sim.slides = SLIDES[AfterDark.choice(el, 'slides', SLIDES, 'bitmaps')];
 		var base = AfterDark.setting(el, 'art') || 'art/slide';
 		Promise.all([AfterDark.load(base), AfterDark.data(base)]).then(function (both) {
 			sim.catalog = both[1].catalogs[sim.slides];
@@ -231,4 +287,5 @@
 
 	window.AfterDarkSlideShow = SlideShow;
 	SlideShow.EFFECTS = EFFECTS;
+	SlideShow.FX = FX;
 }());
