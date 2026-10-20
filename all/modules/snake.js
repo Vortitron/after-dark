@@ -7,25 +7,46 @@
  *    can solve the maze before the snake!
  *    Solution speed -- controls how fast the snake solves the maze.
  *    Maze complexity -- controls complexity of the maze."
- *   By Alex Ze.
+ *   By Alex Zeltser, Jim Miars & P. Lamoreux.
  *
- * The settings are its own, out of TYPE_1000. Solution speed and maze
- * complexity were sliders 1-9; here they are Slow / Medium / Fast and
- * Simple / Medium / Twisty. Pause when done is 0 sec / 1 sec / 3 sec /
- * 5 sec / 10 sec / 15 sec / 30 sec / 1 min.
+ * Checked against the original running under Wine at 1024x768 (October 2026):
+ *  - The maze is always 49 x 37 cells at 1024x768, centred, drawn in 1-px
+ *    white lines on black. It is a perfect maze with about 10% dead ends - a
+ *    depth-first (recursive backtracker) maze, which is what this generates.
+ *  - Maze complexity does not add cells; it shrinks them. The stored value is
+ *    used raw: 0 (the stored default) gives 20 px cells, 1..9 give 19 - n px
+ *    (18, 17 ... 10), and 10 or more blanks the module. So "more complex"
+ *    is the same maze, smaller. Here the grid is sized from 20 px cells
+ *    (floor((w - 40) / 20) x floor((h - 20) / 20), 49 x 37 at 1024x768).
+ *  - Entrance and exit are gaps in opposite edges (left/right or top/bottom)
+ *    at random positions. Outside the entrance sits a green (#00ff00) 7-px
+ *    deep block, cell - 2 long; outside the exit a red (#ff0000) ellipse
+ *    8 px deep, cell - 1 long.
+ *  - The snake searches depth-first from the entrance, filling each cell it
+ *    enters with a block inset 3 px from the wall lines (14 px in a 20 px
+ *    cell) joined to the previous one, and erases itself as it backs out of
+ *    dead ends. It is one solid VGA colour, a new one for every maze.
+ *  - When it reaches the exit the next maze follows after "Pause when done"
+ *    (stored default 0 sec - at once).
+ *  - Solution speed is a 1..9 slider whose stored default is 0. Measured
+ *    growth: about 130 cells/s at 0 and 1, 250 at 3, ~1400 at 9 (a maze
+ *    every couple of seconds at default, several a second at 9). Wine ran the
+ *    module without the original machine's drawing cost, so these rates are
+ *    the module's own pacing at best; the in-between values are interpolated.
+ * Inferred: whether the snake picks its next turn at random (it looks so), the
+ *    grid size at other screen sizes, the exact speed curve.
  *
- *   <after-dark-snake speed="medium" maze-complexity="medium"
- *     pause-when-done="5 sec">
+ *   <after-dark-snake speed="0" maze-complexity="0" pause-when-done="0 sec">
+ *
+ * speed and maze-complexity take the raw stored values 0-9.
  */
 (function () {
 	'use strict';
 
-	var SPEED = { slow: 8, medium: 18, fast: 36 };
-	var COMPLEXITY = {
-		simple: { cols: 12, rows: 8 },
-		medium: { cols: 20, rows: 13 },
-		twisty: { cols: 32, rows: 20 }
-	};
+	/* Cells per second (each step one cell forward or one back), by setting. */
+	var SPEED = [130, 130, 180, 250, 340, 460, 620, 840, 1100, 1400];
+	var SPEED_NAMES = { slow: 1, medium: 5, fast: 9 };
+	var COMPLEXITY_NAMES = { simple: 0, medium: 4, twisty: 9 };
 	var PAUSE = {
 		'0 sec': 0,
 		'1 sec': 1,
@@ -36,6 +57,10 @@
 		'30 sec': 30,
 		'1 min': 60
 	};
+	/* The standard VGA colours bar black and white; one per maze. */
+	var COLOURS = ['#800000', '#008000', '#808000', '#000080', '#800080',
+		'#008080', '#c0c0c0', '#808080', '#ff0000', '#00ff00', '#ffff00',
+		'#0000ff', '#ff00ff', '#00ffff'];
 
 	var N = 1, E = 2, S = 4, W = 8;
 	var OPP = {};
@@ -66,24 +91,30 @@
 		return list;
 	}
 
-	function cellKey(x, y) {
-		return x + ',' + y;
+	/** Cell size for a raw Maze complexity value (see the header). */
+	function cellSize(complexity) {
+		var n = Math.max(0, Math.min(9, Math.round(complexity) || 0));
+		return n === 0 ? 20 : 19 - n;
 	}
 
 	/** Perfect maze, recursive backtracker. Each cell starts with all walls. */
 	function generateMaze(cols, rows) {
 		console.assert(cols >= 2 && rows >= 2, 'maze needs room to turn');
 		var grid = [];
+		var seen = [];
 		var x, y, stack, cx, cy, dirs, d, nx, ny, carved;
 		for (y = 0; y < rows; y += 1) {
 			grid[y] = [];
+			seen[y] = [];
 			for (x = 0; x < cols; x += 1) {
 				grid[y][x] = N | E | S | W;
+				seen[y][x] = false;
 			}
 		}
-		stack = [{ x: 0, y: 0 }];
-		var seen = {};
-		seen[cellKey(0, 0)] = true;
+		cx = Math.floor(Math.random() * cols);
+		cy = Math.floor(Math.random() * rows);
+		stack = [{ x: cx, y: cy }];
+		seen[cy][cx] = true;
 		while (stack.length) {
 			cx = stack[stack.length - 1].x;
 			cy = stack[stack.length - 1].y;
@@ -92,15 +123,12 @@
 			for (d = 0; d < dirs.length; d += 1) {
 				nx = cx + DX[dirs[d]];
 				ny = cy + DY[dirs[d]];
-				if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) {
-					continue;
-				}
-				if (seen[cellKey(nx, ny)]) {
+				if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || seen[ny][nx]) {
 					continue;
 				}
 				grid[cy][cx] &= ~dirs[d];
 				grid[ny][nx] &= ~OPP[dirs[d]];
-				seen[cellKey(nx, ny)] = true;
+				seen[ny][nx] = true;
 				stack.push({ x: nx, y: ny });
 				carved = true;
 				break;
@@ -112,73 +140,95 @@
 		return { cols: cols, rows: rows, grid: grid };
 	}
 
-	/** Shortest path from (0,0) to the far corner, walking open walls. */
-	function solveMaze(maze) {
-		var start = { x: 0, y: 0 };
-		var goalX = maze.cols - 1;
-		var goalY = maze.rows - 1;
-		var q = [start];
-		var prev = {};
-		var seen = {};
-		seen[cellKey(0, 0)] = true;
-		var i, cur, d, nx, ny, key, path, p;
-		while (q.length) {
-			cur = q.shift();
-			if (cur.x === goalX && cur.y === goalY) {
-				path = [];
-				p = cur;
-				while (p) {
-					path.push(p);
-					p = prev[cellKey(p.x, p.y)];
-				}
-				path.reverse();
-				return path;
-			}
-			for (i = 0; i < DIRS.length; i += 1) {
-				d = DIRS[i];
-				if (maze.grid[cur.y][cur.x] & d) {
-					continue;
-				}
-				nx = cur.x + DX[d];
-				ny = cur.y + DY[d];
-				key = cellKey(nx, ny);
-				if (seen[key]) {
-					continue;
-				}
-				seen[key] = true;
-				prev[key] = cur;
-				q.push({ x: nx, y: ny });
-			}
+	/**
+	 * Entrance and exit in opposite edges at random places. Each is a cell
+	 * and the side of it that opens to the outside.
+	 */
+	function openings(maze) {
+		var cols = maze.cols, rows = maze.rows;
+		var across = Math.random() < 0.5;
+		var flip = Math.random() < 0.5;
+		var a, b;
+		if (across) {
+			a = { x: 0, y: Math.floor(Math.random() * rows), side: W };
+			b = { x: cols - 1, y: Math.floor(Math.random() * rows), side: E };
+		} else {
+			a = { x: Math.floor(Math.random() * cols), y: 0, side: N };
+			b = { x: Math.floor(Math.random() * cols), y: rows - 1, side: S };
 		}
-		return [{ x: 0, y: 0 }];
+		maze.grid[a.y][a.x] &= ~a.side;
+		maze.grid[b.y][b.x] &= ~b.side;
+		return flip ? { start: a, goal: b } : { start: b, goal: a };
 	}
 
 	function Snake() {
-		this.speed = SPEED.medium;
-		this.complexity = COMPLEXITY.medium;
-		this.pause = PAUSE['5 sec'];
+		this.speed = SPEED[0];
+		this.complexity = 0;
+		this.pause = PAUSE['0 sec'];
 		this.maze = null;
-		this.path = [];
-		this.along = 0;
+		this.trail = [];
+		this.visited = null;
+		this.budget = 0;
 		this.wait = 0;
 		this.done = false;
+		this.colour = COLOURS[0];
 	}
 
 	Snake.prototype.rebuild = function (w, h) {
-		var spec = this.complexity;
-		var cols = spec.cols;
-		var rows = spec.rows;
-		/* Keep cells roughly square and on-screen. */
-		var cell = Math.max(8, Math.floor(Math.min((w - 16) / cols, (h - 16) / rows)));
+		var cols = Math.max(2, Math.floor((w - 40) / 20));
+		var rows = Math.max(2, Math.floor((h - 20) / 20));
+		var cell = cellSize(this.complexity);
+		var x, y, ends;
 		this.cell = cell;
-		this.originX = Math.floor((w - cols * cell) / 2);
-		this.originY = Math.floor((h - rows * cell) / 2);
+		/* +1: the original's lines sit one pixel right of and below centre. */
+		this.originX = Math.floor((w - cols * cell) / 2) + 1;
+		this.originY = Math.floor((h - rows * cell) / 2) + 1;
 		this.maze = generateMaze(cols, rows);
-		this.path = solveMaze(this.maze);
-		console.assert(this.path.length >= 2, 'maze should have a path');
-		this.along = 1;
+		ends = openings(this.maze);
+		this.start = ends.start;
+		this.goal = ends.goal;
+		this.visited = [];
+		for (y = 0; y < rows; y += 1) {
+			this.visited[y] = [];
+			for (x = 0; x < cols; x += 1) {
+				this.visited[y][x] = false;
+			}
+		}
+		this.visited[this.start.y][this.start.x] = true;
+		this.trail = [{ x: this.start.x, y: this.start.y }];
+		this.colour = COLOURS[Math.floor(Math.random() * COLOURS.length)];
+		this.budget = 0;
 		this.done = false;
 		this.wait = 0;
+	};
+
+	/** One move of the depth-first search: forward into a new cell or back. */
+	Snake.prototype.move = function () {
+		var head = this.trail[this.trail.length - 1];
+		var walls, dirs, i, nx, ny;
+		if (head.x === this.goal.x && head.y === this.goal.y) {
+			this.done = true;
+			this.wait = this.pause;
+			return;
+		}
+		walls = this.maze.grid[head.y][head.x];
+		dirs = shuffle(DIRS.slice());
+		for (i = 0; i < dirs.length; i += 1) {
+			if (walls & dirs[i]) {
+				continue;
+			}
+			nx = head.x + DX[dirs[i]];
+			ny = head.y + DY[dirs[i]];
+			if (nx < 0 || ny < 0 || nx >= this.maze.cols || ny >= this.maze.rows ||
+				this.visited[ny][nx]) {
+				continue;
+			}
+			this.visited[ny][nx] = true;
+			this.trail.push({ x: nx, y: ny });
+			return;
+		}
+		this.trail.pop();
+		console.assert(this.trail.length > 0, 'a perfect maze always leads to the exit');
 	};
 
 	Snake.prototype.step = function (dt, w, h) {
@@ -193,12 +243,46 @@
 			}
 			return;
 		}
-		this.along += dt * this.speed;
-		if (this.along >= this.path.length) {
-			this.along = this.path.length;
-			this.done = true;
-			this.wait = this.pause;
+		this.budget += dt * this.speed;
+		while (this.budget >= 1 && !this.done) {
+			this.budget -= 1;
+			this.move();
 		}
+		if (this.done) {
+			this.budget = 0;
+		}
+	};
+
+	/* The fill of one cell, [x0, y0, x1, y1) in pixels. */
+	Snake.prototype.box = function (p) {
+		var x = this.originX + p.x * this.cell;
+		var y = this.originY + p.y * this.cell;
+		return [x + 3, y + 3, x + this.cell - 3, y + this.cell - 3];
+	};
+
+	/* Cell fill stretched out through its gap to the outer wall line. */
+	Snake.prototype.outward = function (end) {
+		var b = this.box(end);
+		var c = this.cell;
+		var ox = this.originX, oy = this.originY;
+		if (end.side === W) { b[0] = ox; }
+		if (end.side === E) { b[2] = ox + this.maze.cols * c + 1; }
+		if (end.side === N) { b[1] = oy; }
+		if (end.side === S) { b[3] = oy + this.maze.rows * c + 1; }
+		return b;
+	};
+
+	/* Rectangle just outside an opening: `depth` deep, `len` along the edge. */
+	Snake.prototype.outside = function (end, depth, len) {
+		var c = this.cell;
+		var x = this.originX + end.x * c;
+		var y = this.originY + end.y * c;
+		var right = this.originX + this.maze.cols * c;
+		var bottom = this.originY + this.maze.rows * c;
+		if (end.side === W) { return [x - depth, y + 1, depth, len]; }
+		if (end.side === E) { return [right + 1, y + 1, depth, len]; }
+		if (end.side === N) { return [x + 1, y - depth, len, depth]; }
+		return [x + 1, bottom + 1, len, depth];
 	};
 
 	Snake.prototype.draw = function (ctx, w, h) {
@@ -206,52 +290,58 @@
 		var cell = this.cell;
 		var ox = this.originX;
 		var oy = this.originY;
-		var x, y, walls, px, py, i, p, shown;
+		var x, y, walls, px, py, i, a, b, r;
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0, 0, w, h);
 		if (!maze) {
 			return;
 		}
-		ctx.strokeStyle = '#6ecb6e';
-		ctx.lineWidth = 2;
-		ctx.beginPath();
+		ctx.fillStyle = '#fff';
 		for (y = 0; y < maze.rows; y += 1) {
 			for (x = 0; x < maze.cols; x += 1) {
 				walls = maze.grid[y][x];
 				px = ox + x * cell;
 				py = oy + y * cell;
 				if (walls & N) {
-					ctx.moveTo(px, py);
-					ctx.lineTo(px + cell, py);
+					ctx.fillRect(px, py, cell + 1, 1);
 				}
 				if (walls & W) {
-					ctx.moveTo(px, py);
-					ctx.lineTo(px, py + cell);
+					ctx.fillRect(px, py, 1, cell + 1);
 				}
 				if (y === maze.rows - 1 && (walls & S)) {
-					ctx.moveTo(px, py + cell);
-					ctx.lineTo(px + cell, py + cell);
+					ctx.fillRect(px, py + cell, cell + 1, 1);
 				}
 				if (x === maze.cols - 1 && (walls & E)) {
-					ctx.moveTo(px + cell, py);
-					ctx.lineTo(px + cell, py + cell);
+					ctx.fillRect(px + cell, py, 1, cell + 1);
 				}
 			}
 		}
-		ctx.stroke();
 
-		shown = Math.min(this.path.length, Math.max(1, Math.floor(this.along)));
-		ctx.fillStyle = '#d2ff4a';
-		for (i = 0; i < shown; i += 1) {
-			p = this.path[i];
-			ctx.fillRect(ox + p.x * cell + 3, oy + p.y * cell + 3, cell - 6, cell - 6);
-		}
-		p = this.path[shown - 1];
-		ctx.fillStyle = '#fff47a';
+		/* Entrance block and exit ellipse. */
+		r = this.outside(this.start, 7, cell - 2);
+		ctx.fillStyle = '#00ff00';
+		ctx.fillRect(r[0], r[1], r[2], r[3]);
+		r = this.outside(this.goal, 8, cell - 1);
+		ctx.fillStyle = '#ff0000';
 		ctx.beginPath();
-		ctx.arc(ox + p.x * cell + cell / 2, oy + p.y * cell + cell / 2,
-			Math.max(3, cell / 3), 0, Math.PI * 2);
+		ctx.ellipse(r[0] + r[2] / 2, r[1] + r[3] / 2, r[2] / 2, r[3] / 2, 0, 0, Math.PI * 2);
 		ctx.fill();
+
+		/* The snake: each cell joined to the next, one solid colour. */
+		ctx.fillStyle = this.colour;
+		a = this.outward(this.start);
+		ctx.fillRect(a[0], a[1], a[2] - a[0], a[3] - a[1]);
+		for (i = 1; i < this.trail.length; i += 1) {
+			a = this.box(this.trail[i - 1]);
+			b = this.box(this.trail[i]);
+			x = Math.min(a[0], b[0]);
+			y = Math.min(a[1], b[1]);
+			ctx.fillRect(x, y, Math.max(a[2], b[2]) - x, Math.max(a[3], b[3]) - y);
+		}
+		if (this.done) {
+			a = this.outward(this.goal);
+			ctx.fillRect(a[0], a[1], a[2] - a[0], a[3] - a[1]);
+		}
 	};
 
 	function SnakeElement() {
@@ -261,6 +351,15 @@
 	SnakeElement.prototype.constructor = SnakeElement;
 	Object.setPrototypeOf(SnakeElement, HTMLElement);
 
+	function level(value, names) {
+		var v = String(value === null || value === undefined ? '0' : value).toLowerCase().trim();
+		if (names[v] !== undefined) {
+			return names[v];
+		}
+		v = parseInt(v, 10);
+		return isNaN(v) ? 0 : Math.max(0, Math.min(9, v));
+	}
+
 	SnakeElement.prototype.connectedCallback = function () {
 		if (this._screen) {
 			return;
@@ -269,12 +368,10 @@
 		this.style.background = '#000';
 
 		var sim = new Snake();
-		var speed = (AfterDark.setting(this, 'speed') || 'medium').toLowerCase();
-		var maze = (AfterDark.setting(this, 'maze-complexity') || 'medium').toLowerCase();
-		var pause = (AfterDark.setting(this, 'pause-when-done') || '5 sec').toLowerCase();
-		sim.speed = SPEED[speed] || parseInt(speed, 10) || SPEED.medium;
-		sim.complexity = COMPLEXITY[maze] || COMPLEXITY.medium;
-		sim.pause = PAUSE[pause] !== undefined ? PAUSE[pause] : PAUSE['5 sec'];
+		var pause = (AfterDark.setting(this, 'pause-when-done') || '0 sec').toLowerCase();
+		sim.speed = SPEED[level(AfterDark.setting(this, 'speed'), SPEED_NAMES)];
+		sim.complexity = level(AfterDark.setting(this, 'maze-complexity'), COMPLEXITY_NAMES);
+		sim.pause = PAUSE[pause] !== undefined ? PAUSE[pause] : 0;
 
 		var screen = new AfterDark.Screen(this);
 		this._screen = screen;
@@ -299,8 +396,7 @@
 	customElements.define('after-dark-snake', SnakeElement);
 	window.AfterDarkSnake = Snake;
 	Snake.generateMaze = generateMaze;
-	Snake.solveMaze = solveMaze;
+	Snake.cellSize = cellSize;
 	Snake.SPEED = SPEED;
-	Snake.COMPLEXITY = COMPLEXITY;
 	Snake.PAUSE = PAUSE;
 }());

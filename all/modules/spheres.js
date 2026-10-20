@@ -11,70 +11,103 @@
  *    screen.
  *    Based on Spheres by Bruce Burkhalter."
  *
- * Max Size, Offset and Clear Every were sliders; here they are discrete
- * values in the same ranges.
+ * Checked against the original running under Wine (October 2026), from
+ * WINEDEBUG=+relay traces of its GDI calls at several settings (over 700
+ * spheres) and an 8-bit capture. A sphere is 34 filled circles, NULL pen,
+ * one per tick, each smaller, brighter and nearer the highlight:
  *
- *   <after-dark-spheres max-size="50" offset="10" clear-every="100" clear-screen>
+ *   R = 30 + random(Max Size)            centre anywhere on the screen
+ *   ring k (0..33): radius R * sqrt(1 - k/33) (the last about R/10),
+ *     centre moved right and up by R * Offset/20 * sqrt(k/33) each way,
+ *     colour level 24 + 7k (24 .. 255) in one of six hues, evenly picked:
+ *     red, green, blue, magenta, cyan, and azure (blue at the level, green
+ *     at 29 + 3k).
+ *
+ * So Offset 10 puts the highlight half a radius up and right; past about
+ * 20 the rings leave the sphere and it becomes a comet or an egg. (Past
+ * about 70 the original's arithmetic overflows and the far rings flip to
+ * the other side; that is not copied.) After Clear Every spheres the screen
+ * is filled black. Clear Screen First is off by default: the first spheres
+ * land on your desktop. Colours are PALETTERGB, so the module got the
+ * nearest entries of the engine's palette (a 6x6x6 cube and greys); here
+ * they are the exact levels.
+ *
+ * The defaults are what the module does with no settings stored: Max Size
+ * 73, Offset 10, Clear Every 30. Still chosen: the rate (Wine runs it
+ * unthrottled, a whole screenful in a fraction of a second).
+ *
+ *   <after-dark-spheres max-size="73" offset="10" clear-every="30">
  */
 (function () {
 	'use strict';
 
-	var PALETTE = [
-		'#e05050', '#e09040', '#e0d040', '#50c060', '#40b0d0',
-		'#5080e0', '#9050d0', '#e060a0', '#d0d0d0', '#40c0a0'
+	var RINGS = 34;
+	var RINGS_PER_FRAME = 4;
+
+	/* Each hue: [r, g, b] as a function of the ring's level v = 24 + 7k. */
+	var HUES = [
+		function (v) { return [v, 0, 0]; },
+		function (v) { return [0, v, 0]; },
+		function (v) { return [0, 0, v]; },
+		function (v) { return [v, 0, v]; },
+		function (v) { return [0, v, v]; },
+		function (v, k) { return [0, 29 + 3 * k, v]; }
 	];
 
-	function rand(a, b) {
-		return a + Math.random() * (b - a);
+	function random(n) {
+		return Math.floor(Math.random() * n);
 	}
 
-	function pick(list) {
-		return list[Math.floor(Math.random() * list.length)];
-	}
-
-	/** Spec for one orb: centre, radii, colour. Offset 0 is a circle. */
+	/** Spec for one orb: centre, radius, hue, and the 34 rings it is drawn as. */
 	function makeSphere(w, h, maxSize, offset) {
-		var r = rand(8, maxSize);
-		var squash = Math.max(0.35, 1 - offset / 140);
-		return {
-			x: rand(r, Math.max(r + 1, w - r)),
-			y: rand(r, Math.max(r + 1, h - r)),
-			rx: r,
-			ry: r * squash,
-			colour: pick(PALETTE)
-		};
+		var scale = w / 1024;
+		var r = (30 + random(maxSize)) * scale;
+		var x = random(w);
+		var y = random(h);
+		var hue = HUES[random(HUES.length)];
+		var push = r * offset / 20;
+		var rings = [];
+		for (var k = 0; k < RINGS; k += 1) {
+			var t = k / (RINGS - 1);
+			var c = hue(24 + 7 * k, k);
+			rings.push({
+				x: x + push * Math.sqrt(t),
+				y: y - push * Math.sqrt(t),
+				r: r * Math.max(Math.sqrt(1 - t), 0.095),
+				colour: 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'
+			});
+		}
+		return { x: x, y: y, r: r, rings: rings };
 	}
 
-	function paintSphere(ctx, s) {
-		var g = ctx.createRadialGradient(
-			s.x - s.rx * 0.35,
-			s.y - s.ry * 0.38,
-			s.rx * 0.08,
-			s.x,
-			s.y,
-			Math.max(s.rx, s.ry)
-		);
-		g.addColorStop(0, '#ffffff');
-		g.addColorStop(0.22, s.colour);
-		g.addColorStop(1, '#101018');
-		ctx.fillStyle = g;
+	function paintRing(ctx, ring) {
+		ctx.fillStyle = ring.colour;
 		ctx.beginPath();
-		ctx.ellipse(s.x, s.y, s.rx, s.ry, 0, 0, Math.PI * 2);
+		ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
 		ctx.fill();
 	}
 
+	function paintSphere(ctx, s) {
+		for (var i = 0; i < s.rings.length; i += 1) {
+			paintRing(ctx, s.rings[i]);
+		}
+	}
+
 	function Spheres() {
-		this.maxSize = 50;
+		this.maxSize = 73;
 		this.offset = 10;
-		this.clearEvery = 100;
-		this.clearScreen = true;
+		this.clearEvery = 30;
+		this.clearScreen = false;
 		this.drawn = 0;
 		this.ready = false;
+		this.sphere = null;
+		this.ring = 0;
 	}
 
 	Spheres.prototype.reset = function () {
 		this.drawn = 0;
 		this.ready = false;
+		this.sphere = null;
 	};
 
 	Spheres.prototype.draw = function (ctx, w, h) {
@@ -83,18 +116,28 @@
 				ctx.fillStyle = '#000';
 				ctx.fillRect(0, 0, w, h);
 			} else {
-				ctx.clearRect(0, 0, w, h);
+				ctx.drawImage(AfterDark.desktop(Math.round(w), Math.round(h)), 0, 0, w, h);
 			}
 			this.ready = true;
 			this.drawn = 0;
 		}
-		if (this.clearEvery > 0 && this.drawn >= this.clearEvery) {
-			ctx.fillStyle = '#000';
-			ctx.fillRect(0, 0, w, h);
-			this.drawn = 0;
+		for (var i = 0; i < RINGS_PER_FRAME; i += 1) {
+			if (!this.sphere) {
+				if (this.clearEvery > 0 && this.drawn >= this.clearEvery) {
+					ctx.fillStyle = '#000';
+					ctx.fillRect(0, 0, w, h);
+					this.drawn = 0;
+				}
+				this.sphere = makeSphere(w, h, this.maxSize, this.offset);
+				this.ring = 0;
+			}
+			paintRing(ctx, this.sphere.rings[this.ring]);
+			this.ring += 1;
+			if (this.ring >= this.sphere.rings.length) {
+				this.sphere = null;
+				this.drawn += 1;
+			}
 		}
-		paintSphere(ctx, makeSphere(w, h, this.maxSize, this.offset));
-		this.drawn += 1;
 	};
 
 	function SpheresElement() {
@@ -113,13 +156,14 @@
 		this.style.background = '#000';
 
 		var sim = new Spheres();
-		sim.maxSize = Math.max(12, Math.min(120, parseInt(AfterDark.setting(self, 'max-size'), 10) || 50));
-		sim.offset = Math.max(0, Math.min(100, parseInt(AfterDark.setting(self, 'offset'), 10) || 10));
+		sim.maxSize = Math.max(10, Math.min(100, parseInt(AfterDark.setting(self, 'max-size'), 10) || 73));
+		var offset = parseInt(AfterDark.setting(self, 'offset'), 10);
+		sim.offset = Math.max(0, Math.min(100, isNaN(offset) ? 10 : offset));
 		var every = AfterDark.setting(self, 'clear-every');
 		if (every !== null && String(every).toLowerCase() === 'never') {
 			sim.clearEvery = 0;
 		} else {
-			sim.clearEvery = Math.max(0, parseInt(every, 10) || 100);
+			sim.clearEvery = Math.max(0, parseInt(every, 10) || 30);
 		}
 		sim.clearScreen = AfterDark.flag(self, 'clear-screen');
 
@@ -146,4 +190,5 @@
 	window.AfterDarkSpheres = Spheres;
 	Spheres.makeSphere = makeSphere;
 	Spheres.paintSphere = paintSphere;
+	Spheres.HUES = HUES;
 }());

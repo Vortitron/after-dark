@@ -80,42 +80,66 @@ function testSnake() {
 	assert.strictEqual(maze.grid.length, 6);
 	assert.strictEqual(maze.grid[0].length, 8);
 
-	var path = Snake.solveMaze(maze);
-	assert.ok(path.length >= 2, 'there is a path');
-	assert.strictEqual(path[0].x, 0);
-	assert.strictEqual(path[0].y, 0);
-	assert.strictEqual(path[path.length - 1].x, 7);
-	assert.strictEqual(path[path.length - 1].y, 5);
+	var edges = 0;
+	maze.grid.forEach(function (row) {
+		row.forEach(function (walls) {
+			edges += 4 - ((walls & 1 ? 1 : 0) + (walls & 2 ? 1 : 0) + (walls & 4 ? 1 : 0) + (walls & 8 ? 1 : 0));
+		});
+	});
+	assert.strictEqual(edges / 2, 8 * 6 - 1, 'a perfect maze: every cell joined, no loops');
+
+	assert.strictEqual(Snake.cellSize(0), 20, 'stored default complexity: 20 px cells');
+	assert.strictEqual(Snake.cellSize(1), 18);
+	assert.strictEqual(Snake.cellSize(9), 10);
 
 	var sim = new Snake();
-	sim.complexity = { cols: 10, rows: 8 };
-	sim.rebuild(400, 300);
-	assert.ok(sim.maze);
-	assert.ok(sim.path.length >= 2);
-	var along = sim.along;
-	sim.step(1, 400, 300);
-	assert.ok(sim.along > along, 'the snake advances');
+	sim.rebuild(1024, 768);
+	assert.strictEqual(sim.maze.cols, 49, '49 x 37 cells at 1024x768');
+	assert.strictEqual(sim.maze.rows, 37);
+	assert.strictEqual(sim.originX, 23);
+	assert.strictEqual(sim.originY, 15);
+	var mazes = 0;
+	for (var i = 0; i < 20000 && mazes < 3; i += 1) {
+		sim.step(0.05, 1024, 768);
+		if (sim.done) {
+			var head = sim.trail[sim.trail.length - 1];
+			assert.ok(head.x === sim.goal.x && head.y === sim.goal.y, 'the snake ends at the exit');
+			mazes += 1;
+			sim.step(0.05, 1024, 768);
+		}
+	}
+	assert.strictEqual(mazes, 3, 'the snake solves maze after maze');
 }
 
 function testZot() {
 	loadModule('zot');
 	var Zot = global.AfterDarkZot;
-	var straight = Zot.displace([{ x: 0, y: 0 }, { x: 0, y: 100 }], 0, 3);
-	assert.ok(straight.length >= 2);
-	assert.strictEqual(straight[0].x, 0);
-	assert.strictEqual(straight[straight.length - 1].y, 100);
-
-	var bolts = Zot.strike(320, 240, 3, 0.3);
-	assert.ok(bolts.length >= 1, 'at least the main bolt');
-	assert.ok(bolts[0].length >= 2, 'the main bolt has points');
-	assert.ok(bolts.length >= 2, 'forky strike grows side bolts');
+	for (var n = 0; n < 50; n += 1) {
+		var bolts = Zot.strike(1024, 768, Zot.FORKS.forky);
+		var main = bolts[0];
+		assert.strictEqual(main[0].y, 0, 'the bolt starts at the top edge');
+		assert.ok(main[main.length - 1].y >= 740 && main[main.length - 1].y <= 758, 'and stops near the bottom');
+		assert.ok(bolts.length - 1 >= 4 && bolts.length - 1 <= 17, '4..17 forks');
+		for (var f = 1; f < bolts.length; f += 1) {
+			assert.ok(bolts[f].length - 1 <= 24, 'Forky forks run at most ~23 steps');
+		}
+		bolts.forEach(function (line) {
+			for (var i = 1; i < line.length; i += 1) {
+				var dy = line[i].y - line[i - 1].y;
+				assert.ok(dy >= 0 && dy <= 18, 'steps go 0..18 px down');
+				assert.ok(Math.abs(line[i].x - line[i - 1].x) <= 25, 'and at most 25 px across');
+			}
+		});
+	}
 
 	var sim = new Zot();
-	sim.gap = 10;
 	sim.wait = 0;
-	sim.step(0.016, 320, 240);
+	sim.step(0.016, 1024, 768);
 	assert.ok(sim.bolts.length >= 1, 'a due strike fires');
-	assert.ok(sim.flash > 0, 'the screen flashes');
+	assert.ok(sim.lit(), 'and shows');
+	sim.step(0.2, 1024, 768);
+	assert.ok(!sim.lit(), 'then is rubbed out');
+	assert.ok(sim.wait >= 2, 'the next strike is seconds away');
 }
 
 function stubSeq() {
@@ -214,66 +238,72 @@ function testDraino() {
 	var Draino = global.AfterDarkDraino;
 	assert.ok(Draino.SPEED.fast > Draino.SPEED.slow);
 	var sim = new Draino();
-	sim.reset(320, 240);
-	assert.ok(sim.bits.length > 50);
-	var first = sim.bits[0];
-	var before = { x: first.x, y: first.y };
-	sim.step(0.05, 320, 240);
-	assert.ok(first.x !== before.x || first.y !== before.y, 'water moves');
+	sim.w = 1024;
+	sim.h = 768;
+	sim.bw = 170;
+	sim.bh = 64;
+	/* A block taken right of centre moves in and turns anticlockwise (up). */
+	var to = sim.target(600, 380);
+	assert.ok(to.x + 85 - 512 < 600 + 85 - 512, 'drawn in towards the drain');
+	assert.ok(to.y < 380, 'Counter turns it anticlockwise on screen');
+	sim.spin = 1;
+	assert.ok(sim.target(600, 380).y > 380, 'Clockwise turns it the other way');
+	/* Edge blocks are thrown across the centre. */
+	assert.ok(sim.target(20, 300).x > 512, 'a left-edge block lands right of centre');
 }
 
 function testShapes() {
 	loadModule('shapes');
 	var Shapes = global.AfterDarkShapes;
 	var grey = Shapes.colour(false);
-	assert.ok(/^rgb\(/.test(grey));
-	assert.ok(Shapes.KINDS.indexOf('ellipse') >= 0);
+	assert.ok(/^rgb\((\d+),\1,\1\)$/.test(grey), 'black & white is grey');
+	assert.deepStrictEqual(Shapes.KINDS, ['rect', 'ellipse'], 'rectangles and ellipses only');
+	assert.strictEqual(Shapes.PALETTE.length, 233, 'the 6x6x6 cube and 17 greys');
+	assert.strictEqual(Shapes.nearest(250, 10, 30), 'rgb(255,0,51)');
+	var sim = new Shapes();
+	for (var i = 0; i < 500; i += 1) {
+		var s = sim.roll(1024, 768);
+		assert.ok(s.x >= -100 && s.x < 1004 && s.y >= -100 && s.y < 748);
+		assert.ok(s.w >= 0 && s.w < 512 && s.h >= 0 && s.h < 384);
+	}
 }
 
 function testSpheres() {
 	loadModule('spheres');
 	var Spheres = global.AfterDarkSpheres;
-	var round = Spheres.makeSphere(320, 240, 40, 0);
-	assert.ok(round.rx >= 8 && round.rx <= 40);
-	assert.strictEqual(round.ry, round.rx);
-	var egg = Spheres.makeSphere(320, 240, 40, 60);
-	assert.ok(egg.ry < egg.rx);
+	var s = Spheres.makeSphere(1024, 768, 73, 10);
+	assert.ok(s.r >= 30 && s.r < 103, 'R = 30 + random(Max Size)');
+	assert.strictEqual(s.rings.length, 34);
+	assert.strictEqual(s.rings[0].r, s.r);
+	assert.ok(Math.abs(s.rings[33].x - s.x - s.r / 2) < 1e-9, 'Offset 10: highlight half a radius right');
+	assert.ok(Math.abs(s.y - s.rings[33].y - s.r / 2) < 1e-9, '... and up');
+	assert.ok(/^rgb\(.*(24|29).*\)$/.test(s.rings[0].colour) && /255\)$|255,/.test(s.rings[33].colour));
+	var flat = Spheres.makeSphere(1024, 768, 73, 0);
+	assert.strictEqual(flat.rings[33].x, flat.x, 'Offset 0: concentric');
 }
 
 function testHardRain() {
 	loadModule('hardrain');
 	var HardRain = global.AfterDarkHardRain;
-	[1, 2, 7, 30].forEach(function (r) {
-		var pts = HardRain.circle(r);
-		var seen = {};
-		for (var i = 0; i < pts.length; i += 2) {
-			var key = pts[i] + ',' + pts[i + 1];
-			assert.ok(!seen[key], 'radius ' + r + ' visits ' + key + ' once');
-			seen[key] = true;
-			assert.ok(Math.abs(Math.hypot(pts[i], pts[i + 1]) - r) < 1, 'on the circle');
-		}
-	});
-	/* XOR twice is where you started: the ripples leave the desktop alone. */
-	var sim = new HardRain();
-	sim.bw = 64;
-	sim.bh = 64;
-	sim.image = { data: new Uint8ClampedArray(64 * 64 * 4) };
-	for (var k = 0; k < sim.image.data.length; k += 1) { sim.image.data[k] = (k * 37) & 255; }
-	var before = Array.from(sim.image.data);
-	sim.xor(30, 30, 20, [255, 85, 85]);
-	assert.notDeepStrictEqual(Array.from(sim.image.data), before);
-	sim.xor(30, 30, 20, [255, 85, 85]);
-	assert.deepStrictEqual(Array.from(sim.image.data), before);
+	/* Traced from RAIN.AD: 8 px, +6 a step, the first half in a 2-px pen,
+	   then a black ellipse 2 px wider (pen 0) that erases the drop. */
+	assert.deepStrictEqual(HardRain.rings(5), [[8, 2], [14, 2], [20, 1], [26, 1], [32, 1], [34, 0]]);
+	assert.deepStrictEqual(HardRain.rings(12).slice(-2), [[74, 1], [76, 0]]);
 }
 
 function testStringTheory() {
 	loadModule('string');
-	var edge = global.AfterDarkStringTheory.edge;
-	assert.deepStrictEqual(edge(0, 100, 50), { x: 0, y: 0 });
-	assert.deepStrictEqual(edge(100, 100, 50), { x: 99, y: 0 });
-	assert.deepStrictEqual(edge(125, 100, 50), { x: 99, y: 25 });
-	assert.deepStrictEqual(edge(300, 100, 50), edge(0, 100, 50), 'once round is back to the start');
-	assert.deepStrictEqual(edge(-1, 100, 50), edge(299, 100, 50));
+	var move = global.AfterDarkStringTheory.move;
+	var size = [100, 50];
+	var e = { p: [10, 0], v: [-4, 3], on: [1, 0] };
+	assert.strictEqual(move(e, 0, size), 6, 'an end runs along its edge');
+	assert.strictEqual(move(e, 1, size), 0, 'the other axis is still');
+	move(e, 0, size); move(e, 0, size);
+	assert.deepStrictEqual(e.p, [2, 0]);
+	assert.strictEqual(move(e, 0, size), 2, 'off the screen it stays put');
+	assert.deepStrictEqual(e.on, [0, 1], 'and turns the corner');
+	assert.strictEqual(e.v[0], 4, 'turned back for next time');
+	assert.strictEqual(move(e, 1, size), 3, 'now down the side edge');
 }
 
 function testMandelbrot() {

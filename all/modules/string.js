@@ -1,5 +1,5 @@
 /**
- * string.js - String Theory, moire strung round the edge of the screen.
+ * string.js - String Theory, moire strung across the screen from edge to edge.
  *
  * STRING.AD ships no artwork. Its own description:
  *
@@ -7,134 +7,180 @@
  *    Colourful moire patterns that follow the edge of your monitor. For more
  *    variation, select up to 4 strings at the same time."
  *
- * Its controls are String Groups (1-4), Strings (10 to 150, or Infinite),
- * Color Speed and Clear Screen First. Each group is a string whose two ends
- * run round the edge of the screen at their own speeds; the last so-many
- * positions stay drawn, and the fan of one-pixel lines is where the moire
- * comes from. Infinite never takes a line back off.
+ * Checked against the original (October 2026): a WINEDEBUG=+relay trace of
+ * its pen and line calls and a disassembly of its drawing code. What it
+ * does, exactly:
  *
- *   <after-dark-string-theory groups="2" strings="60" color-speed="medium" clear-screen>
+ *   Each group is one string stretched across the screen: it starts either
+ *   top edge to bottom edge (x1 in [2, W), x2 in [0, W)) or left edge to
+ *   right edge, chosen by a coin. Each step every end moves 2..4 px along its
+ *   edge; an end that would leave the screen stays put, turns back, and
+ *   carries on along the other edge it is now in the corner of. The speeds
+ *   are picked again every 701 steps. Each step draws the new line, a
+ *   one-pixel LineTo, and blacks out the one from Strings steps ago (nothing
+ *   is taken off with Infinite). The fan of lines a few pixels apart is the
+ *   moire.
+ *   Colour: on a display of more than 16 colours it uses PALETTEINDEX and a
+ *   palette of 235; otherwise, as here, its own 22-colour table (black and
+ *   21 cycling VGA colours). Each group starts on a random colour; every
+ *   (100 - Color Speed) * 5 steps they all move on one.
+ *   Defaults: 3 groups, 140 strings, Color Speed 96 (of 1..100), Clear Screen
+ *   First off - it draws over the desktop, and its erasing leaves black
+ *   lines across it.
+ *
+ * Inferred: the speed. It has no timer of its own and runs unthrottled under
+ * Wine; 60 steps a second is a choice.
+ *
+ *   <after-dark-string-theory groups="3" strings="140" color-speed="96">
  */
 (function () {
 	'use strict';
 
 	var GROUPS = ['1', '2', '3', '4'];
-	var STRINGS = ['10', '30', '60', '100', '150', 'infinite'];
-	var COLOR_SPEEDS = ['slow', 'medium', 'fast'];
-	var HUE = [8, 25, 80];
-	var STEPS_PER_SECOND = 50;
+	var STRINGS = ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100',
+		'110', '120', '130', '140', '150', 'infinite'];
+	var STEPS_PER_SECOND = 60;
+	var RESPEED = 701;
+	/* Its 22-colour table, index 0 (black) being the eraser. */
+	var COLORS = [
+		[0, 0, 0], [0, 0, 255], [0, 0, 128], [128, 0, 128], [255, 0, 255], [128, 0, 128],
+		[128, 0, 0], [255, 0, 0], [128, 0, 0], [128, 128, 0], [255, 255, 0], [128, 128, 0],
+		[85, 85, 85], [255, 255, 255], [170, 170, 170], [0, 128, 0], [0, 255, 0], [0, 128, 0],
+		[0, 128, 128], [0, 255, 255], [0, 128, 128], [0, 0, 128]
+	];
 
-	function rand(a, b) {
-		return a + Math.random() * (b - a);
-	}
+	function rnd(n) { return Math.floor(Math.random() * n); }
 
-	/** Distance d round the perimeter of a w x h box, as a point. */
-	function edge(d, w, h) {
-		var p = 2 * (w + h);
-		d = ((d % p) + p) % p;
-		if (d < w) { return { x: d, y: 0 }; }
-		d -= w;
-		if (d < h) { return { x: w - 1, y: d }; }
-		d -= h;
-		if (d < w) { return { x: w - 1 - d, y: h - 1 }; }
-		return { x: 0, y: h - 1 - (d - w) };
+	/**
+	 * One end's move along x (axis 0) or y (axis 1): returns the new position.
+	 * `e` is {p: [x, y], v: [vx, vy], on: [mx, my]}; `size` is [W, H].
+	 */
+	function move(e, axis, size) {
+		var p = e.p[axis] + e.v[axis] * e.on[axis];
+		if (p < 0 || p > size[axis]) {
+			e.v[axis] = -e.v[axis];
+			e.on[axis] = 0;
+			e.on[1 - axis] = 1;
+			return e.p[axis];
+		}
+		e.p[axis] = p;
+		return p;
 	}
 
 	function StringTheory() {
-		this.groups = 2;
-		this.strings = 60;
-		this.hueRate = HUE[1];
-		this.clearScreen = true;
+		this.groups = 3;
+		this.strings = 140;
+		this.colorSpeed = 96;
+		this.clearScreen = false;
+		this.w = 0;
 	}
 
 	StringTheory.prototype.resize = function (w, h) {
+		w = Math.max(1, Math.round(w)); h = Math.max(1, Math.round(h));
+		this.w = w; this.h = h;
 		this.canvas = document.createElement('canvas');
-		this.canvas.width = Math.max(1, Math.round(w));
-		this.canvas.height = Math.max(1, Math.round(h));
-		this.desk = this.clearScreen ? null : AfterDark.desktop(w, h);
-		this.wipe(this.canvas.getContext('2d'), w, h);
-		var per = 2 * (w + h);
+		this.canvas.width = w; this.canvas.height = h;
+		var g = this.canvas.getContext('2d');
+		g.fillStyle = '#000';
+		g.fillRect(0, 0, w, h);
+		if (!this.clearScreen) {
+			var desk = AfterDark.desktop(w, h);
+			if (desk) { g.drawImage(desk, 0, 0, w, h); }
+		}
+		this.image = g.getImageData(0, 0, w, h);
 		this.set = [];
 		for (var i = 0; i < this.groups; i += 1) {
-			this.set.push({
-				a: rand(0, per), b: rand(0, per),
-				/* Fast enough that successive lines stand a few pixels apart. */
-				va: rand(0.6, 1.6) * per / 12 * (Math.random() < 0.5 ? -1 : 1),
-				vb: rand(0.6, 1.6) * per / 12 * (Math.random() < 0.5 ? -1 : 1),
-				hue: rand(0, 360), lines: []
-			});
+			var s;
+			if (rnd(2) === 0) {
+				s = { a: { p: [rnd(w - 2) + 2, 0], on: [1, 0] }, b: { p: [rnd(w), h], on: [1, 0] } };
+			} else {
+				s = { a: { p: [0, rnd(h - 2) + 2], on: [0, 1] }, b: { p: [w, rnd(h)], on: [0, 1] } };
+			}
+			s.color = rnd(COLORS.length);
+			s.ring = [];
+			this.set.push(s);
 		}
+		this.head = 0;
+		this.tick = 0;
+		this.colorTick = 0;
 		this.owed = 0;
 	};
 
-	/** Back to where it started: black, or the desktop if Clear Screen is off. */
-	StringTheory.prototype.wipe = function (g, w, h) {
-		if (this.desk) {
-			g.drawImage(this.desk, 0, 0);
-		} else {
-			g.fillStyle = '#000';
-			g.fillRect(0, 0, w, h);
+	StringTheory.prototype.respeed = function () {
+		this.set.forEach(function (s) {
+			s.a.v = [rnd(3) + 2, rnd(3) + 2];
+			s.b.v = [rnd(3) + 2, rnd(3) + 2];
+		});
+	};
+
+	StringTheory.prototype.line = function (x0, y0, x1, y1, c) {
+		var w = this.w, h = this.h, px = this.image.data;
+		var dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
+		var sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
+		while (x0 !== x1 || y0 !== y1) {		/* LineTo leaves out its last pixel */
+			if (x0 >= 0 && y0 >= 0 && x0 < w && y0 < h) {
+				var o = (y0 * w + x0) * 4;
+				px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2];
+			}
+			var e2 = 2 * err;
+			if (e2 >= dy) { err += dy; x0 += sx; }
+			if (e2 <= dx) { err += dx; y0 += sy; }
 		}
 	};
 
-	StringTheory.prototype.step = function (dt, ctx, w, h) {
-		var g = this.canvas.getContext('2d');
+	StringTheory.prototype.once = function () {
+		var size = [this.w, this.h], self = this;
 		var infinite = this.strings === Infinity;
-		this.owed += STEPS_PER_SECOND * dt;
-		var steps = Math.floor(this.owed);
-		this.owed -= steps;
-		var self = this;
 		this.set.forEach(function (s) {
-			for (var n = 0; n < steps; n += 1) {
-				s.a += s.va / STEPS_PER_SECOND;
-				s.b += s.vb / STEPS_PER_SECOND;
-				s.hue = (s.hue + self.hueRate / STEPS_PER_SECOND) % 360;
-				/* Now and then an end changes its mind. */
-				if (Math.random() < 0.002) { s.va *= -rand(0.7, 1.3); }
-				if (Math.random() < 0.002) { s.vb *= -rand(0.7, 1.3); }
-				var p = edge(s.a, w, h), q = edge(s.b, w, h);
-				var line = { x1: p.x, y1: p.y, x2: q.x, y2: q.y, c: 'hsl(' + s.hue.toFixed(1) + ',100%,55%)' };
-				if (infinite) {
-					g.strokeStyle = line.c;
-					g.lineWidth = 1;
-					g.beginPath();
-					g.moveTo(line.x1 + 0.5, line.y1 + 0.5);
-					g.lineTo(line.x2 + 0.5, line.y2 + 0.5);
-					g.stroke();
-				} else {
-					s.lines.push(line);
-					if (s.lines.length > self.strings) { s.lines.shift(); }
-				}
+			if (!infinite) {
+				var old = s.ring[self.head];
+				if (old) { self.line(old[0], old[1], old[2], old[3], COLORS[0]); }
 			}
+			if (self.tick === 0) { self.respeed(); }
+			move(s.a, 0, size); move(s.a, 1, size);
+			move(s.b, 0, size); move(s.b, 1, size);
+			var l = [s.a.p[0], s.a.p[1], s.b.p[0], s.b.p[1]];
+			if (!infinite) { s.ring[self.head] = l; }
+			self.line(l[0], l[1], l[2], l[3], COLORS[s.color]);
 		});
-		if (infinite) {
-			ctx.drawImage(this.canvas, 0, 0, w, h);
-			return;
-		}
-		this.wipe(g, w, h);
-		g.lineWidth = 1;
-		this.set.forEach(function (s) {
-			s.lines.forEach(function (l) {
-				g.strokeStyle = l.c;
-				g.beginPath();
-				g.moveTo(l.x1 + 0.5, l.y1 + 0.5);
-				g.lineTo(l.x2 + 0.5, l.y2 + 0.5);
-				g.stroke();
+		if (!infinite) { this.head = (this.head + 1) % this.strings; }
+		var every = (100 - this.colorSpeed) * 5;
+		this.colorTick += 1;
+		if (this.colorTick > every) {
+			this.set.forEach(function (s) {
+				s.color += 1;
+				if (s.color >= COLORS.length) { s.color = 1; }
 			});
-		});
+			this.colorTick = 0;
+		}
+		this.tick += 1;
+		if (this.tick > RESPEED - 1) { this.tick = 0; }
+	};
+
+	StringTheory.prototype.step = function (dt, ctx, w, h) {
+		if (!this.w) { this.resize(w, h); }
+		this.owed = Math.min(this.owed + dt * STEPS_PER_SECOND, 10);
+		while (this.owed >= 1) {
+			this.owed -= 1;
+			this.once();
+		}
+		this.canvas.getContext('2d').putImageData(this.image, 0, 0);
+		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(this.canvas, 0, 0, w, h);
 	};
 
 	AfterDark.define('after-dark-string-theory', function (el) {
 		var sim = new StringTheory();
-		sim.groups = Number(GROUPS[AfterDark.choice(el, 'groups', GROUPS, '2')]);
-		var strings = STRINGS[AfterDark.choice(el, 'strings', STRINGS, '60')];
+		sim.groups = Number(GROUPS[AfterDark.choice(el, 'groups', GROUPS, '3')]);
+		var strings = STRINGS[AfterDark.choice(el, 'strings', STRINGS, '140')];
 		sim.strings = strings === 'infinite' ? Infinity : Number(strings);
-		sim.hueRate = HUE[AfterDark.choice(el, 'color-speed', COLOR_SPEEDS, 'medium')];
+		var cs = Number(AfterDark.setting(el, 'color-speed'));
+		sim.colorSpeed = AfterDark.setting(el, 'color-speed') !== null && isFinite(cs) ?
+			Math.max(1, Math.min(100, Math.round(cs))) : 96;
 		sim.clearScreen = AfterDark.flag(el, 'clear-screen');
 		return sim;
 	});
 
 	window.AfterDarkStringTheory = StringTheory;
-	StringTheory.edge = edge;
+	StringTheory.move = move;
 }());

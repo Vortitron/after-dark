@@ -16,8 +16,12 @@
  *
  * The panel's defaults are Density 100 (Lots) and Color on.
  *
- * Not checked against a capture: under Wine (8- and 24-bit) the engine says
- * "Unable to load selected module" for NOCTURNE.AD.
+ * Not checked against a capture. It does load in the sandbox now (October
+ * 2026): it loads its "eyes" bitmap, makes seven pure-colour brushes (white,
+ * red, green, blue, cyan, yellow, magenta), opens its CricketSound and
+ * CyoteSound resources, clears the screen and then loops on GetTickCount and
+ * SetTextColor/SetBkColor/SetBkMode - but in two minutes it never made one
+ * BitBlt, so the screen stays black and there is nothing to compare.
  *
  *   <after-dark-nocturnes art="art/nocturne" density="lots" color>
  */

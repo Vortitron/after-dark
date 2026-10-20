@@ -8,130 +8,156 @@
  *    During the period when this module was being developed, the skies were
  *    filled with thunder and lightning each night."
  *
- * The settings are its own, out of TYPE_1000: Forkiness = Few / Forky /
- * Max Forky!, Kinkiness = No Kinks / Kinky / Deviant, and How Often =
- * Rarely / Sometimes / Often / Stormy!.
+ * Checked against the original running under Wine (October 2026). A 25 s
+ * capture of it is black, and that is faithful: a WINEDEBUG=+relay trace
+ * shows the module clears the screen black, waits seconds between strikes,
+ * then draws a strike and rubs it straight out again in the same tick - the
+ * bolt is on screen only as long as drawing it takes, far less than a
+ * video frame under Wine. What the trace shows it drawing (1024x768):
  *
- * Bolts are midpoint-displacement polylines with optional forks, which is
- * the usual way to draw lightning when there is no sprite for it.
+ *   - the main bolt, 1-px white lines (CreatePen PS_SOLID 1, #ffffff): a
+ *     polyline from a random point on the top edge down to the bottom
+ *     (it stops once below about H - 28), each step 0..18 px down and
+ *     0..25 px sideways, always the same way for long runs - most bolts
+ *     turn round once or not at all - so it sweeps across in long slants;
+ *   - forks, 1-px grey (#808080) polylines that leave from points of the
+ *     main bolt and walk downward the same way (see Forkiness);
+ *   - then all of it again in black, which is the erase. More often than
+ *     not the same strike is flashed twice in a row.
  *
- *   <after-dark-zot forkiness="forky" kinkiness="kinky" how-often="often">
+ * Gaps between strikes, traced at each How Often (3 to 22 gaps each):
+ * Rarely 11-17 s, Sometimes 4-13 s, Often (the default) 2.6-8.5 s, mean
+ * about 5.5 s - and Stormy! 2.6-9.5 s, mean about 6 s: no stormier than
+ * Often in the module as it is.
+ *
+ * No sky flash, glow or thickness: just the lines on black. A strike has 4 to 17
+ * forks whatever the setting; Forkiness sets how far they run - Few up to
+ * 6 steps, Forky (the default) up to about 23, Max Forky! up to about 54.
+ * The module reads its labelled sliders as the label's index (0, 1, 2),
+ * not the 0-100 slider value. The Kinkiness record in TYPE_1000 is type 0 -
+ * hidden, not on the panel - and its stored 0 is No Kinks.
+ *
+ * Still chosen: how long a flash stays up (the original's lasted as long as
+ * the drawing took on the machine it ran on; here a couple of frames), the
+ * exact turning rule (fitted to eight traced strikes), and the gaps are
+ * uniform over the traced ranges.
+ *
+ *   <after-dark-zot forkiness="forky" how-often="often">
  */
 (function () {
 	'use strict';
 
-	var FORKS = { few: 1, forky: 3, 'max forky!': 6 };
-	var KINKS = { 'no kinks': 0.08, kinky: 0.28, deviant: 0.55 };
+	/* the longest fork, in steps: Forkiness sets how far forks run */
+	var FORKS = { few: 6, forky: 23, 'max forky!': 54 };
+	/* seconds between strikes, as a range (traced; see the header) */
 	var OFTEN = {
-		rarely: 6.5,
-		sometimes: 3.4,
-		often: 1.5,
-		'stormy!': 0.45
+		rarely: [10, 17],
+		sometimes: [4, 13.5],
+		often: [2.5, 8.5],
+		'stormy!': [2.5, 9.5]
 	};
+	var TURN = 1 / 60;  // chance a step turns the bolt round
+	var FLASH = 0.05;   // a flash stays up this long
+	var DARK = 0.06;    // between the two flashes of a double strike
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
 	}
 
-	/** Midpoint displacement on a segment, `depth` times. `kink` is 0..1. */
-	function displace(points, kink, depth) {
-		var out = points;
-		var d, i, next, a, b, mx, my, dx, dy, len, nx, ny, offset;
-		for (d = 0; d < depth; d += 1) {
-			next = [out[0]];
-			for (i = 0; i < out.length - 1; i += 1) {
-				a = out[i];
-				b = out[i + 1];
-				mx = (a.x + b.x) / 2;
-				my = (a.y + b.y) / 2;
-				dx = b.x - a.x;
-				dy = b.y - a.y;
-				len = Math.hypot(dx, dy) || 1;
-				nx = -dy / len;
-				ny = dx / len;
-				offset = (Math.random() * 2 - 1) * len * kink;
-				next.push({ x: mx + nx * offset, y: my + ny * offset });
-				next.push(b);
-			}
-			out = next;
-			kink *= 0.62;
-		}
-		return out;
+	function random(n) {
+		return Math.floor(Math.random() * n);
+	}
+
+	function clamp(v, lo, hi) {
+		return Math.max(lo, Math.min(hi, v));
 	}
 
 	/**
-	 * A bolt from the top of the box toward the bottom, plus forks.
-	 * Returns an array of polylines (arrays of {x,y}).
+	 * Walk down from (x, y): each step 0..18 px down and 0..25 px across in
+	 * the current direction, which now and then turns round (and does at the
+	 * screen's sides). Stops below `bottom` or after `steps`. Step sizes are
+	 * for 1024x768 and multiplied by `k`.
 	 */
-	function strike(w, h, forkiness, kinkiness) {
-		var x0 = rand(w * 0.08, w * 0.92);
-		var y0 = rand(-8, h * 0.08);
-		var x1 = x0 + rand(-w * 0.28, w * 0.28);
-		x1 = Math.max(8, Math.min(w - 8, x1));
-		var y1 = rand(h * 0.55, h * 1.05);
-		var depth = kinkiness < 0.12 ? 3 : (kinkiness < 0.4 ? 5 : 6);
-		var main = displace([{ x: x0, y: y0 }, { x: x1, y: y1 }], kinkiness, depth);
-		var bolts = [main];
-		var nForks = forkiness;
-		var i, at, origin, dest, branch;
-		for (i = 0; i < nForks; i += 1) {
-			if (main.length < 4) {
-				break;
+	function walk(x, y, dir, bottom, steps, k, w) {
+		var pts = [{ x: x, y: y }];
+		for (var i = 0; i < steps && y < bottom; i += 1) {
+			if (Math.random() < TURN) {
+				dir = -dir;
 			}
-			at = 2 + Math.floor(Math.random() * (main.length - 3));
-			origin = main[at];
-			dest = {
-				x: origin.x + rand(-w * 0.22, w * 0.22),
-				y: origin.y + rand(h * 0.12, h * 0.4)
-			};
-			branch = displace([origin, dest], kinkiness * 0.9, Math.max(2, depth - 2));
-			bolts.push(branch);
+			x += dir * random(26) * k;
+			if (x < 0 || x > w - 1) {
+				x = clamp(x, 0, w - 1);
+				dir = -dir;
+			}
+			y += random(19) * k;
+			pts.push({ x: x, y: y });
+		}
+		return pts;
+	}
+
+	/**
+	 * One strike on a w x h screen: [main bolt, fork, fork, ...], each an
+	 * array of {x, y}. `forks` is the longest a fork may run, in steps.
+	 */
+	function strike(w, h, forks) {
+		var k = w / 1024;
+		forks = forks || FORKS.forky;
+		var bottom = h - 28 * k;
+		var main = walk(random(w), 0, Math.random() < 0.5 ? -1 : 1, bottom, 400, k, w);
+		var bolts = [main];
+		var n = 4 + random(14);
+		for (var i = 0; i < n && main.length > 2; i += 1) {
+			var from = main[1 + random(main.length - 2)];
+			var len = 1 + Math.floor(Math.pow(Math.random(), 3) * forks);
+			bolts.push(walk(from.x, from.y, Math.random() < 0.5 ? -1 : 1, h, len, k, w));
 		}
 		return bolts;
 	}
 
 	function Zot() {
-		this.forkiness = FORKS.forky;
-		this.kinkiness = KINKS.kinky;
+		this.forks = FORKS.forky;
 		this.gap = OFTEN.often;
-		this.wait = 0.05;
+		this.wait = rand(this.gap[0], this.gap[1]);
 		this.bolts = [];
-		this.age = 0;
-		this.flash = 0;
-		this.hold = 0.45;
+		this.flashes = [];   // times (from now) at which the strike shows
+		this.clock = 0;
 	}
 
 	Zot.prototype.fire = function (w, h) {
-		this.bolts = strike(w, h, this.forkiness, this.kinkiness);
-		this.age = 0;
-		this.flash = 0.55;
-		this.wait = this.gap * rand(0.45, 1.35);
+		this.bolts = strike(w, h, this.forks);
+		this.clock = 0;
+		this.flashes = Math.random() < 0.6 ? [0, FLASH + DARK] : [0];
+		this.wait = rand(this.gap[0], this.gap[1]);
+	};
+
+	/** Is the current strike on screen? */
+	Zot.prototype.lit = function () {
+		for (var i = 0; i < this.flashes.length; i += 1) {
+			if (this.clock >= this.flashes[i] && this.clock < this.flashes[i] + FLASH) {
+				return true;
+			}
+		}
+		return false;
 	};
 
 	Zot.prototype.step = function (dt, w, h) {
-		this.age += dt;
-		this.flash = Math.max(0, this.flash - dt * 2.8);
-		if (this.age > this.hold) {
-			this.bolts = [];
-		}
+		this.clock += dt;
 		this.wait -= dt;
 		if (this.wait <= 0) {
 			this.fire(w, h);
 		}
 	};
 
-	Zot.prototype.stroke = function (ctx, points, width, colour) {
+	Zot.prototype.stroke = function (ctx, points, colour) {
 		if (points.length < 2) {
 			return;
 		}
 		ctx.strokeStyle = colour;
-		ctx.lineWidth = width;
-		ctx.lineJoin = 'round';
-		ctx.lineCap = 'round';
+		ctx.lineWidth = 1;
 		ctx.beginPath();
-		ctx.moveTo(points[0].x, points[0].y);
+		ctx.moveTo(Math.round(points[0].x) + 0.5, Math.round(points[0].y) + 0.5);
 		for (var i = 1; i < points.length; i += 1) {
-			ctx.lineTo(points[i].x, points[i].y);
+			ctx.lineTo(Math.round(points[i].x) + 0.5, Math.round(points[i].y) + 0.5);
 		}
 		ctx.stroke();
 	};
@@ -139,15 +165,12 @@
 	Zot.prototype.draw = function (ctx, w, h) {
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0, 0, w, h);
-		if (this.flash > 0.02) {
-			ctx.fillStyle = 'rgba(200, 220, 255,' + (this.flash * 0.35) + ')';
-			ctx.fillRect(0, 0, w, h);
+		if (!this.lit()) {
+			return;
 		}
-		for (var i = 0; i < this.bolts.length; i += 1) {
-			var pts = this.bolts[i];
-			this.stroke(ctx, pts, 7, 'rgba(120, 160, 255, 0.18)');
-			this.stroke(ctx, pts, 3.2, 'rgba(190, 220, 255, 0.55)');
-			this.stroke(ctx, pts, 1.2, '#ffffff');
+		this.stroke(ctx, this.bolts[0], '#ffffff');
+		for (var i = 1; i < this.bolts.length; i += 1) {
+			this.stroke(ctx, this.bolts[i], '#808080');
 		}
 	};
 
@@ -167,11 +190,10 @@
 
 		var sim = new Zot();
 		var forks = (AfterDark.setting(this, 'forkiness') || 'forky').toLowerCase();
-		var kinks = (AfterDark.setting(this, 'kinkiness') || 'kinky').toLowerCase();
 		var often = (AfterDark.setting(this, 'how-often') || 'often').toLowerCase();
-		sim.forkiness = FORKS[forks] !== undefined ? FORKS[forks] : FORKS.forky;
-		sim.kinkiness = KINKS[kinks] !== undefined ? KINKS[kinks] : KINKS.kinky;
-		sim.gap = OFTEN[often] !== undefined ? OFTEN[often] : OFTEN.often;
+		sim.forks = FORKS[forks] || FORKS.forky;
+		sim.gap = OFTEN[often] || OFTEN.often;
+		sim.wait = rand(sim.gap[0], sim.gap[1]);
 
 		var screen = new AfterDark.Screen(this);
 		this._screen = screen;
@@ -193,8 +215,7 @@
 	customElements.define('after-dark-zot', ZotElement);
 	window.AfterDarkZot = Zot;
 	Zot.strike = strike;
-	Zot.displace = displace;
+	Zot.walk = walk;
 	Zot.FORKS = FORKS;
-	Zot.KINKS = KINKS;
 	Zot.OFTEN = OFTEN;
 }());

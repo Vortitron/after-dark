@@ -11,22 +11,41 @@
  *    Rotational stellar effects and black hole designed by Bill Stewart and
  *    Jack Eastman."
  *
- * Speed runs Fast In, Medium In, Slow In, Impulse In, Impulse Out, Slow Out,
- * Medium Out, Fast Out; Size is Small, Big or Both. The rotational effect is
- * the ship rolling now and then; going Out, the stars pour into the middle
- * of the screen, which is the black hole. Number of Stars was a slider.
+ * Checked against the original running under Wine (October 2026), from
+ * +relay traces of its SetPixel calls at six of the eight speeds (the stars
+ * are single white pixels that an 8-bit screen capture all but loses):
  *
- *   <after-dark-warp speed="medium in" stars="some" size="both" color>
+ * - Defaults, from its TYPE_1000: Speed Fast In, Stars 71 (a 1-200 slider),
+ *   Size Small, Color off. So by default it is 71 one-pixel white stars.
+ * - Each frame every star is erased and redrawn. Its 3-D position is
+ *   projected about the screen centre, its depth steps by 6, 4, 2 or 1 (Fast,
+ *   Medium, Slow, Impulse) against a birth depth of about 100, and the whole
+ *   field turns pi/100 radians a frame - clockwise going In, anticlockwise
+ *   going Out. That turn is the "rotational stellar effect".
+ * - In is the black hole: stars are born on the edge of a box 15/16 of the
+ *   screen and fall away from you, spiralling into the middle, where they
+ *   bunch up until they reach a box about 50 x 42 px round the centre and
+ *   are born again on the edge.
+ * - Out is the familiar starfield: stars are born inside the middle 3/8 of
+ *   the screen and come towards you until they leave it.
+ *
+ * Under Wine it runs unthrottled (it never reads the clock), so the frame
+ * rate here, FPS, is chosen. Impulse's step was too slow to see a birth in
+ * the trace and is taken as 1; Big (2 x 2 here) and the Color palette were not
+ * traced and are inferred.
+ *
+ *   <after-dark-warp speed="fast in" stars="71" size="small">
  */
 (function () {
 	'use strict';
 
 	var SPEEDS = ['fast in', 'medium in', 'slow in', 'impulse in',
 		'impulse out', 'slow out', 'medium out', 'fast out'];
-	/* Depth units a second; a star is born at depth 1 and passes you at 0. */
-	var VELOCITY = [1.1, 0.55, 0.25, 0.08, -0.08, -0.25, -0.55, -1.1];
-	var NUMBERS = ['few', 'some', 'many', 'lots'];
-	var COUNT = [120, 250, 450, 800];
+	/* Depth a frame; a star is born at depth BIRTH. */
+	var VELOCITY = [6, 4, 2, 1, -1, -2, -4, -6];
+	var BIRTH = 100;
+	var TURN = Math.PI / 100;
+	var FPS = 30;
 	var SIZES = ['small', 'big', 'both'];
 	/* The EGA colours that read as stars. */
 	var COLOURS = [[255, 255, 255], [255, 255, 85], [85, 255, 255], [255, 85, 85],
@@ -37,97 +56,115 @@
 	}
 
 	function Warp() {
-		this.velocity = VELOCITY[1];
-		this.count = COUNT[1];
-		this.size = 2;
-		this.color = true;
+		this.velocity = VELOCITY[0];
+		this.count = 71;
+		this.size = 0;
+		this.color = false;
 		this.stars = [];
 		this.roll = 0;
-		this.rollRate = 0;
-		this.rollTarget = 0;
-		this.nextRoll = rand(6, 12);
+		this.clock = 0;
 	}
 
-	/** A star somewhere in the view at depth z. */
-	Warp.prototype.place = function (s, z) {
-		var reach = this.reach;
-		s.z = z;
-		s.x = rand(-reach.x, reach.x) * z;
-		s.y = rand(-reach.y, reach.y) * z;
-		s.px = null;
-		s.big = this.size === 1 || (this.size === 2 && Math.random() < 0.35);
+	/**
+	 * A new star at the birth depth. Positions are in screen pixels as seen at
+	 * that depth, before the roll, so (x, y) * BIRTH / z is where it shows.
+	 */
+	Warp.prototype.place = function (s) {
+		var hw = this.w / 2, hh = this.h / 2;
+		s.z = BIRTH;
+		if (this.velocity > 0) {
+			/* Somewhere on the edge of the 15/16 box. */
+			var bw = hw * 15 / 16, bh = hh * 15 / 16;
+			var along = Math.random() * 2 * (bw + bh);
+			var side = Math.random() < 0.5 ? -1 : 1;
+			if (along < 2 * bw) {
+				s.x = along - bw; s.y = side * bh;
+			} else {
+				s.x = side * bw; s.y = along - 2 * bw - bh;
+			}
+		} else {
+			s.x = rand(-hw, hw) * 3 / 8;
+			s.y = rand(-hh, hh) * 3 / 8;
+		}
+		/* Undo the roll so it is born where it was picked on screen. */
+		var c = Math.cos(-this.roll), n = Math.sin(-this.roll);
+		var x = s.x * c - s.y * n, y = s.x * n + s.y * c;
+		s.x = x; s.y = y;
+		s.big = this.size === 1 || (this.size === 2 && Math.random() < 0.5);
 		s.rgb = this.color ? COLOURS[Math.floor(Math.random() * COLOURS.length)] : COLOURS[0];
 		return s;
 	};
 
+	/** Where a star shows, or null once it has gone (into the hole, or off screen). */
+	Warp.prototype.project = function (s) {
+		if (s.z <= 0) { return null; }
+		var c = Math.cos(this.roll), n = Math.sin(this.roll);
+		var k = BIRTH / s.z;
+		var x = (s.x * c - s.y * n) * k, y = (s.x * n + s.y * c) * k;
+		var sx = this.w / 1024, sy = this.h / 768;
+		if (this.velocity > 0) {
+			if (Math.abs(x) < 25 * sx && y > -23 * sy && y < 19 * sy) { return null; }
+		} else if (Math.abs(x) > this.w / 2 || Math.abs(y) > this.h / 2) {
+			return null;
+		}
+		return { x: this.w / 2 + x, y: this.h / 2 + y };
+	};
+
 	Warp.prototype.resize = function (w, h) {
-		this.focal = Math.min(w, h) * 0.5;
-		/* How far off-axis a star at depth 1 can be and still be on screen. */
-		this.reach = { x: (w / 2) / this.focal * 1.15, y: (h / 2) / this.focal * 1.15 };
+		this.w = w;
+		this.h = h;
 		this.stars = [];
+		/* Start in the steady state: each star already some way along. */
 		for (var i = 0; i < this.count; i += 1) {
-			this.stars.push(this.place({}, rand(0.05, 1)));
+			var s = this.place({});
+			var steps = Math.floor(Math.random() * 400);
+			for (var j = 0; j < steps; j += 1) {
+				var z = s.z + this.velocity;
+				var t = { x: s.x, y: s.y, z: z };
+				if (!this.project(t)) { break; }
+				s.z = z;
+			}
+			this.stars.push(s);
+		}
+	};
+
+	/** One frame of the original: every star moves one step and the field turns. */
+	Warp.prototype.advance = function () {
+		this.roll += this.velocity > 0 ? TURN : -TURN;
+		for (var i = 0; i < this.stars.length; i += 1) {
+			var s = this.stars[i];
+			s.z += this.velocity;
+			if (!this.project(s)) { this.place(s); }
 		}
 	};
 
 	Warp.prototype.step = function (dt, ctx, w, h) {
-		/* Every so often the ship starts, or stops, rolling. */
-		this.nextRoll -= dt;
-		if (this.nextRoll <= 0) {
-			this.rollTarget = Math.random() < 0.4 ? 0 : rand(-0.9, 0.9);
-			this.nextRoll = rand(6, 14);
+		this.clock += dt;
+		var n = 0;
+		while (this.clock >= 1 / FPS && n < 5) {
+			this.clock -= 1 / FPS;
+			this.advance();
+			n += 1;
 		}
-		this.rollRate += (this.rollTarget - this.rollRate) * Math.min(1, dt * 0.8);
-		this.roll += this.rollRate * dt;
-
-		var cos = Math.cos(this.roll), sin = Math.sin(this.roll);
-		var cx = w / 2, cy = h / 2, f = this.focal;
-		var v = this.velocity;
+		if (n === 5) { this.clock = 0; }
 
 		ctx.fillStyle = '#000';
 		ctx.fillRect(0, 0, w, h);
-
 		for (var i = 0; i < this.stars.length; i += 1) {
 			var s = this.stars[i];
-			s.z -= v * dt;
-			if (s.z <= 0.02 || s.z > 1.02) {
-				this.place(s, v > 0 ? 1 : rand(0.03, 0.12));
-				continue;
-			}
-			var rx = s.x * cos - s.y * sin;
-			var ry = s.x * sin + s.y * cos;
-			var sx = cx + rx / s.z * f;
-			var sy = cy + ry / s.z * f;
-			if (v > 0 && (sx < -20 || sx > w + 20 || sy < -20 || sy > h + 20)) {
-				this.place(s, 1);
-				continue;
-			}
-			/* Nearer is brighter; far away is a grey speck. */
-			var lum = Math.min(1, 0.25 + (1 - s.z) * 1.1);
-			var c = 'rgb(' + Math.round(s.rgb[0] * lum) + ',' + Math.round(s.rgb[1] * lum) + ',' +
-				Math.round(s.rgb[2] * lum) + ')';
-			var size = s.big ? (s.z < 0.3 ? 3 : 2) : 1;
-			if (s.px !== null && Math.abs(v) > 0.2) {
-				ctx.strokeStyle = c;
-				ctx.lineWidth = size;
-				ctx.beginPath();
-				ctx.moveTo(s.px, s.py);
-				ctx.lineTo(sx, sy);
-				ctx.stroke();
-			} else {
-				ctx.fillStyle = c;
-				ctx.fillRect(Math.round(sx), Math.round(sy), size, size);
-			}
-			s.px = sx;
-			s.py = sy;
+			var p = this.project(s);
+			if (!p) { continue; }
+			ctx.fillStyle = 'rgb(' + s.rgb[0] + ',' + s.rgb[1] + ',' + s.rgb[2] + ')';
+			ctx.fillRect(Math.floor(p.x), Math.floor(p.y), s.big ? 2 : 1, s.big ? 2 : 1);
 		}
 	};
 
 	AfterDark.define('after-dark-warp', function (el) {
 		var sim = new Warp();
-		sim.velocity = VELOCITY[AfterDark.choice(el, 'speed', SPEEDS, 'medium in')];
-		sim.count = COUNT[AfterDark.choice(el, 'stars', NUMBERS, 'some')];
-		sim.size = AfterDark.choice(el, 'size', SIZES, 'both');
+		sim.velocity = VELOCITY[AfterDark.choice(el, 'speed', SPEEDS, 'fast in')];
+		var stars = parseInt(AfterDark.setting(el, 'stars'), 10);
+		sim.count = stars >= 1 && stars <= 200 ? stars : 71;
+		sim.size = AfterDark.choice(el, 'size', SIZES, 'small');
 		sim.color = AfterDark.flag(el, 'color');
 		return sim;
 	});

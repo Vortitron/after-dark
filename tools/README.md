@@ -473,22 +473,46 @@ How the checking was done, and what to know before doing more of it:
 - **Fonts:** EINSTEIN's (0,0) pen step inside a glyph is real - only trailing
   zeros are padding (`adtext.py` was cutting glyphs short).
 
+A second pass (20 October) did the rest, mostly from `WINEDEBUG=+relay` traces of
+each module's GDI calls rather than from captures, because several of these
+draw something a capture cannot see:
+
+- **Zot!** draws each strike and erases it again within one tick, so every
+  capture is black; the trace shows a 1-px white bolt with grey forks.
+- **Tunnel** draws once in black palette entries and then only animates the
+  palette; `WINEDEBUG=+palette` prints every `AnimatePalette` colour. At 24 bits
+  it takes a different path entirely, so check the depth before trusting a trace.
+- **Warp!** is single white pixels, almost invisible in a capture.
+- Some modules read a labelled slider's `ControlN` as a list *index* (Zot!,
+  Warp!: write 0, 1, 2), others as a 0-100 position; out-of-range values give
+  garbage or a blank screen.
+- A 16-bit `CreateSolidBrush(0x02rrggbb)` is `PALETTERGB`: on real Windows it
+  fills flat with the nearest entry of AFTERDAR.SCR's `AD_PALETTE` 104 (a 6x6x6
+  cube plus greys). The 8x8 dither in Wine's 8-bit captures is Wine's, not the
+  module's.
+- A private copy of a prefix on its own 8-bit Xvfb, with `[HKCU\Software\Wine\X11
+  Driver] PrivateColorMap=Y`, grabbed with `import -window`, gives true VGA
+  colours for the code-drawn modules. Keep such copies under `~/.cache`: the
+  scratch tmpfs fills up. `RelayInclude` under `HKCU\Software\Wine\Debug` keeps
+  relay logs small enough to run for longer.
+
+What each one turned out to be is in its header: Rose is dots from two
+rotating vectors; Spiral Gyra draws every line four times, mirrored; String
+Theory's strings run edge to edge with their ends turning corners; Sunburst is
+rings of interlocking triangles; Snake is a depth-first search that erases
+itself; Down the Drain smears blocks of the screen round into the drain;
+Shapes is flat rectangles and ellipses; Spheres is 34 shrinking circles; Hard
+Rain is black-filled coloured rings with a black erase; Meadow is a whole field
+of blades under a horizon.
+
 Still not checked, or not fixable this way:
 
-- **Measured but not yet re-ported:** Snake (20 px cells, white 1-px walls,
-  depth-first search that erases itself backing out of dead ends), Down the
-  Drain (drains the desktop in spiralling strips into a checkered drain, then
-  coloured drops), GeoBounce (a ~30 px flat-shaded solid; no random shape),
-  Shapes (filled rectangles and upright ellipses only), Spheres (ring-shaded,
-  clears every ~30).
-- **Not yet compared:** Rose (dotted, not lines), Spiral Gyra (mirrored four
-  ways), String Theory, Sunburst (a filled polygon spiral, not rays), Warp!,
-  Tunnel - clean captures exist; the stills already show what is wrong.
-- **Will not run under Wine:** Nocturnes, Meadow and Hard Rain ("Unable to load
-  selected module" at either depth), Bugs (calls the unimplemented
-  `USER.GetNextQueueWindow`), Ray (stack overflow). Zot! showed nothing in 30 s.
-- **See a black desktop whatever is behind them:** Spotlight, Punch Out, Puzzle.
-  Only their defaults were corrected.
+- **Nocturnes** now loads but never blits in two minutes under Wine (it loops on
+  `GetTickCount` and text colours); its loop would need disassembling.
+- **Bugs** calls the unimplemented `USER.GetNextQueueWindow`; **Ray** dies of a
+  stack overflow.
+- **Spotlight, Punch Out and Puzzle** see a black desktop whatever is behind
+  them, so only their defaults were corrected.
 
 ## adrun.sh — running the originals
 

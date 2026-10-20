@@ -1,108 +1,185 @@
 /**
- * spiral.js - Spiral Gyra, lines strung between two spirographs.
+ * spiral.js - Spiral Gyra, a ribbon of lines mirrored four ways.
  *
  * SPIRAL.AD ships no artwork, and says only:
  *
  *   "SPIRAL GYRA(tm) is another line drawing module with an interesting
  *    twist or two."
  *
- * Its controls are Max Lines, Min Lines and Color Cycling. Both ends of the
- * line trace spirograph paths - one wheel turning on another - and the last
- * so-many lines stay on screen. The twist: how many stay breathes between
- * Min Lines and Max Lines, so the ribbon gathers into a single thread and
- * fans back out again. The sliders are four steps each here.
+ * Checked against the original (October 2026): a WINEDEBUG=+relay trace of
+ * its MoveTo/LineTo/CreatePen calls and a disassembly of its drawing code.
+ * What it does, exactly:
  *
- *   <after-dark-spiral-gyra max-lines="100" min-lines="10" color-cycling="medium">
+ *   One line a step, from (cx + ax cos th, cy + ay sin th) to
+ *   (cx + ax cos(th + ph), cy + ay sin(th + ph)), drawn four times, mirrored
+ *   in x and in y about the screen centre (x -> W - x, y -> H - y). The last
+ *   199 lines stay (a ring of 200; the oldest is redrawn in black, all four
+ *   copies, as each new one goes down).
+ *   th advances 360/n degrees a step. cx and cy drift one pixel a step,
+ *   bouncing off 0..W-1 and 0..H; ax and ay breathe one pixel a step between
+ *   3 and W/4 (H/4). At every bounce of cx or cy, n is picked again from
+ *   Min + [Max/2, Max) and ph from 180/(k+1) degrees, k in 4..7.
+ *   Start: ax in [W/16, W/8), ay in [H/16, H/8), cx in [W/4, W/2),
+ *   cy in [H/4, H/2), ph = 180 degrees, n from [250, 500).
+ *   Colour: a fully saturated hue, starting at red, turning a full circle in
+ *   20 + (100 - Color Cycling) * 9.8 steps.
+ *   Max Lines (20..360, default 54% = 204) is the lines per turn, Min Lines a
+ *   percentage of it (default 28, never under 20).
+ *   Speed: its timer allows 30 steps every 100 ms, 300 lines a second;
+ *   under Wine it reaches about that.
+ *
+ *   <after-dark-spiral-gyra max-lines="204" min-lines="28" color-cycling="32">
  */
 (function () {
 	'use strict';
 
-	var MAXES = ['25', '50', '100', '200'];
-	var MINS = ['1', '10', '25', '50'];
-	var CYCLES = ['none', 'slow', 'medium', 'fast'];
-	/* Degrees of hue a second. */
-	var HUE = [0, 10, 30, 90];
-	var LINES_PER_SECOND = 60;
+	var RING = 200;
+	var STEPS_PER_SECOND = 300;
+	var TURN = 234;			/* SPIRAL.AD's angle unit: 234 to the circle */
 
-	function rand(a, b) {
-		return a + Math.random() * (b - a);
+	function clamp(v, lo, hi, d) {
+		if (v === null || v === '') { return d; }
+		v = Number(v);
+		if (!isFinite(v)) { return d; }
+		return Math.max(lo, Math.min(hi, Math.round(v)));
 	}
 
-	/** A point on one wheel rolling round another; t in radians. */
-	function wheel() {
-		return {
-			a: rand(0.35, 0.6), b: rand(0.15, 0.4),
-			f: rand(0.4, 1.1) * (Math.random() < 0.5 ? -1 : 1),
-			g: rand(1.5, 4.5) * (Math.random() < 0.5 ? -1 : 1),
-			p: rand(0, Math.PI * 2)
-		};
-	}
+	/* MS C rand(), as the module uses it. */
+	function Rand() { this.seed = (Math.random() * 0x7fffffff) >>> 0; }
+	Rand.prototype.next = function () {
+		this.seed = (Math.imul(this.seed, 0x343fd) + 0x269ec3) >>> 0;
+		return (this.seed >>> 16) & 0x7fff;
+	};
+	/** n (r + 32768) / 65536: somewhere in [n/2, n). */
+	Rand.prototype.upper = function (n) {
+		return Math.floor(n * (this.next() + 32768) / 65536);
+	};
 
-	function at(wh, t) {
-		return {
-			x: wh.a * Math.cos(wh.f * t + wh.p) + wh.b * Math.cos(wh.g * t),
-			y: wh.a * Math.sin(wh.f * t + wh.p) + wh.b * Math.sin(wh.g * t)
-		};
+	function sinT(a) { return Math.sin(a * 2 * Math.PI / TURN); }
+
+	function hue(h) {
+		/* h 0..1, full saturation and value. */
+		var s = h * 6, i = Math.floor(s) % 6, f = s - Math.floor(s);
+		var q = Math.round(255 * (1 - f)), t = Math.round(255 * f);
+		return [[255, t, 0], [q, 255, 0], [0, 255, t], [0, q, 255], [t, 0, 255], [255, 0, q]][i];
 	}
 
 	function SpiralGyra() {
-		this.maxLines = 100;
-		this.minLines = 10;
-		this.hueRate = HUE[2];
-		this.lines = [];
-		this.t = 0;
+		this.maxLines = 204;
+		this.minPct = 28;
+		this.cycling = 32;
+		this.rand = new Rand();
 		this.owed = 0;
-		this.hue = rand(0, 360);
-		this.fresh();
+		this.w = 0;
 	}
 
-	SpiralGyra.prototype.fresh = function () {
-		this.p = wheel();
-		this.q = wheel();
-		this.nextFresh = rand(25, 45);
+	SpiralGyra.prototype.reset = function (w, h) {
+		var r = this.rand;
+		this.w = w; this.h = h;
+		this.canvas = document.createElement('canvas');
+		this.canvas.width = w; this.canvas.height = h;
+		this.image = this.canvas.getContext('2d').createImageData(w, h);
+		var px = this.image.data;
+		for (var i = 3; i < px.length; i += 4) { px[i] = 255; }
+		this.ax = Math.max(1, r.upper(w >> 3));
+		this.ay = Math.max(1, r.upper(h >> 3));
+		this.cx = r.upper(w >> 1);
+		this.cy = r.upper(h >> 1);
+		this.vax = 1; this.vay = 1; this.vcx = 1; this.vcy = 1;
+		this.th = 0;
+		this.ph = TURN / 2;
+		this.dth = TURN / (r.upper(500) + 1);
+		this.ring = new Int16Array(RING * 4);
+		this.wi = RING - 1;
+		this.ei = 0;
+		this.hue = 0;
 	};
 
-	SpiralGyra.prototype.resize = function () {
-		this.lines = [];
+	SpiralGyra.prototype.resize = function (w, h) {
+		this.reset(Math.max(1, Math.round(w)), Math.max(1, Math.round(h)));
+	};
+
+	SpiralGyra.prototype.line = function (x0, y0, x1, y1, c) {
+		var w = this.w, h = this.h, px = this.image.data;
+		var dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
+		var sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
+		for (;;) {
+			/* LineTo leaves out its last pixel. */
+			if (x0 === x1 && y0 === y1) { break; }
+			if (x0 >= 0 && y0 >= 0 && x0 < w && y0 < h) {
+				var o = (y0 * w + x0) * 4;
+				px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2];
+			}
+			var e2 = 2 * err;
+			if (e2 >= dy) { err += dy; x0 += sx; }
+			if (e2 <= dx) { err += dx; y0 += sy; }
+		}
+	};
+
+	SpiralGyra.prototype.four = function (x1, y1, x2, y2, c) {
+		var W = this.w, H = this.h;
+		this.line(x1, y1, x2, y2, c);
+		this.line(W - x1, H - y1, W - x2, H - y2, c);
+		this.line(W - x1, y1, W - x2, y2, c);
+		this.line(x1, H - y1, x2, H - y2, c);
+	};
+
+	SpiralGyra.prototype.repick = function () {
+		var r = this.rand;
+		var min = Math.max(20, Math.floor(this.maxLines * this.minPct / 100));
+		this.dth = TURN / (min + r.upper(this.maxLines));
+		this.ph = (TURN / 2) / (((r.next() + 32768) << 3 >>> 16) + 1);
+	};
+
+	SpiralGyra.prototype.once = function () {
+		var W = this.w, H = this.h;
+		this.th += this.dth;
+		this.cx += this.vcx;
+		if (this.cx < 0) { this.vcx = 1; this.repick(); }
+		else if (this.cx > W - 1) { this.vcx = -1; this.repick(); }
+		this.cy += this.vcy;
+		if (this.cy < 0) { this.vcy = 1; this.repick(); }
+		else if (this.cy > H) { this.vcy = -1; this.repick(); }
+		this.ax += this.vax;
+		if (this.ax < 3 || this.ax > W >> 2) { this.vax = -this.vax; }
+		this.ay += this.vay;
+		if (this.ay < 3 || this.ay > H >> 2) { this.vay = -this.vay; }
+
+		var t2 = this.th + this.ph;
+		var x1 = Math.floor(sinT(this.th + TURN / 4) * this.ax) + this.cx;
+		var y1 = Math.floor(sinT(this.th) * this.ay) + this.cy;
+		var x2 = Math.floor(sinT(t2 + TURN / 4) * this.ax) + this.cx;
+		var y2 = Math.floor(sinT(t2) * this.ay) + this.cy;
+
+		var g = this.ring, e = this.ei * 4;
+		this.four(g[e], g[e + 1], g[e + 2], g[e + 3], [0, 0, 0]);
+		this.ei = (this.ei + 1) % RING;
+
+		var period = 20 + (100 - this.cycling) * 980 / 100;
+		this.hue = (this.hue + 1 / period) % 1;
+		this.four(x1, y1, x2, y2, hue(this.hue));
+		var k = this.wi * 4;
+		g[k] = x1; g[k + 1] = y1; g[k + 2] = x2; g[k + 3] = y2;
+		this.wi = (this.wi + 1) % RING;
 	};
 
 	SpiralGyra.prototype.step = function (dt, ctx, w, h) {
-		this.t += dt;
-		this.nextFresh -= dt;
-		if (this.nextFresh <= 0) { this.fresh(); }
-		this.hue = (this.hue + this.hueRate * dt) % 360;
-		var cx = w / 2, cy = h / 2, s = Math.min(w, h) * 0.5;
-		this.owed += LINES_PER_SECOND * dt;
+		if (!this.w) { this.resize(w, h); }
+		this.owed = Math.min(this.owed + dt * STEPS_PER_SECOND, 30);
 		while (this.owed >= 1) {
 			this.owed -= 1;
-			this.clock = (this.clock || 0) + 1 / LINES_PER_SECOND;
-			var a = at(this.p, this.clock * 1.3), b = at(this.q, this.clock * 1.3);
-			this.lines.push({ x1: cx + a.x * s, y1: cy + a.y * s, x2: cx + b.x * s, y2: cy + b.y * s,
-				hue: this.hue });
+			this.once();
 		}
-		/* The number of lines kept breathes between the two limits. */
-		var lo = Math.min(this.minLines, this.maxLines), hi = Math.max(this.minLines, this.maxLines);
-		var keep = Math.round(lo + (hi - lo) * (0.5 - 0.5 * Math.cos(this.t * 0.35)));
-		if (this.lines.length > keep) { this.lines.splice(0, this.lines.length - keep); }
-
-		ctx.fillStyle = '#000';
-		ctx.fillRect(0, 0, w, h);
-		ctx.lineWidth = 1;
-		for (var i = 0; i < this.lines.length; i += 1) {
-			var l = this.lines[i];
-			ctx.strokeStyle = this.hueRate ? 'hsl(' + l.hue.toFixed(1) + ',100%,55%)' : '#ffffff';
-			ctx.beginPath();
-			ctx.moveTo(l.x1, l.y1);
-			ctx.lineTo(l.x2, l.y2);
-			ctx.stroke();
-		}
+		this.canvas.getContext('2d').putImageData(this.image, 0, 0);
+		ctx.imageSmoothingEnabled = false;
+		ctx.drawImage(this.canvas, 0, 0, w, h);
 	};
 
 	AfterDark.define('after-dark-spiral-gyra', function (el) {
 		var sim = new SpiralGyra();
-		sim.maxLines = Number(MAXES[AfterDark.choice(el, 'max-lines', MAXES, '100')]);
-		sim.minLines = Number(MINS[AfterDark.choice(el, 'min-lines', MINS, '10')]);
-		sim.hueRate = HUE[AfterDark.choice(el, 'color-cycling', CYCLES, 'medium')];
+		sim.maxLines = clamp(AfterDark.setting(el, 'max-lines'), 20, 360, 204);
+		sim.minPct = clamp(AfterDark.setting(el, 'min-lines'), 0, 100, 28);
+		sim.cycling = clamp(AfterDark.setting(el, 'color-cycling'), 0, 100, 32);
 		return sim;
 	});
 

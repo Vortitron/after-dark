@@ -1,22 +1,30 @@
 /**
- * meadow.js - Meadow, a strip of grass going round the year.
+ * meadow.js - Meadow, a field that grows a blade at a time.
  *
  * MEADOW.AD's own description: "MEADOW (tm) Just a calm little thing." Its
  * controls are Season (Spring, Summer, Fall, Winter) and Seasons Last (10
- * seconds to 1 week, or Forever); the Fractal Forest module says to run the
- * two together in MultiModule "for a very calming effect", and Boris's says
- * the same of Boris and Meadow, so it keeps to the bottom of the screen.
+ * seconds to 1 week, or Forever); the defaults are Spring and 30 seconds.
+ * Its two bitmaps are six flowers and their mask, 196x37.
  *
- * Its two bitmaps are six flowers and their mask, 196x37. The grass, the
- * turning of the year and the snow are drawn: in spring the grass comes up
- * and the flowers open one by one, summer is full, in fall the grass goes to
- * straw and the flowers drop, and winter snows on it until spring melts it.
+ * Checked against the original running under Wine (October 2026), from
+ * captures up to 160 s long and a +relay trace of its GDI calls. (It had
+ * been listed as refusing to load; it runs fine in the sandbox now.)
  *
- * The panel's defaults are Spring and Seasons Last 15 (30 seconds).
- *
- * Not checked against a capture: under Wine (8- and 24-bit) the engine says
- * "Unable to load selected module" for MEADOW.AD, though the module itself
- * loads (a +loaddll trace shows it) - its start-up returns failure.
+ * - The meadow is the whole screen below a horizon that differs every run
+ *   (a region built from four polygons; seen running from y = 260 on the
+ *   left down to 370 on the right, and in another run as high as 72).
+ * - Nothing moves. It picks random points, and each one inside the meadow
+ *   gets a blade of grass: a vertical line 9 px long (sometimes 10) set one
+ *   pixel at a time, from a base colour at the top fading to a fifth of it
+ *   at the bottom (traced bases: (30,114,32), (0,176,8), (41,157,29),
+ *   (132,145,19), (152,175,0)). The field fills up over minutes and is never
+ *   cleared.
+ * - From the second season (about 30 s in) flowers from the strip are
+ *   stamped in among the grass, smaller towards the horizon (it sets
+ *   StretchBlt mode before drawing), and keep piling up.
+ * - Later blades turn greyer (grey appears around 110 s), taken here as fall
+ *   going to straw and winter to snow; that part, the rate (it does not
+ *   read the clock under Wine) and the horizon's exact shape are inferred.
  *
  *   <after-dark-meadow art="art/meadow" season="spring" seasons-last="30 seconds">
  */
@@ -29,126 +37,89 @@
 	var LENGTH = [10, 30, 60, 300, 600, 1800, 3600, 86400, 604800, Infinity];
 	/* The six flowers' columns in the strip. */
 	var FLOWERS = [[4, 30], [37, 30], [66, 28], [97, 31], [132, 24], [158, 26]];
-	var GREEN = [70, 170, 50];
-	var DEEP = [30, 120, 30];
-	var STRAW = [175, 150, 70];
+	/* Blade colours each season starts from. Spring and summer are the traced
+	   ones; fall and winter are inferred. */
+	var GRASS = [
+		[[30, 114, 32], [0, 176, 8], [41, 157, 29], [132, 145, 19], [152, 175, 0]],
+		[[30, 114, 32], [0, 176, 8], [41, 157, 29], [132, 145, 19], [152, 175, 0]],
+		[[132, 145, 19], [175, 150, 70], [150, 110, 40], [152, 175, 0]],
+		[[200, 200, 200], [160, 160, 170], [235, 235, 245]]
+	];
+	/* Blades a second, and flowers a second once they are out. */
+	var BLADES = 80;
+	var BLOOMS = 3;
+	var BLADE = 9;
 
 	function rand(a, b) {
 		return a + Math.random() * (b - a);
 	}
 
-	function mix(a, b, t) {
-		return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-	}
-
-	function rgb(c, k) {
-		k = k === undefined ? 1 : k;
-		return 'rgb(' + Math.round(c[0] * k) + ',' + Math.round(c[1] * k) + ',' + Math.round(c[2] * k) + ')';
-	}
-
 	function Meadow() {
 		this.season = 0;
-		this.length = LENGTH[2];
+		this.length = LENGTH[1];
 		this.art = null;
+		this.t = 0;
+		this.age = 0;
 	}
 
 	Meadow.prototype.resize = function (w, h) {
-		this.s = Math.max(1, Math.round(Math.min(w, h) / 400));
-		var s = this.s, tall = Math.min(h * 0.28, 70 * s);
-		this.blades = [];
-		for (var x = 0; x < w; x += rand(1.5, 3.5) * s) {
-			this.blades.push({ x: x, h: rand(0.35, 1) * tall, lean: rand(-0.35, 0.35), shade: rand(0.7, 1.15),
-				phase: rand(0, 6) });
-		}
-		this.flowers = [];
-		var n = Math.round(w / (38 * s));
-		for (var i = 0; i < n; i += 1) {
-			this.flowers.push({ x: rand(0, w - 30 * s), sink: rand(0, tall * 0.5), kind: Math.floor(Math.random() * 6),
-				at: rand(0.1, 0.9), fall: rand(0.1, 0.9) });
-		}
-		this.flowers.sort(function (a, b) { return a.sink - b.sink; });
-		this.snow = [];
-		this.drift = 0;
-		this.t = 0;
+		this.w = w;
+		this.h = h;
+		this.canvas = document.createElement('canvas');
+		this.canvas.width = w;
+		this.canvas.height = h;
+		var g = this.canvas.getContext('2d');
+		g.fillStyle = '#000';
+		g.fillRect(0, 0, w, h);
+		/* A new horizon: a few random points joined up, somewhere in the top half. */
+		var pts = [], n = 3;
+		for (var i = 0; i <= n; i += 1) { pts.push(rand(0.1, 0.5) * h); }
+		this.horizon = function (x) {
+			var f = x / w * n, k = Math.min(n - 1, Math.floor(f)), t = f - k;
+			return pts[k] + (pts[k + 1] - pts[k]) * (0.5 - Math.cos(t * Math.PI) / 2);
+		};
+		this.blades = 0;
+		this.blooms = 0;
 	};
 
-	/** 0..1 through the current season; the change itself takes at most 30 seconds. */
-	Meadow.prototype.progress = function () {
-		var span = Math.min(this.length, 30);
-		return Math.min(1, this.t / span);
+	Meadow.prototype.blade = function (g) {
+		var x = Math.floor(rand(0, this.w)), y = Math.floor(rand(0, this.h));
+		if (y < this.horizon(x)) { return; }
+		var set = GRASS[this.season], c = set[Math.floor(Math.random() * set.length)];
+		for (var k = 0; k < BLADE; k += 1) {
+			var f = 1 - 0.8 * k / (BLADE - 1);
+			g.fillStyle = 'rgb(' + Math.round(c[0] * f) + ',' + Math.round(c[1] * f) + ',' + Math.round(c[2] * f) + ')';
+			g.fillRect(x, y - 4 + k, 1, 1);
+		}
 	};
 
-	Meadow.prototype.step = function (dt, ctx, w, h) {
+	Meadow.prototype.bloom = function (g) {
+		if (!this.art) { return; }
+		var x = rand(0, this.w), y = rand(0, this.h), top = this.horizon(x);
+		if (y < top) { return; }
+		var cell = FLOWERS[Math.floor(Math.random() * FLOWERS.length)];
+		var k = 0.4 + 0.6 * (y - top) / Math.max(1, this.h - top);
+		var fw = Math.max(1, Math.round(cell[1] * k)), fh = Math.max(1, Math.round(37 * k));
+		g.imageSmoothingEnabled = false;
+		g.drawImage(this.art, cell[0], 0, cell[1], 37, Math.round(x - fw / 2), Math.round(y - fh), fw, fh);
+	};
+
+	Meadow.prototype.step = function (dt, ctx) {
 		this.t += dt;
+		this.age += dt;
 		if (this.t >= this.length) {
 			this.t = 0;
 			this.season = (this.season + 1) % 4;
 		}
-		var p = this.progress(), s = this.s, season = this.season, i;
-		/* How grown, how green and how snowed on, for this moment of the year. */
-		var grown = [p, 1, 1, 1 - p * 0.4][season];
-		var colour = season === 0 ? mix(STRAW, GREEN, p) : season === 1 ? mix(GREEN, DEEP, p)
-			: season === 2 ? mix(DEEP, STRAW, p) : STRAW;
-		var snowing = season === 3 && p < 0.85;
-		this.drift = season === 3 ? Math.min(1, this.drift + dt / 25) : Math.max(0, this.drift - dt / 12);
-
-		ctx.fillStyle = '#000';
-		ctx.fillRect(0, 0, w, h);
-		ctx.lineCap = 'round';
-		ctx.lineWidth = Math.max(1, s);
-		for (i = 0; i < this.blades.length; i += 1) {
-			var b = this.blades[i], bh = b.h * (season === 0 ? 0.15 + 0.85 * grown : grown);
-			var sway = Math.sin(this.t * 1.3 + b.phase + b.x * 0.01) * 2 * s;
-			ctx.strokeStyle = rgb(colour, b.shade);
-			ctx.beginPath();
-			ctx.moveTo(b.x, h);
-			ctx.quadraticCurveTo(b.x + b.lean * bh * 0.3, h - bh * 0.6, b.x + b.lean * bh + sway, h - bh);
-			ctx.stroke();
+		var g = this.canvas.getContext('2d');
+		this.blades += BLADES * dt;
+		while (this.blades >= 1) { this.blade(g); this.blades -= 1; }
+		/* Flowers from the second season on, while it is not winter. */
+		if ((this.season === 1 || this.season === 2 || this.age >= this.length) && this.season !== 3) {
+			this.blooms += BLOOMS * dt;
+			while (this.blooms >= 1) { this.bloom(g); this.blooms -= 1; }
 		}
-		if (this.art) {
-			ctx.imageSmoothingEnabled = false;
-			for (i = 0; i < this.flowers.length; i += 1) {
-				var f = this.flowers[i], cell = FLOWERS[f.kind];
-				/* Spring opens them one by one, fall drops them one by one. */
-				var show = season === 0 ? (p > f.at ? Math.min(1, (p - f.at) * 6) : 0)
-					: season === 1 ? 1 : season === 2 ? (p < f.fall ? 1 : Math.max(0, 1 - (p - f.fall) * 6)) : 0;
-				if (show <= 0) { continue; }
-				var fh = 37 * s * show, fw = cell[1] * s;
-				ctx.globalAlpha = season === 2 ? 0.5 + 0.5 * show : 1;
-				ctx.drawImage(this.art, cell[0], 0, cell[1], 37, Math.round(f.x), Math.round(h - f.sink * grown - fh),
-					fw, Math.round(fh));
-			}
-			ctx.globalAlpha = 1;
-		}
-		/* Snow: falling while winter lasts, lying until spring has melted it. */
-		if (snowing && this.snow.length < w / 3) {
-			for (i = 0; i < 3; i += 1) {
-				this.snow.push({ x: rand(0, w), y: rand(-h * 0.6, -4), v: rand(20, 45) * s, sway: rand(0, 6) });
-			}
-		}
-		ctx.fillStyle = '#fff';
-		for (i = this.snow.length - 1; i >= 0; i -= 1) {
-			var fl = this.snow[i];
-			fl.y += fl.v * dt;
-			fl.x += Math.sin(this.t + fl.sway) * 10 * s * dt;
-			if (fl.y > h - this.drift * 18 * s) {
-				if (!snowing) { this.snow.splice(i, 1); continue; }
-				fl.y = -4;
-				fl.x = rand(0, w);
-			}
-			ctx.fillRect(Math.round(fl.x), Math.round(fl.y), 2 * s, 2 * s);
-		}
-		if (this.drift > 0) {
-			ctx.fillStyle = 'rgba(240,244,255,' + Math.min(1, this.drift * 1.2).toFixed(2) + ')';
-			var depth = this.drift * 18 * s;
-			ctx.beginPath();
-			ctx.moveTo(0, h);
-			for (var x = 0; x <= w; x += 8 * s) {
-				ctx.lineTo(x, h - depth - Math.sin(x * 0.02) * 4 * s * this.drift);
-			}
-			ctx.lineTo(w, h);
-			ctx.fill();
-		}
+		ctx.drawImage(this.canvas, 0, 0);
 	};
 
 	AfterDark.define('after-dark-meadow', function (el) {

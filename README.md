@@ -99,21 +99,21 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-bogglins>` | `modules/bogglins.js` | `explosivity` = unstable / volatile / dangerous / evacuate!, `twanginess` = mild / rich / zesty / sharp |
 | `<after-dark-om>` | `modules/om.js` | `entities` = 1–20, `life-energy` = 1000 kwh / 2000 kwh / 3000 kwh / 4000 kwh / 5000 kwh, `defrost` = never / rarely / occasionally / often / very often / almost always / constantly, `washer-karma` = none / a little / some / average / lots / complete |
 | `<after-dark-gravity>` | `modules/gravity.js` | `balls` = 1–7, `size` = small / medium / large, `clear-screen` is a flag. No artwork: the original draws itself |
-| `<after-dark-snake>` | `modules/snake.js` | `speed` = slow / medium / fast, `maze-complexity` = simple / medium / twisty, `pause-when-done` = 0 sec / 1 sec / 3 sec / 5 sec / 10 sec / 15 sec / 30 sec / 1 min. No artwork |
-| `<after-dark-zot>` | `modules/zot.js` | `forkiness` = few / forky / max forky!, `kinkiness` = no kinks / kinky / deviant, `how-often` = rarely / sometimes / often / stormy!. No artwork |
-| `<after-dark-draino>` | `modules/draino.js` | `speed` = slow / medium / fast, `direction` = clockwise / inward / counter, `drops` and `show-drain` are flags. No artwork |
-| `<after-dark-shapes>` | `modules/shapes.js` | `color` and `clear-screen` are flags. No artwork |
-| `<after-dark-spheres>` | `modules/spheres.js` | `max-size` = 20 / 50 / 80 / 100, `offset` = 0 / 10 / 30 / 60, `clear-every` = 20 / 50 / 100 / 200, `clear-screen` is a flag. No artwork |
+| `<after-dark-snake>` | `modules/snake.js` | `speed` = 0–9 (default 0), `maze-complexity` = 0–9 (0 = 20 px cells, n = 19 − n px), `pause-when-done` = 0 sec … 1 min (default 0 sec). No artwork |
+| `<after-dark-zot>` | `modules/zot.js` | `forkiness` = few / forky / max forky! (how far forks run), `how-often` = rarely / sometimes / often / stormy!. No artwork |
+| `<after-dark-draino>` | `modules/draino.js` | `speed` = slow / medium / fast (default fast), `direction` = clockwise / inward / counter (default counter), `drops` and `show-drain` are flags. Smears the desktop into the drain. No artwork |
+| `<after-dark-shapes>` | `modules/shapes.js` | `color` (on by default) and `clear-screen` (off by default: shapes land on the desktop) are flags. No artwork |
+| `<after-dark-spheres>` | `modules/spheres.js` | `max-size` = 10–100 (default 73), `offset` = 0–100 (default 10), `clear-every` = 1–200 (default 30); `clear-screen` is a flag, off by default. No artwork |
 | `<after-dark-starry-night>` | `modules/starry-night.js` | `buildings` = none / few / some / many / lots, `height` = low / medium / tall / skyscrapers, `flasher` is a flag. The engine's own fallback, `STARRYNI.AD`; its shooting star is the module's one bitmap |
-| `<after-dark-warp>` | `modules/warp.js` | `speed` = fast in / medium in / slow in / impulse in / impulse out / slow out / medium out / fast out, `stars` = few / some / many / lots, `size` = small / big / both, `color` is a flag |
-| `<after-dark-hard-rain>` | `modules/hardrain.js` | `drops` = few / some / many / lots, `drop-size` = small / medium / large, `clear-screen` is a flag (off rains on the desktop) |
+| `<after-dark-warp>` | `modules/warp.js` | `speed` = fast in / medium in / slow in / impulse in / impulse out / slow out / medium out / fast out, `stars` = 1–200 (default 71), `size` = small / big / both, `color` is a flag (off by default) |
+| `<after-dark-hard-rain>` | `modules/hardrain.js` | `drops` = few / some / many / lots (default lots), `drop-size` = small / medium / large, `clear-screen` is a flag (off by default: it rains on the desktop) |
 | `<after-dark-globe>` | `modules/globe.js` | `map` = earth / after dark / toaster (the bitmaps the install shipped), `speed` = slowest / slow / medium / fast / fastest, `mirror` = none / horizontal / vertical / both, `tilt` = 0 / 23 / 45 / 90 (ours; the original's Rotation control is its spin speed) |
 | `<after-dark-messages>` | `modules/messages.js` | `message` = any of the eight it shipped with (out to lunch, coffee break, i quit!, …) or your own text, `move` = popping / floating / sliding, `speed` = sluggish / slow / medium / moving / quick / flying / zoom! |
 | `<after-dark-mandelbrot>` | `modules/mandelbrot.js` | `delay` = 0 sec / 5 sec / 15 sec / 30 sec / 1 min, `colors` = earth / air / fire / water / random, `blockiness` = 1 / 2 / 4 / 8 / 16 |
-| `<after-dark-rose>` | `modules/rose.js` | `speed` = lethargic / slow / moving / fast / swift / quick, `trail-length` = shortest / short / medium / long / longest, `big-dots` is a flag |
-| `<after-dark-spiral-gyra>` | `modules/spiral.js` | `max-lines` = 25 / 50 / 100 / 200, `min-lines` = 1 / 10 / 25 / 50, `color-cycling` = none / slow / medium / fast |
-| `<after-dark-string-theory>` | `modules/string.js` | `groups` = 1–4, `strings` = 10 / 30 / 60 / 100 / 150 / infinite, `color-speed` = slow / medium / fast, `clear-screen` is a flag |
-| `<after-dark-tunnel>` | `modules/tunnel.js` | `direction` = in / out, `shape` = rect / r-rect / random. Caps Lock turns it round, as it did |
+| `<after-dark-rose>` | `modules/rose.js` | `speed` = lethargic / slow / moving / fast / swift / quick (default quick), `trail-length` = shortest / short / medium / long / longest, `big-dots` is a flag |
+| `<after-dark-spiral-gyra>` | `modules/spiral.js` | `max-lines` = 20–360 (lines per turn, default 204), `min-lines` = 0–100 (% of max, default 28), `color-cycling` = 0–100 (default 32) |
+| `<after-dark-string-theory>` | `modules/string.js` | `groups` = 1–4 (default 3), `strings` = 10–150 in tens or infinite (default 140), `color-speed` = 1–100 (default 96), `clear-screen` is a flag (default off) |
+| `<after-dark-tunnel>` | `modules/tunnel.js` | `direction` = in / out, `shape` = r-rect / rect / random. Caps Lock turns it round, as it did |
 | `<after-dark-zoom>` | `modules/zoom.js` | `colors` = any of the 21 palettes the module ships (smooth, saw, saw2 … oscillate2, banded; `random` is one of them, not a random choice), `speed` = slowest … zooommmin, `delay` = shortest … longest. Needs `palettes` pointing at `art/zoom` |
 | `<after-dark-spotlight>` | `modules/spot.js` | `size` = random / 30 … 200 in steps of 10, `speed` = slow / medium / fast, `spots` = 1–4 |
 | `<after-dark-punch-out>` | `modules/punch.js` | `shape` = circle / oval / square / rectangle / random, `size` = small / medium / large, `speed` = slow / medium / fast |
@@ -126,11 +126,11 @@ The decoded ones are also custom elements, so if you are hosting the files yours
 | `<after-dark-meadow>` | `modules/meadow.js` | `season` = spring / summer / fall / winter, `seasons-last` = 10 seconds … 1 week / forever |
 | `<after-dark-frost>` | `modules/frost.js` | `size` = small / medium / large / huge, `palette` = bright / stormy / gray scale / ramped / electric / rainbows / sine / plasma / cycloid / random / icycloid, `maximize-speed` is a flag |
 | `<after-dark-photon>` | `modules/photon.js` | `length` = 1–32, `burst-delay` = none / 1/2 sec. / 1 sec. / 2 sec. / 5 sec. / 10 sec. / 30 sec., `burst` = mixed / photon / electron / proton / neutrino, `always-centered` is on unless `always-centered="off"` |
-| `<after-dark-sunburst>` | `modules/sunburst.js` | `delay` = slowest / slow / medium / fast / fastest |
+| `<after-dark-sunburst>` | `modules/sunburst.js` | `delay` = slowest / slow / medium / fast / fastest (default slow) |
 | `<after-dark-vertigo>` | `modules/vertigo.js` | `palette` = stingray / smooth / random, `pitch` = tight / loose / medium, `color-speed` = slow / medium / fast, `delay` = 0 secs … 1 minute |
 | `<after-dark-stained-glass>` | `modules/stained.js` | `complexity` = low / medium / high, `duplication` = none / some / lots, `color` = few / medium / lots |
 | `<after-dark-strange-attractors>` | `modules/strange.js` | `duration` = 5 seconds … 1 hour (15 steps, default 20 seconds), `color-speed` = none / slowest … fastest |
-| `<after-dark-geobounce>` | `modules/geobounce.js` | `shape` = tetrahedron / cube / octahedron / dodecahedron / icosahedron / random, `size` and `speed` = small–large / slow–fast, `faces` = shading / colors / both |
+| `<after-dark-geobounce>` | `modules/geobounce.js` | `shape` = tetrahedron / cube / octahedron / dodecahedron / icosahedron, `size` = 10–100 (default 54), `speed` = 0–100 (default 28), `faces` = shading / colors / both |
 | `<after-dark-spin-brush>` | `modules/spin.js` | `switch-every` = 15 sec. … never, `thickness` = 1–4 / variable, `spin` = spin / spiral / star / stretch / random, `use-screen` is a flag |
 | `<after-dark-boris>` | `modules/boris.js` | `cats` = 1–4, `butterfly` = never / rarely / seldom / occasionally / frequently / always, `color` is a flag |
 | `<after-dark-mowin-man>` | `modules/mowin.js` | `speed` = pokey / normal / hurried / menace, `mow-every` = always / day / 2 days … week, `growth-rate` = none / slow / medium / fast, `clear-screen` is a flag (off grows the lawn over the desktop) |
