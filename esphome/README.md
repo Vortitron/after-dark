@@ -60,8 +60,13 @@ LCD version are the ones that came out as noise or a speck there.
 ## Using it
 
 The easy way is the builder on the site, [After Dark for ESPHome](https://vortitron.github.io/after-dark/all/esphome.html):
-pick the board and screen, tick the savers, and it shows how much flash they
-take and writes the config. By hand, the parts of a config that matter are:
+pick the board and screen, tick the savers (each has a preview of how it
+looks on that screen), and it shows how much flash they take and writes the
+config. If your Home Assistant is connected to [Vome](https://vome.io/), the
+builder also gives you a request to paste to your AI assistant, which then
+adds the config to ESPHome Device Builder, builds it and installs it.
+
+By hand, the parts of a config that matter are:
 
 ```yaml
 display:
@@ -145,7 +150,8 @@ compilers (`all/esphome-savers.json`) and errs a few per cent high.
   for 3.x strips, `--index` for a trimmed index from `tools/index/`).
   `font2c.py` makes the fonts, `words2c.py` Nonsense's grammar and
   `einstein2c.py` Einstein's chalk. `measure.py` writes the builder's sizes
-  (`savers.json` beside it holds each saver's name, page and note).
+  (`savers.json` beside it holds each saver's name, page and note), and
+  `previews.sh` renders its previews into `all/esphome/`.
 - `host/`: renders a saver on the desktop, so a port can be checked frame by
   frame without a board.
 
@@ -177,5 +183,5 @@ ROM, so they differ from a real panel's by a dot here and there.
 4. For a character LCD, write a `TextSaver` too, or wrap the pixel saver in
    a `DotMatrix` if it is made of dots and lines that survive 95×17.
 5. Check it with `host/preview.sh` on every screen.
-6. Add it to `tools/savers.json` and run `tools/measure.py`, so the builder
-   offers it.
+6. Add it to `tools/savers.json` and run `tools/measure.py` and
+   `tools/previews.sh`, so the builder offers it with a preview.

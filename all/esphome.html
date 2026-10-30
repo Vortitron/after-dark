@@ -6,7 +6,7 @@
   <title>After Dark for ESPHome</title>
   <meta name="description" content="Pick the After Dark screen savers for an ESP32 and its screen, see how much flash they take, and get the ESPHome config.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="../img/favicon.png?v=710c41e-261030075457" />
+  <link rel="shortcut icon" href="../img/favicon.png?v=cb82f29-261030155154" />
   <style>
     /* ------------------------------------------------------------------
        A Windows 95 setup dialog, to sit beside the Display Properties
@@ -110,7 +110,8 @@
     .row .name small { display: block; font-size: 11px; color: #404040; }
     .row.off .name small { color: var(--shadow); }
     .row .size { font-family: var(--mono); font-size: 11px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .row a { font-size: 11px; color: var(--title); }
+    .row .look { font: 11px var(--ui); color: var(--title); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+    .row .look:focus-visible { outline: 1px dotted var(--ink); outline-offset: 2px; }
     .opts { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 2px 0 6px; }
     .opts[hidden] { display: none; }
 
@@ -167,6 +168,50 @@
     .status { font-size: 11px; }
     .footer { width: 100%; max-width: 760px; color: #fff; font-size: 11px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
     .footer a { color: #fff; }
+    /* --- the preview dialog --------------------------------------------- */
+    .modal { position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .35); display: grid; place-items: center; padding: 12px; }
+    .modal[hidden] { display: none; }
+    .modal .window { max-width: 560px; }
+    .tabs { display: flex; gap: 2px; padding: 8px 8px 0; flex-wrap: wrap; }
+    .tab {
+      padding: 3px 9px 4px; font: inherit; color: var(--shadow);
+      background: var(--face);
+      border: 2px solid; border-color: var(--light) var(--dark) var(--face) var(--light);
+      border-radius: 3px 3px 0 0; position: relative; top: 2px; cursor: default;
+    }
+    .tab[aria-selected="true"] { top: 0; padding: 5px 11px 6px; color: var(--ink); font-weight: bold; z-index: 2; }
+    .tab:disabled { color: var(--shadow); text-shadow: 1px 1px 0 var(--light); }
+    .tab:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
+    .sheet {
+      margin: 0 8px 8px; padding: 14px;
+      border: 2px solid; border-color: var(--light) var(--dark) var(--dark) var(--light);
+      display: grid; gap: 10px; justify-items: center;
+    }
+    .screen { background: #000; padding: 10px; border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow); max-width: 100%; }
+    .screen img { display: block; width: 384px; max-width: 100%; height: auto; image-rendering: pixelated; }
+    .screen.lcd { background: #1a1a1a; padding: 8px; }
+    .screen.lcd img { width: 404px; image-rendering: auto; }
+    .screen iframe { display: block; width: 320px; height: 240px; max-width: 100%; border: 0; background: #000; }
+    .sheet p { margin: 0; text-align: center; max-width: 48ch; }
+    .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; padding: 0 8px 8px; }
+    .acts a.push { text-decoration: none; display: inline-block; text-align: center; }
+
+    /* The web version full screen, gone at a tap, a key or a move of the mouse. */
+    .saver { position: fixed; inset: 0; z-index: 100; background: #000; cursor: none; }
+    .saver iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .saver .catch { position: absolute; inset: 0; }
+    .saver .hint { position: absolute; left: 0; right: 0; bottom: 9%; text-align: center; color: #fff;
+      text-shadow: 1px 1px 0 #000; pointer-events: none; animation: dim 3.5s ease-in forwards; }
+    @keyframes dim { 0%, 50% { opacity: .8; } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .saver .hint { animation: none; opacity: .8; } }
+
+    /* --- Vome ------------------------------------------------------------ */
+    .vome { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
+    .vome p { margin: 0 0 6px; max-width: 70ch; }
+    .vome ol { margin: 0 0 6px; padding-left: 18px; }
+    .vome li { margin-bottom: 3px; }
+    .robot { width: 48px; height: 48px; display: grid; place-items: center; background: var(--field);
+      border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow); font: bold 20px var(--mono); color: var(--title); }
   </style>
 </head>
 
@@ -251,6 +296,49 @@
           <button class="push" id="copy" type="button">Copy</button>
         </div>
       </fieldset>
+      <fieldset>
+        <legend>Install it with Vome</legend>
+        <div class="vome">
+          <div class="robot" aria-hidden="true">&gt;_</div>
+          <div>
+            <p>If your Home Assistant is connected to <a href="https://vome.io/">Vome</a>, your AI assistant (Claude, Cursor, or any app that talks MCP) can put this on the board for you. It adds the config to ESPHome Device Builder, builds the firmware and installs it, and you approve each step.</p>
+            <ol>
+              <li>Add the Vome app to Home Assistant and make a key on its Agent tab, as <a href="https://github.com/Vortitron/home-assistant-mcp/tree/main/claude-plugin/vome-esphome">Vome's ESPHome guide</a> shows. Home Assistant needs the ESPHome Device Builder app too.</li>
+              <li>For a new board, plug it into the machine running Home Assistant by USB. After the first install, updates go over Wi-Fi.</li>
+              <li>Copy the request below and paste it to your assistant.</li>
+            </ol>
+            <div class="bar">
+              <span class="status" id="vome-status">The request carries the config above, so set up the board and screen first.</span>
+              <span class="grow"></span>
+              <button class="push" id="copy-request" type="button">Copy request</button>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="modal" id="preview" hidden>
+    <div class="window" role="dialog" aria-modal="true" aria-labelledby="preview-title">
+      <div class="titlebar">
+        <span id="preview-title">Preview</span>
+        <span class="grow"></span>
+        <a class="btn" href="#" id="preview-x" aria-label="Close">&times;</a>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-mono" data-kind="mono" type="button">1-bit OLED</button>
+        <button class="tab" role="tab" id="tab-text" data-kind="text" type="button">16 &times; 2 LCD</button>
+        <button class="tab" role="tab" id="tab-colour" data-kind="colour" type="button">Colour</button>
+      </div>
+      <div class="sheet" role="tabpanel">
+        <div class="screen" id="preview-screen"></div>
+        <p id="preview-note"></p>
+      </div>
+      <div class="acts">
+        <button class="push" id="preview-full" type="button">Full screen</button>
+        <a class="push" id="preview-all" href="../index.html">All the web versions</a>
+        <button class="push" id="preview-close" type="button">Close</button>
+      </div>
     </div>
   </div>
 
@@ -340,8 +428,9 @@
           '<span class="check"><input type="checkbox" id="' + id + '"></span>' +
           '<label class="name" for="' + id + '">' + s.title + '<small></small></label>' +
           '<span class="size"></span>' +
-          '<a href="' + s.page + '" target="_blank" rel="noopener">Preview</a>';
+          '<button class="look" type="button">Preview</button>';
         list.appendChild(row);
+        row.querySelector('.look').addEventListener('click', function () { openPreview(name); });
         row.querySelector('input').addEventListener('change', function (e) {
           chosen[name] = e.target.checked;
           update();
@@ -519,6 +608,167 @@
       });
     });
     $('start').addEventListener('change', function () { $('yaml').value = yaml(picked()); });
+
+
+    /* ------------------------------------------------------- preview -- */
+
+    var previewing = null, previewKind = null, lastFocus = null;
+    var NOTES = {
+      mono: 'As the ESP32 draws it on a 128 × 64 OLED: the art shrunk and baked to black and white.',
+      text: 'As the ESP32 draws it on a 16 × 2 character LCD, with the panel’s eight custom characters.',
+      colour: 'On a colour panel the ESP32 draws the original art, as the web version here does.'
+    };
+
+    function showTab(k) {
+      var s = data.savers[previewing], screen = $('preview-screen');
+      previewKind = k;
+      ['mono', 'text', 'colour'].forEach(function (t) {
+        $('tab-' + t).setAttribute('aria-selected', String(t === k));
+      });
+      screen.textContent = '';
+      screen.className = 'screen' + (k === 'text' ? ' lcd' : '');
+      if (k === 'colour') {
+        var f = document.createElement('iframe');
+        f.src = s.page;
+        f.title = s.title + ', the web version';
+        f.setAttribute('scrolling', 'no');
+        screen.appendChild(f);
+      } else {
+        var img = document.createElement('img');
+        img.src = 'esphome/' + (k === 'text' ? 'lcd/' : 'oled/') + previewing + '.gif';
+        img.alt = s.title + (k === 'text' ? ' on a 16 × 2 character LCD' : ' on a 128 × 64 OLED');
+        img.width = k === 'text' ? 404 : 384;
+        img.height = k === 'text' ? 92 : 192;
+        screen.appendChild(img);
+      }
+      $('preview-note').textContent = NOTES[k];
+    }
+
+    function openPreview(name) {
+      var s = data.savers[name];
+      previewing = name;
+      lastFocus = document.activeElement;
+      $('preview-title').textContent = s.title + ' — Preview';
+      $('tab-text').disabled = !s.text;
+      $('preview-all').href = '../index.html#' + s.page.replace(/\.html$/, '');
+      var k = kind();
+      if (k === 'text' && !s.text) k = 'mono';
+      $('preview').hidden = false;
+      showTab(k);
+      $('preview-close').focus();
+    }
+
+    function closePreview() {
+      if ($('preview').hidden) return;
+      $('preview').hidden = true;
+      $('preview-screen').textContent = '';  // stops the web version if it was running
+      previewing = null;
+      if (lastFocus) lastFocus.focus();
+    }
+
+    ['mono', 'text', 'colour'].forEach(function (t) {
+      $('tab-' + t).addEventListener('click', function () { showTab(t); });
+    });
+    $('preview-close').addEventListener('click', closePreview);
+    $('preview-x').addEventListener('click', function (e) { e.preventDefault(); closePreview(); });
+    $('preview').addEventListener('mousedown', function (e) { if (e.target === this) closePreview(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !saver) closePreview();
+    });
+
+    /* The web version full screen. Like a real screen saver it goes at a tap,
+       a key, or a move of the mouse, once the first second is over. */
+    var saver = null, origin = null, startedAt = 0;
+
+    function stopSaver() {
+      if (!saver) return;
+      var box = saver;
+      saver = null;
+      document.removeEventListener('keydown', onSaverKey, true);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+      var fs = document.fullscreenElement || document.webkitFullscreenElement;
+      if (fs) {
+        var exit = document.exitFullscreen || document.webkitExitFullscreen;
+        try { exit.call(document); } catch (e) {}
+      }
+      box.parentNode.removeChild(box);
+      $('preview-full').focus();
+    }
+    function onSaverKey(e) { e.preventDefault(); e.stopPropagation(); stopSaver(); }
+    function onFullscreenChange() {
+      if (saver && !(document.fullscreenElement || document.webkitFullscreenElement)) stopSaver();
+    }
+    function onSaverMove(e) {
+      if (Date.now() - startedAt < 1000) { origin = null; return; }
+      if (!origin) { origin = { x: e.clientX, y: e.clientY }; return; }
+      if (Math.abs(e.clientX - origin.x) + Math.abs(e.clientY - origin.y) > 8) stopSaver();
+    }
+
+    function startSaver() {
+      if (saver || !previewing) return;
+      var s = data.savers[previewing];
+      var box = document.createElement('div');
+      box.className = 'saver';
+      var f = document.createElement('iframe');
+      f.src = s.page;
+      f.title = s.title + ' screen saver';
+      f.setAttribute('scrolling', 'no');
+      var catcher = document.createElement('div');
+      catcher.className = 'catch';
+      var hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = 'Tap, press a key or move the mouse to stop';
+      box.appendChild(f);
+      box.appendChild(catcher);
+      box.appendChild(hint);
+      document.body.appendChild(box);
+      saver = box;
+      origin = null;
+      startedAt = Date.now();
+      box.addEventListener('mousedown', stopSaver);
+      box.addEventListener('touchstart', stopSaver, { passive: true });
+      box.addEventListener('mousemove', onSaverMove);
+      document.addEventListener('keydown', onSaverKey, true);
+      document.addEventListener('fullscreenchange', onFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+      var go = box.requestFullscreen || box.webkitRequestFullscreen;
+      if (go) {
+        try { var p = go.call(box); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+      }
+    }
+    $('preview-full').addEventListener('click', startSaver);
+
+    /* ---------------------------------------------------------- Vome -- */
+
+    function request() {
+      var board = $('board'), screen = $('screen');
+      return 'Please use Vome to put this After Dark screen saver config on my ESP32: add it to ESPHome ' +
+        'Device Builder as a new device called after-dark, then build it and install it.\n\n' +
+        'The board is an ' + board.options[board.selectedIndex].text + ' with ' + $('flash').options[$('flash').selectedIndex].text +
+        ' of flash, and the screen is ' + screen.options[screen.selectedIndex].text + '. ' +
+        'If the board has never had ESPHome on it, it is plugged into the Home Assistant machine by USB: ' +
+        'use that port for the first install. My Wi-Fi details are in Device Builder’s secrets as ' +
+        'wifi_ssid and wifi_password. The pins in the config are examples; ask me before changing them.\n\n' +
+        '```yaml\n' + $('yaml').value + '```\n';
+    }
+
+    $('copy-request').addEventListener('click', function () {
+      var text = request(), status = $('vome-status');
+      function fallback() {
+        $('yaml').value = text;
+        $('yaml').focus();
+        $('yaml').select();
+        status.textContent = 'The request is in the config box, selected: press Ctrl+C to copy it.';
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          status.textContent = 'Copied. Paste it to your assistant.';
+        }, fallback);
+      } else {
+        fallback();
+      }
+    });
 
     fetch('esphome-savers.json').then(function (r) { return r.json(); }).then(function (d) {
       data = d;
