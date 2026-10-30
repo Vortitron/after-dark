@@ -1,0 +1,501 @@
+{
+ "app_slot": {
+  "16MB": 8126464,
+  "4MB": 1835008,
+  "8MB": 3932160
+ },
+ "base": {
+  "esp32c3": {
+   "colour": 896523,
+   "mono": 844887,
+   "text": 841013
+  },
+  "esp32s3": {
+   "colour": 851603,
+   "mono": 804031
+  }
+ },
+ "savers": {
+  "boris": {
+   "about": "The kitten, chasing butterflies.",
+   "bytes": {
+    "colour": 78772,
+    "mono": 50123,
+    "text": 10210
+   },
+   "module": "BORIS.AD",
+   "page": "boris.html",
+   "text": true,
+   "title": "Boris"
+  },
+  "bugs": {
+   "about": "A swarm of bugs crawling about.",
+   "bytes": {
+    "colour": 140587,
+    "mono": 82165
+   },
+   "module": "BUGS.AD",
+   "page": "bugs.html",
+   "text": false,
+   "title": "Bugs"
+  },
+  "clocks": {
+   "about": "The time, drifting about. Pick a face; only its art goes in.",
+   "bytes": {
+    "colour": 197047,
+    "mono": 79389,
+    "text": 1896
+   },
+   "module": "CLOCKS3.AD",
+   "option": {
+    "choices": {
+     "art_deco": "Art Deco",
+     "classic": "Classic",
+     "melting_digital": "Melting Digital",
+     "modern": "Modern",
+     "mutating": "Mutating"
+    },
+    "default": {
+     "colour": "mutating",
+     "mono": "melting_digital"
+    },
+    "key": "face",
+    "label": "Face",
+    "many": false
+   },
+   "options": {
+    "face": {
+     "art_deco": {
+      "colour": 26727,
+      "mono": 79383
+     },
+     "classic": {
+      "colour": 39369,
+      "mono": 79383
+     },
+     "melting_digital": {
+      "colour": 110386,
+      "mono": 79379
+     },
+     "modern": {
+      "colour": 32683,
+      "mono": 79383
+     },
+     "mutating": {
+      "colour": 197039,
+      "mono": 79381
+     }
+    }
+   },
+   "page": "clocks.html",
+   "text": true,
+   "title": "Clocks 3.0"
+  },
+  "dosshell": {
+   "about": "A PC typing to itself at the C:\\> prompt.",
+   "bytes": {
+    "colour": 12252,
+    "mono": 12932,
+    "text": 7720
+   },
+   "module": "DOSSHELL.AD",
+   "page": "dosshell.html",
+   "text": true,
+   "title": "DOS Shell"
+  },
+  "einstein": {
+   "about": "Lines and equations chalked on a blackboard.",
+   "bytes": {
+    "colour": 18205,
+    "mono": 19482,
+    "text": 4974
+   },
+   "module": "EINSTEIN.AD",
+   "page": "einstein.html",
+   "text": true,
+   "title": "Einstein"
+  },
+  "fishpro": {
+   "about": "An aquarium. Pick the species; each one's art goes in only if chosen.",
+   "bytes": {
+    "colour": 277085,
+    "mono": 82264,
+    "text": 2144
+   },
+   "module": "FISHPRO.AD",
+   "option": {
+    "choices": {
+     "blue_tanger": "Blue Tanger",
+     "butterfly_fish": "Butterfly Fish",
+     "emperor": "Emperor",
+     "jellyfish": "Jellyfish",
+     "pink_squirrel": "Pink Squirrel",
+     "red_clown": "Red Clown",
+     "sardines": "Sardines",
+     "trigger_fish": "Trigger Fish",
+     "yellow_tang": "Yellow Tang"
+    },
+    "default": {
+     "colour": [
+      "blue_tanger",
+      "trigger_fish",
+      "pink_squirrel",
+      "butterfly_fish",
+      "emperor",
+      "sardines"
+     ],
+     "mono": [
+      "yellow_tang",
+      "red_clown",
+      "blue_tanger",
+      "trigger_fish",
+      "pink_squirrel",
+      "butterfly_fish",
+      "emperor",
+      "jellyfish",
+      "sardines"
+     ]
+    },
+    "key": "species",
+    "label": "Species",
+    "many": true
+   },
+   "options": {
+    "species": {
+     "each": {
+      "blue_tanger": {
+       "colour": 11808,
+       "mono": 0
+      },
+      "butterfly_fish": {
+       "colour": 17420,
+       "mono": 0
+      },
+      "emperor": {
+       "colour": 12876,
+       "mono": 0
+      },
+      "jellyfish": {
+       "colour": 21472,
+       "mono": 0
+      },
+      "pink_squirrel": {
+       "colour": 17176,
+       "mono": 0
+      },
+      "red_clown": {
+       "colour": 41096,
+       "mono": 0
+      },
+      "sardines": {
+       "colour": 5896,
+       "mono": 0
+      },
+      "trigger_fish": {
+       "colour": 14144,
+       "mono": 0
+      },
+      "yellow_tang": {
+       "colour": 47432,
+       "mono": 0
+      }
+     },
+     "none": {
+      "colour": 87765,
+      "mono": 82264
+     }
+    }
+   },
+   "page": "fishpro.html",
+   "text": true,
+   "title": "Fish Pro"
+  },
+  "flocks": {
+   "about": "Flocks of birds wheeling across the screen.",
+   "bytes": {
+    "colour": 13880,
+    "mono": 12777,
+    "text": 3048
+   },
+   "module": "FLOCKS.AD",
+   "page": "flocks.html",
+   "text": true,
+   "title": "Flocks"
+  },
+  "geobounce": {
+   "about": "A Platonic solid tumbling about.",
+   "bytes": {
+    "colour": 5169,
+    "mono": 7006
+   },
+   "module": "GEOBOUNC.AD",
+   "page": "geobounce.html",
+   "text": false,
+   "title": "GeoBounce"
+  },
+  "gravity": {
+   "about": "Balls dropping and bouncing; never cleared.",
+   "bytes": {
+    "colour": 1633,
+    "mono": 2188
+   },
+   "module": "GRAVITY.AD",
+   "page": "gravity.html",
+   "text": false,
+   "title": "Gravity"
+  },
+  "hard_rain": {
+   "about": "Raindrops rippling on the desktop.",
+   "bytes": {
+    "colour": 14939,
+    "mono": 15816,
+    "text": 15748
+   },
+   "module": "RAIN.AD",
+   "page": "hardrain.html",
+   "text": true,
+   "title": "Hard Rain"
+  },
+  "mandelbrot": {
+   "about": "Zooming for ever into the set.",
+   "bytes": {
+    "colour": 3013,
+    "mono": 3818
+   },
+   "module": "MANDELBR.AD",
+   "page": "mandelbrot.html",
+   "text": false,
+   "title": "Mandelbrot"
+  },
+  "marbles": {
+   "about": "The 1992 original: marbles through a field of pins.",
+   "bytes": {
+    "colour": 9890,
+    "mono": 9357
+   },
+   "module": "MARBLES2.AD",
+   "page": "marbles.html",
+   "text": false,
+   "title": "Marbles"
+  },
+  "messages": {
+   "about": "A line of text floating about: OUT TO LUNCH.",
+   "bytes": {
+    "colour": 25291,
+    "mono": 25904,
+    "text": 2310
+   },
+   "module": "MESSAGE3.AD",
+   "page": "messages-ad.html",
+   "text": true,
+   "title": "Messages"
+  },
+  "mountains": {
+   "about": "Fractal landscapes of the nine planets.",
+   "bytes": {
+    "colour": 6088,
+    "mono": 7506
+   },
+   "module": "MOUNTAIN.AD",
+   "page": "mountains.html",
+   "text": false,
+   "title": "Mountains"
+  },
+  "mowin": {
+   "about": "The lawn grows over the screen, then he mows it.",
+   "bytes": {
+    "colour": 34691,
+    "mono": 20920,
+    "text": 2606
+   },
+   "module": "MOWIN.AD",
+   "page": "mowin.html",
+   "text": true,
+   "title": "Mowin' Man"
+  },
+  "nocturne": {
+   "about": "Eyes in the dark, blinking.",
+   "bytes": {
+    "colour": 4769,
+    "mono": 5504,
+    "text": 2508
+   },
+   "module": "NOCTURNE.AD",
+   "page": "nocturne.html",
+   "text": true,
+   "title": "Nocturnes"
+  },
+  "nonsense": {
+   "about": "Sentences, grammatical and meaningless.",
+   "bytes": {
+    "colour": 31503,
+    "mono": 32020,
+    "text": 12315
+   },
+   "module": "NONSENSE.AD",
+   "page": "nonsense.html",
+   "text": true,
+   "title": "Nonsense"
+  },
+  "photon": {
+   "about": "Bursts of particles.",
+   "bytes": {
+    "colour": 3363,
+    "mono": 4500,
+    "text": 4438
+   },
+   "module": "PHOTON.AD",
+   "page": "photon.html",
+   "text": true,
+   "title": "Photon"
+  },
+  "rebound": {
+   "about": "Balls bouncing off each other.",
+   "bytes": {
+    "colour": 4958,
+    "mono": 4881
+   },
+   "module": "REBOUND.AD",
+   "page": "rebound.html",
+   "text": false,
+   "title": "Rebound"
+  },
+  "rose": {
+   "about": "Two wheels turning, drawing petals in dots.",
+   "bytes": {
+    "colour": 1929,
+    "mono": 2254
+   },
+   "module": "ROSE.AD",
+   "page": "rose.html",
+   "text": false,
+   "title": "Rose"
+  },
+  "shapes": {
+   "about": "Rectangles and ellipses piling up.",
+   "bytes": {
+    "colour": 1752,
+    "mono": 2031
+   },
+   "module": "SHAPES.AD",
+   "page": "shapes.html",
+   "text": false,
+   "title": "Shapes"
+  },
+  "snake": {
+   "about": "A snake solving a maze.",
+   "bytes": {
+    "colour": 4026,
+    "mono": 4542
+   },
+   "module": "SNAKE.AD",
+   "page": "snake.html",
+   "text": false,
+   "title": "Snake"
+  },
+  "spheres": {
+   "about": "Shaded spheres stacking up.",
+   "bytes": {
+    "colour": 1757,
+    "mono": 2078
+   },
+   "module": "SPHERES.AD",
+   "page": "spheres.html",
+   "text": false,
+   "title": "Spheres"
+  },
+  "spiral": {
+   "about": "A ribbon of lines mirrored four ways.",
+   "bytes": {
+    "colour": 1963,
+    "mono": 2283
+   },
+   "module": "SPIRAL.AD",
+   "page": "spiral.html",
+   "text": false,
+   "title": "Spiral Gyra"
+  },
+  "starry_night": {
+   "about": "A city at night, windows lighting up.",
+   "bytes": {
+    "colour": 5612,
+    "mono": 6872,
+    "text": 2066
+   },
+   "module": "STARRYNI.AD",
+   "page": "starry-night.html",
+   "text": true,
+   "title": "Starry Night"
+  },
+  "strange": {
+   "about": "Chaos plotted a point at a time.",
+   "bytes": {
+    "colour": 2664,
+    "mono": 3288
+   },
+   "module": "STRANGE.AD",
+   "page": "strange.html",
+   "text": false,
+   "title": "Strange Attractors"
+  },
+  "string_theory": {
+   "about": "Moir\u00e9 strung from edge to edge.",
+   "bytes": {
+    "colour": 1703,
+    "mono": 1932
+   },
+   "module": "STRING.AD",
+   "page": "string.html",
+   "text": false,
+   "title": "String Theory"
+  },
+  "toasters": {
+   "about": "The squadron, on TOAST3's own art.",
+   "bytes": {
+    "colour": 106836,
+    "mono": 56755,
+    "text": 2478
+   },
+   "module": "TOAST3.AD",
+   "page": "toasters.html",
+   "text": true,
+   "title": "Flying Toasters"
+  },
+  "toilets": {
+   "about": "Toilets, rolls and plungers on the wing.",
+   "bytes": {
+    "colour": 33192,
+    "mono": 20797,
+    "text": 2296
+   },
+   "module": "TOILETS.AD",
+   "page": "toilets.html",
+   "text": true,
+   "title": "Flying Toilets"
+  },
+  "warp": {
+   "about": "Flying through the stars.",
+   "bytes": {
+    "colour": 2549,
+    "mono": 3805,
+    "text": 3739
+   },
+   "module": "WARP.AD",
+   "page": "warp-ad.html",
+   "text": true,
+   "title": "Warp!"
+  },
+  "zot": {
+   "about": "Forked lightning.",
+   "bytes": {
+    "colour": 3027,
+    "mono": 4366,
+    "text": 4298
+   },
+   "module": "ZOT.AD",
+   "page": "zot.html",
+   "text": true,
+   "title": "Zot!"
+  }
+ }
+}

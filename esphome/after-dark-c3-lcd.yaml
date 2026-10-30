@@ -1,0 +1,70 @@
+# After Dark on an ESP32-C3 Super Mini with a 1602 character LCD on a PCF8574
+# I2C backpack (the usual blue "LCD1602 IIC" board).
+#
+#   esphome run esphome/after-dark-c3-lcd.yaml
+#
+# The savers draw with the panel's eight user-defined characters, redefining
+# them to animate. These panels smear anything quicker than a few frames a
+# second, hence the low fps.
+#
+# Wiring: the LCD wants 5 V (VCC to the Super Mini's 5V pin). The backpack's
+# I2C pull-ups then pull SDA/SCL to 5 V, and the C3's pins aren't rated for
+# that: use a level shifter, or take the two pull-ups off the backpack and
+# rely on 3.3 V ones (the HD44780 reads 3.3 V as high).
+
+esphome:
+  name: after-dark-lcd
+  friendly_name: After Dark LCD
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: local
+      path: components
+  # - source:
+  #     type: git
+  #     url: https://github.com/Vortitron/after-dark
+  #     ref: gh-pages
+  #     path: esphome/components
+  #   components: [after_dark]
+
+logger:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  - platform: esphome
+
+# The clocks (and DOS Shell's DATE and TIME) tell the time from this.
+time:
+  - platform: sntp
+    id: sntp_time
+
+i2c:
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz  # the PCF8574's rated speed
+
+display:
+  - platform: lcd_pcf8574
+    id: lcd
+    dimensions: 16x2
+    address: 0x27  # some backpacks are 0x3F
+    # after_dark pushes frames itself; no lambda, and no timed redraw.
+    update_interval: never
+
+after_dark:
+  lcd_id: lcd
+  time_id: sntp_time
+  saver: toasters
+
+select:
+  - platform: after_dark
+    name: Screensaver

@@ -1,0 +1,241 @@
+{
+ "boris": {
+  "title": "Boris",
+  "module": "BORIS.AD",
+  "page": "boris.html",
+  "about": "The kitten, chasing butterflies."
+ },
+ "bugs": {
+  "title": "Bugs",
+  "module": "BUGS.AD",
+  "page": "bugs.html",
+  "about": "A swarm of bugs crawling about."
+ },
+ "clocks": {
+  "title": "Clocks 3.0",
+  "module": "CLOCKS3.AD",
+  "page": "clocks.html",
+  "about": "The time, drifting about. Pick a face; only its art goes in.",
+  "option": {
+   "key": "face",
+   "label": "Face",
+   "many": false,
+   "choices": {
+    "melting_digital": "Melting Digital",
+    "classic": "Classic",
+    "modern": "Modern",
+    "art_deco": "Art Deco",
+    "mutating": "Mutating"
+   },
+   "default": {
+    "colour": "mutating",
+    "mono": "melting_digital"
+   }
+  }
+ },
+ "dosshell": {
+  "title": "DOS Shell",
+  "module": "DOSSHELL.AD",
+  "page": "dosshell.html",
+  "about": "A PC typing to itself at the C:\\> prompt."
+ },
+ "einstein": {
+  "title": "Einstein",
+  "module": "EINSTEIN.AD",
+  "page": "einstein.html",
+  "about": "Lines and equations chalked on a blackboard."
+ },
+ "fishpro": {
+  "title": "Fish Pro",
+  "module": "FISHPRO.AD",
+  "page": "fishpro.html",
+  "about": "An aquarium. Pick the species; each one's art goes in only if chosen.",
+  "option": {
+   "key": "species",
+   "label": "Species",
+   "many": true,
+   "choices": {
+    "yellow_tang": "Yellow Tang",
+    "red_clown": "Red Clown",
+    "blue_tanger": "Blue Tanger",
+    "trigger_fish": "Trigger Fish",
+    "pink_squirrel": "Pink Squirrel",
+    "butterfly_fish": "Butterfly Fish",
+    "emperor": "Emperor",
+    "jellyfish": "Jellyfish",
+    "sardines": "Sardines"
+   },
+   "default": {
+    "colour": [
+     "blue_tanger",
+     "trigger_fish",
+     "pink_squirrel",
+     "butterfly_fish",
+     "emperor",
+     "sardines"
+    ],
+    "mono": [
+     "yellow_tang",
+     "red_clown",
+     "blue_tanger",
+     "trigger_fish",
+     "pink_squirrel",
+     "butterfly_fish",
+     "emperor",
+     "jellyfish",
+     "sardines"
+    ]
+   }
+  }
+ },
+ "flocks": {
+  "title": "Flocks",
+  "module": "FLOCKS.AD",
+  "page": "flocks.html",
+  "about": "Flocks of birds wheeling across the screen."
+ },
+ "geobounce": {
+  "title": "GeoBounce",
+  "module": "GEOBOUNC.AD",
+  "page": "geobounce.html",
+  "about": "A Platonic solid tumbling about."
+ },
+ "gravity": {
+  "title": "Gravity",
+  "module": "GRAVITY.AD",
+  "page": "gravity.html",
+  "about": "Balls dropping and bouncing; never cleared."
+ },
+ "hard_rain": {
+  "title": "Hard Rain",
+  "module": "RAIN.AD",
+  "page": "hardrain.html",
+  "about": "Raindrops rippling on the desktop."
+ },
+ "mandelbrot": {
+  "title": "Mandelbrot",
+  "module": "MANDELBR.AD",
+  "page": "mandelbrot.html",
+  "about": "Zooming for ever into the set."
+ },
+ "marbles": {
+  "title": "Marbles",
+  "module": "MARBLES2.AD",
+  "page": "marbles.html",
+  "about": "The 1992 original: marbles through a field of pins."
+ },
+ "messages": {
+  "title": "Messages",
+  "module": "MESSAGE3.AD",
+  "page": "messages-ad.html",
+  "about": "A line of text floating about: OUT TO LUNCH."
+ },
+ "mountains": {
+  "title": "Mountains",
+  "module": "MOUNTAIN.AD",
+  "page": "mountains.html",
+  "about": "Fractal landscapes of the nine planets."
+ },
+ "mowin": {
+  "title": "Mowin' Man",
+  "module": "MOWIN.AD",
+  "page": "mowin.html",
+  "about": "The lawn grows over the screen, then he mows it."
+ },
+ "nocturne": {
+  "title": "Nocturnes",
+  "module": "NOCTURNE.AD",
+  "page": "nocturne.html",
+  "about": "Eyes in the dark, blinking."
+ },
+ "nonsense": {
+  "title": "Nonsense",
+  "module": "NONSENSE.AD",
+  "page": "nonsense.html",
+  "about": "Sentences, grammatical and meaningless."
+ },
+ "photon": {
+  "title": "Photon",
+  "module": "PHOTON.AD",
+  "page": "photon.html",
+  "about": "Bursts of particles."
+ },
+ "rebound": {
+  "title": "Rebound",
+  "module": "REBOUND.AD",
+  "page": "rebound.html",
+  "about": "Balls bouncing off each other."
+ },
+ "rose": {
+  "title": "Rose",
+  "module": "ROSE.AD",
+  "page": "rose.html",
+  "about": "Two wheels turning, drawing petals in dots."
+ },
+ "shapes": {
+  "title": "Shapes",
+  "module": "SHAPES.AD",
+  "page": "shapes.html",
+  "about": "Rectangles and ellipses piling up."
+ },
+ "snake": {
+  "title": "Snake",
+  "module": "SNAKE.AD",
+  "page": "snake.html",
+  "about": "A snake solving a maze."
+ },
+ "spheres": {
+  "title": "Spheres",
+  "module": "SPHERES.AD",
+  "page": "spheres.html",
+  "about": "Shaded spheres stacking up."
+ },
+ "spiral": {
+  "title": "Spiral Gyra",
+  "module": "SPIRAL.AD",
+  "page": "spiral.html",
+  "about": "A ribbon of lines mirrored four ways."
+ },
+ "starry_night": {
+  "title": "Starry Night",
+  "module": "STARRYNI.AD",
+  "page": "starry-night.html",
+  "about": "A city at night, windows lighting up."
+ },
+ "strange": {
+  "title": "Strange Attractors",
+  "module": "STRANGE.AD",
+  "page": "strange.html",
+  "about": "Chaos plotted a point at a time."
+ },
+ "string_theory": {
+  "title": "String Theory",
+  "module": "STRING.AD",
+  "page": "string.html",
+  "about": "Moiré strung from edge to edge."
+ },
+ "toasters": {
+  "title": "Flying Toasters",
+  "module": "TOAST3.AD",
+  "page": "toasters.html",
+  "about": "The squadron, on TOAST3's own art."
+ },
+ "toilets": {
+  "title": "Flying Toilets",
+  "module": "TOILETS.AD",
+  "page": "toilets.html",
+  "about": "Toilets, rolls and plungers on the wing."
+ },
+ "warp": {
+  "title": "Warp!",
+  "module": "WARP.AD",
+  "page": "warp-ad.html",
+  "about": "Flying through the stars."
+ },
+ "zot": {
+  "title": "Zot!",
+  "module": "ZOT.AD",
+  "page": "zot.html",
+  "about": "Forked lightning."
+ }
+}

@@ -1,0 +1,94 @@
+# After Dark on an ESP32-S3 Super Mini with a 320x240 ILI9341 SPI panel.
+#
+#   esphome run esphome/after-dark-s3.yaml
+#
+# The pins are just the ones down one side of the Super Mini; move them to
+# suit. Most Super Minis are the ESP32-S3FH4R2 (4 MB flash, 2 MB PSRAM), and
+# the PSRAM is where the display's 150 KB frame buffer goes.
+
+esphome:
+  name: after-dark
+  friendly_name: After Dark
+
+esp32:
+  board: esp32-s3-devkitc-1
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: quad
+
+external_components:
+  # From a checkout of this repository:
+  - source:
+      type: local
+      path: components
+  # Or straight from GitHub:
+  # - source:
+  #     type: git
+  #     url: https://github.com/Vortitron/after-dark
+  #     ref: gh-pages
+  #     path: esphome/components
+  #   components: [after_dark]
+
+logger:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  - platform: esphome
+
+# The clocks (and DOS Shell's DATE and TIME) tell the time from this.
+time:
+  - platform: sntp
+    id: sntp_time
+
+spi:
+  clk_pin: GPIO12
+  mosi_pin: GPIO11
+
+display:
+  - platform: ili9xxx
+    id: screen
+    model: ILI9341
+    cs_pin: GPIO10
+    dc_pin: GPIO9
+    reset_pin: GPIO8
+    data_rate: 40MHz
+    invert_colors: false
+    dimensions:
+      width: 320
+      height: 240
+    transform:
+      swap_xy: true
+      mirror_x: true
+    # after_dark pushes frames itself; no lambda, and no timed redraw.
+    update_interval: never
+    auto_clear_enabled: false
+
+output:
+  - platform: ledc
+    id: backlight_pwm
+    pin: GPIO7
+
+light:
+  - platform: monochromatic
+    name: Backlight
+    output: backlight_pwm
+    restore_mode: ALWAYS_ON
+
+after_dark:
+  display_id: screen
+  time_id: sntp_time
+  # All 31 savers take 95% of a 4 MB board's app slot; list some to leave room:
+  # savers: [toasters, warp, fishpro, starry_night, messages]
+  saver: toasters
+  fps: 30
+
+select:
+  - platform: after_dark
+    name: Screensaver

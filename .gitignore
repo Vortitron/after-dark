@@ -8,3 +8,9 @@ __pycache__/
 # but they are tens of megabytes of binaries and must not ship on GitHub Pages
 # (they make the Pages build fail / time out).
 AD40/
+
+# esphome/: desktop renderer output and ESPHome build trees
+esphome/host/render
+esphome/host/out/
+esphome/.esphome/
+esphome/secrets.yaml

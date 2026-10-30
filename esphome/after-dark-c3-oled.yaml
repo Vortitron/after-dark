@@ -1,0 +1,67 @@
+# After Dark on an ESP32-C3 Super Mini with a 1.3" SH1106 128x64 I2C OLED.
+#
+#   esphome run esphome/after-dark-c3-oled.yaml
+#
+# The savers fly black-and-white art baked for the panel (1/3 size here). For
+# a 0.96" SSD1306 use model SSD1306_128X64; for the C3 boards with a 0.42"
+# OLED built on, SSD1306_72X40 on SDA GPIO5 / SCL GPIO6.
+
+esphome:
+  name: after-dark-oled
+  friendly_name: After Dark OLED
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: local
+      path: components
+  # - source:
+  #     type: git
+  #     url: https://github.com/Vortitron/after-dark
+  #     ref: gh-pages
+  #     path: esphome/components
+  #   components: [after_dark]
+
+logger:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  - platform: esphome
+
+# The clocks (and DOS Shell's DATE and TIME) tell the time from this.
+time:
+  - platform: sntp
+    id: sntp_time
+
+i2c:
+  sda: GPIO5
+  scl: GPIO6
+  # The whole 1 KB frame goes over I2C each time; 400 kHz makes that ~25 ms.
+  frequency: 400kHz
+
+display:
+  - platform: ssd1306_i2c
+    id: screen
+    model: SH1106_128X64
+    address: 0x3C
+    # after_dark pushes frames itself; no lambda, and no timed redraw.
+    update_interval: never
+    auto_clear_enabled: false
+
+after_dark:
+  display_id: screen
+  time_id: sntp_time
+  saver: toasters
+  fps: 25
+
+select:
+  - platform: after_dark
+    name: Screensaver

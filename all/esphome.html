@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>After Dark for ESPHome</title>
+  <meta name="description" content="Pick the After Dark screen savers for an ESP32 and its screen, see how much flash they take, and get the ESPHome config.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="../img/favicon.png?v=710c41e-261030075457" />
+  <style>
+    /* ------------------------------------------------------------------
+       A Windows 95 setup dialog, to sit beside the Display Properties
+       window on the front page. Same palette and widgets as there.
+       ------------------------------------------------------------------ */
+    :root {
+      --desktop: #018281;
+      --face: #c0c0c0;
+      --light: #ffffff;
+      --shadow: #808080;
+      --dark: #000000;
+      --title: #000080;
+      --title2: #1084d0;
+      --field: #ffffff;
+      --ink: #000000;
+      --bad: #a00000;
+      --ui: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Verdana, "DejaVu Sans", sans-serif;
+      --mono: ui-monospace, "Courier New", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px 12px 40px;
+      background: var(--desktop);
+      color: var(--ink);
+      font: 12px/1.45 var(--ui);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .window {
+      width: 100%;
+      max-width: 760px;
+      background: var(--face);
+      padding: 3px;
+      border: 2px solid;
+      border-color: var(--light) var(--dark) var(--dark) var(--light);
+      box-shadow: 3px 3px 0 rgba(0, 0, 0, .35);
+    }
+    .titlebar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 3px 3px 3px 5px;
+      background: linear-gradient(90deg, var(--title), var(--title2));
+      color: #fff; font-weight: bold;
+    }
+    .titlebar .grow { flex: 1; }
+    .titlebar a.btn {
+      width: 18px; height: 16px;
+      background: var(--face); color: var(--ink);
+      font: bold 11px/12px var(--ui);
+      display: grid; place-items: center; padding-bottom: 2px;
+      text-decoration: none;
+      border: 2px solid; border-color: var(--light) var(--dark) var(--dark) var(--light);
+    }
+    .body { padding: 12px; display: grid; gap: 12px; }
+    .intro { display: flex; gap: 12px; align-items: flex-start; }
+    .intro p { margin: 0 0 6px; max-width: 70ch; }
+    .chip {
+      flex: none; width: 48px; height: 48px;
+      background: #1a1a1a; border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow);
+      display: grid; place-items: center;
+    }
+    .chip i { width: 30px; height: 30px; background: #2b2b2b; border: 1px solid #555; display: block;
+      box-shadow: 0 -4px 0 -2px #999, 0 4px 0 -2px #999, -4px 0 0 -2px #999, 4px 0 0 -2px #999; }
+
+    fieldset {
+      margin: 0; padding: 10px 10px 12px;
+      border: 2px groove var(--light);
+      min-width: 0;
+    }
+    legend { padding: 0 4px; }
+
+    .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+    .grid3 label { display: grid; gap: 3px; }
+    select {
+      width: 100%; font: inherit;
+      background: var(--field); color: var(--ink);
+      border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow);
+      padding: 2px;
+    }
+    .note { font-size: 11px; margin: 6px 0 0; }
+
+    .listbox {
+      max-height: 360px; overflow-y: auto;
+      background: var(--field);
+      border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow);
+      padding: 2px;
+    }
+    .row {
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; align-items: center;
+      padding: 2px 4px;
+    }
+    .row:hover { background: #e8e8f4; }
+    .row.off { color: var(--shadow); }
+    .row .name { min-width: 0; }
+    .row .name small { display: block; font-size: 11px; color: #404040; }
+    .row.off .name small { color: var(--shadow); }
+    .row .size { font-family: var(--mono); font-size: 11px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .row a { font-size: 11px; color: var(--title); }
+    .opts { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 2px 0 6px; }
+    .opts[hidden] { display: none; }
+
+    .check { display: inline-flex; align-items: center; gap: 6px; }
+    .check input {
+      appearance: none; -webkit-appearance: none;
+      width: 13px; height: 13px; margin: 0; flex: none;
+      background: var(--field);
+      border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow);
+      display: grid; place-items: center;
+    }
+    .check input[type="radio"] { border-radius: 50%; }
+    .check input:checked::after { content: "\2714"; font-size: 10px; line-height: 1; }
+    .check input[type="radio"]:checked::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+    .check input:disabled { background: var(--face); }
+    .check input:focus-visible { outline: 1px dotted var(--ink); outline-offset: 2px; }
+    .opts .check small { font-family: var(--mono); font-size: 10px; color: #404040; }
+
+    .bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .bar .grow { flex: 1; }
+    .push {
+      min-width: 86px; padding: 4px 10px 5px;
+      background: var(--face); color: var(--ink); font: inherit;
+      border: 2px solid; border-color: var(--light) var(--dark) var(--dark) var(--light);
+      cursor: default;
+    }
+    .push:active { border-color: var(--dark) var(--light) var(--light) var(--dark); padding: 5px 9px 4px 11px; }
+    .push:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
+
+    /* The progress bar, in blocks, as the installers drew it. */
+    .meter {
+      height: 22px; padding: 2px;
+      background: var(--field);
+      border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow);
+      overflow: hidden;
+    }
+    .meter i {
+      display: block; height: 100%;
+      background: repeating-linear-gradient(90deg, var(--title) 0 10px, transparent 10px 12px);
+      max-width: 100%;
+    }
+    .meter.over i { background: repeating-linear-gradient(90deg, var(--bad) 0 10px, transparent 10px 12px); }
+    .space { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .space .warn { color: var(--bad); font-weight: bold; }
+    .parts { font-size: 11px; margin: 6px 0 0; color: #303030; }
+
+    textarea {
+      width: 100%; height: 340px; resize: vertical; display: block;
+      background: var(--field); color: var(--ink);
+      font: 11px/1.45 var(--mono);
+      border: 2px solid; border-color: var(--shadow) var(--light) var(--light) var(--shadow);
+      padding: 6px; white-space: pre; overflow: auto;
+    }
+    .status { font-size: 11px; }
+    .footer { width: 100%; max-width: 760px; color: #fff; font-size: 11px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; }
+    .footer a { color: #fff; }
+  </style>
+</head>
+
+<body>
+  <div class="window" role="dialog" aria-labelledby="title">
+    <div class="titlebar">
+      <span id="title">After Dark for ESPHome Setup</span>
+      <span class="grow"></span>
+      <a class="btn" href="../index.html" aria-label="Back to the screen savers">&times;</a>
+    </div>
+    <div class="body">
+      <div class="intro">
+        <div class="chip" aria-hidden="true"><i></i></div>
+        <div>
+          <p>Put the After Dark screen savers on an ESP32 with a little screen, and pick a saver from Home Assistant. Choose your board and screen, tick the savers you want, and copy the config into ESPHome. Only what you tick goes into the firmware.</p>
+          <p>Each saver is ported from its page on this site. On a 1-bit OLED its art is shrunk and redrawn in black and white; on a character LCD it is drawn with the panel's eight custom characters.</p>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend>Board and screen</legend>
+        <div class="grid3">
+          <label>Board
+            <select id="board">
+              <option value="esp32s3">ESP32-S3 (Super Mini)</option>
+              <option value="esp32c3">ESP32-C3 (Super Mini)</option>
+            </select>
+          </label>
+          <label>Flash
+            <select id="flash">
+              <option value="4MB">4 MB</option>
+              <option value="8MB">8 MB</option>
+              <option value="16MB">16 MB</option>
+            </select>
+          </label>
+          <label>Screen
+            <select id="screen">
+              <optgroup label="Colour">
+                <option value="ili9341">ILI9341, 320 × 240, SPI</option>
+              </optgroup>
+              <optgroup label="1-bit OLED">
+                <option value="sh1106">SH1106, 128 × 64, I²C (1.3")</option>
+                <option value="ssd1306">SSD1306, 128 × 64, I²C (0.96")</option>
+                <option value="ssd1306_32">SSD1306, 128 × 32, I²C</option>
+                <option value="ssd1306_72">SSD1306, 72 × 40, I²C (built onto C3 boards)</option>
+              </optgroup>
+              <optgroup label="Character LCD">
+                <option value="lcd1602">1602, 16 × 2, PCF8574 I²C backpack</option>
+                <option value="lcd2004">2004, 20 × 4, PCF8574 I²C backpack</option>
+              </optgroup>
+            </select>
+          </label>
+        </div>
+        <p class="note" id="screen-note"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Screen savers</legend>
+        <div class="listbox" id="list" aria-label="Screen savers"></div>
+        <div class="bar">
+          <button class="push" id="all" type="button">Select all</button>
+          <button class="push" id="none" type="button">Clear</button>
+          <span class="grow"></span>
+          <label for="start">Start with</label>
+          <select id="start" style="width:auto; min-width: 140px"></select>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Space</legend>
+        <div class="meter" id="meter" role="meter" aria-label="Firmware size" aria-valuemin="0" aria-valuemax="100"><i id="fill"></i></div>
+        <div class="space"><span id="used"></span><span id="left"></span></div>
+        <p class="parts" id="parts"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>ESPHome config</legend>
+        <textarea id="yaml" readonly spellcheck="false" aria-label="ESPHome config"></textarea>
+        <div class="bar">
+          <span class="status" id="status">Pins are examples: change them to match your wiring. Wi-Fi comes from your secrets.yaml.</span>
+          <span class="grow"></span>
+          <button class="push" id="copy" type="button">Copy</button>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="../index.html">&larr; All the screen savers</a>
+    <span>Sizes measured with ESPHome 2025.7.5 (ESP-IDF); expect a few KB either way.</span>
+    <a href="https://github.com/Vortitron/after-dark/tree/gh-pages/esphome">Source and README</a>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* The screens: which kind of saver they get, and their ESPHome block. */
+    var SCREENS = {
+      ili9341: { kind: 'colour', bus: 'spi', note: 'Colour panels get the original art at full size.',
+        block: function (p) {
+          return 'spi:\n  clk_pin: ' + p.clk + '\n  mosi_pin: ' + p.mosi + '\n\n' +
+            'display:\n  - platform: ili9xxx\n    id: screen\n    model: ILI9341\n' +
+            '    cs_pin: ' + p.cs + '\n    dc_pin: ' + p.dc + '\n    reset_pin: ' + p.rst + '\n' +
+            '    data_rate: 40MHz\n    invert_colors: false\n    dimensions:\n      width: 320\n      height: 240\n' +
+            '    transform:\n      swap_xy: true\n      mirror_x: true\n' +
+            '    update_interval: never     # after_dark pushes the frames\n    auto_clear_enabled: false\n\n' +
+            'output:\n  - platform: ledc\n    id: backlight_pwm\n    pin: ' + p.bl + '\n\n' +
+            'light:\n  - platform: monochromatic\n    name: Backlight\n    output: backlight_pwm\n    restore_mode: ALWAYS_ON\n';
+        } },
+      sh1106: { kind: 'mono', bus: 'i2c', model: 'SH1106_128X64', note: 'The art is shrunk to a third and baked to black and white.' },
+      ssd1306: { kind: 'mono', bus: 'i2c', model: 'SSD1306_128X64', note: 'The art is shrunk to a third and baked to black and white.' },
+      ssd1306_32: { kind: 'mono', bus: 'i2c', model: 'SSD1306_128X32', note: 'A quarter-size art set; busy savers are cramped at 32 lines.' },
+      ssd1306_72: { kind: 'mono', bus: 'i2c', model: 'SSD1306_72X40', note: 'The 0.42" OLED on some C3 boards, wired to GPIO5 and GPIO6. Tiny, but most savers still read.' },
+      lcd1602: { kind: 'text', bus: 'i2c', dims: '16x2', note: 'Only the savers with a character LCD version are offered. The panel needs 5 V; mind the I²C pull-ups (see the README).' },
+      lcd2004: { kind: 'text', bus: 'i2c', dims: '20x4', note: 'Only the savers with a character LCD version are offered. The panel needs 5 V; mind the I²C pull-ups (see the README).' }
+    };
+    var BOARDS = {
+      esp32s3: { id: 'esp32-s3-devkitc-1', psram: true,
+        pins: { clk: 'GPIO12', mosi: 'GPIO11', cs: 'GPIO10', dc: 'GPIO9', rst: 'GPIO8', bl: 'GPIO7', sda: 'GPIO5', scl: 'GPIO6' } },
+      esp32c3: { id: 'esp32-c3-devkitm-1', psram: false,
+        pins: { clk: 'GPIO4', mosi: 'GPIO6', cs: 'GPIO7', dc: 'GPIO5', rst: 'GPIO3', bl: 'GPIO1', sda: 'GPIO5', scl: 'GPIO6' } }
+    };
+
+    var $ = function (id) { return document.getElementById(id); };
+    var data = null;
+    var chosen = {};   // saver -> true
+    var option = {};   // saver -> array (many) or string (one)
+
+    function kb(n) { return n >= 1048576 ? (n / 1048576).toFixed(2) + ' MB' : Math.round(n / 1024) + ' KB'; }
+    function kind() { return SCREENS[$('screen').value].kind; }
+
+    function base() {
+      var b = data.base[$('board').value], k = kind();
+      if (b[k] !== undefined) return b[k];
+      /* Not built for this pairing (an S3 with an LCD): the other board's base
+         for this kind, moved by how the two boards differ on a shared kind. */
+      var other = data.base[$('board').value === 'esp32s3' ? 'esp32c3' : 'esp32s3'];
+      return other[k] + (b.mono - other.mono);
+    }
+
+    function defaultOption(name) {
+      var o = data.savers[name].option, d = o.default[kind() === 'colour' ? 'colour' : 'mono'];
+      return o.many ? d.slice() : d;
+    }
+
+    function cost(name) {
+      var s = data.savers[name], k = kind();
+      if (k === 'text') return s.bytes.text || 0;
+      if (name === 'fishpro') {
+        var sp = s.options.species, n = sp.none[k];
+        (option.fishpro || defaultOption('fishpro')).forEach(function (f) { n += sp.each[f][k]; });
+        return n;
+      }
+      if (name === 'clocks') return s.options.face[option.clocks || defaultOption('clocks')][k];
+      return s.bytes[k];
+    }
+
+    function available(name) { return kind() !== 'text' || data.savers[name].text; }
+
+    function buildList() {
+      var list = $('list');
+      list.textContent = '';
+      Object.keys(data.savers).forEach(function (name) {
+        var s = data.savers[name];
+        var row = document.createElement('div');
+        row.className = 'row';
+        row.dataset.name = name;
+        var id = 'pick-' + name;
+        row.innerHTML =
+          '<span class="check"><input type="checkbox" id="' + id + '"></span>' +
+          '<label class="name" for="' + id + '">' + s.title + '<small></small></label>' +
+          '<span class="size"></span>' +
+          '<a href="' + s.page + '" target="_blank" rel="noopener">Preview</a>';
+        list.appendChild(row);
+        row.querySelector('input').addEventListener('change', function (e) {
+          chosen[name] = e.target.checked;
+          update();
+        });
+        if (s.option) {
+          var opts = document.createElement('div');
+          opts.className = 'opts';
+          opts.dataset.for = name;
+          row.appendChild(opts);
+        }
+      });
+    }
+
+    function buildOptions(row, name) {
+      var s = data.savers[name], o = s.option, box = row.querySelector('.opts');
+      if (!box) return;
+      var k = kind();
+      box.hidden = !chosen[name] || k === 'text' || (name === 'clocks' && k === 'text');
+      if (box.hidden) return;
+      if (!option[name]) option[name] = defaultOption(name);
+      /* Rebuilt only when the kind of screen changes, so focus stays put. */
+      if (box.dataset.kind === k) {
+        Array.prototype.forEach.call(box.querySelectorAll('input'), function (input) {
+          var key = input.id.slice(('opt-' + name + '-').length);
+          input.checked = o.many ? option[name].indexOf(key) >= 0 : option[name] === key;
+        });
+        return;
+      }
+      box.dataset.kind = k;
+      box.textContent = '';
+      var label = document.createElement('span');
+      label.textContent = o.label + ':';
+      box.appendChild(label);
+      Object.keys(o.choices).forEach(function (key) {
+        var id = 'opt-' + name + '-' + key;
+        var wrap = document.createElement('label');
+        wrap.className = 'check';
+        wrap.htmlFor = id;
+        var input = document.createElement('input');
+        input.type = o.many ? 'checkbox' : 'radio';
+        input.name = 'opt-' + name;
+        input.id = id;
+        input.checked = o.many ? option[name].indexOf(key) >= 0 : option[name] === key;
+        var size = '';
+        if (name === 'fishpro' && k === 'colour') size = kb(s.options.species.each[key].colour);
+        if (name === 'clocks') size = kb(s.options.face[key][k]);
+        wrap.appendChild(input);
+        wrap.appendChild(document.createTextNode(' ' + o.choices[key] + ' '));
+        if (size) { var sm = document.createElement('small'); sm.textContent = size; wrap.appendChild(sm); }
+        input.addEventListener('change', function () {
+          if (o.many) {
+            var on = option[name].filter(function (x) { return x !== key; });
+            if (input.checked) on.push(key);
+            if (!on.length) { input.checked = true; return; }  // keep at least one
+            option[name] = Object.keys(o.choices).filter(function (x) { return on.indexOf(x) >= 0; });
+          } else {
+            option[name] = key;
+          }
+          update();
+        });
+        box.appendChild(wrap);
+      });
+    }
+
+    function picked() {
+      return Object.keys(data.savers).filter(function (n) { return chosen[n] && available(n); });
+    }
+
+    function update() {
+      var k = kind();
+      $('screen-note').textContent = SCREENS[$('screen').value].note;
+      Array.prototype.forEach.call($('list').querySelectorAll('.row'), function (row) {
+        var name = row.dataset.name, s = data.savers[name], ok = available(name);
+        var input = row.querySelector('input[type="checkbox"]');
+        input.disabled = !ok;
+        input.checked = ok && !!chosen[name];
+        row.classList.toggle('off', !ok);
+        row.querySelector('small').textContent = ok ? s.about : 'No character LCD version.';
+        row.querySelector('.size').textContent = ok ? kb(cost(name)) : '';
+        buildOptions(row, name);
+      });
+
+      var names = picked();
+      var start = $('start'), was = start.value;
+      start.textContent = '';
+      names.concat(['off']).forEach(function (n) {
+        var o = document.createElement('option');
+        o.value = n;
+        o.textContent = n === 'off' ? 'Off' : data.savers[n].title;
+        start.appendChild(o);
+      });
+      if (names.indexOf(was) >= 0 || was === 'off') start.value = was;
+
+      var savers = names.reduce(function (t, n) { return t + cost(n); }, 0);
+      var total = base() + savers, slot = data.app_slot[$('flash').value];
+      var pct = total / slot * 100;
+      $('fill').style.width = Math.min(100, pct).toFixed(1) + '%';
+      $('meter').classList.toggle('over', total > slot);
+      $('meter').setAttribute('aria-valuenow', Math.round(pct));
+      $('used').textContent = kb(total) + ' of ' + kb(slot) + ' (' + Math.round(pct) + '%)';
+      var left = $('left');
+      if (total > slot) {
+        left.className = 'warn';
+        left.textContent = 'Too big by ' + kb(total - slot) + ': untick a saver or choose more flash.';
+      } else {
+        left.className = '';
+        left.textContent = kb(slot - total) + ' free';
+      }
+      $('parts').textContent = 'ESPHome with Wi-Fi, the API, OTA and the screen: ' + kb(base()) +
+        '. ' + names.length + ' saver' + (names.length === 1 ? '' : 's') + ': ' + kb(savers) +
+        '. The slot is half the flash less a little, as there are two of them for OTA updates.';
+      $('yaml').value = yaml(names);
+    }
+
+    function yaml(names) {
+      var b = BOARDS[$('board').value], scr = SCREENS[$('screen').value], p = b.pins, k = scr.kind;
+      var y = '# After Dark for ESPHome, from vortitron.github.io/after-dark/all/esphome.html\n\n' +
+        'esphome:\n  name: after-dark\n  friendly_name: After Dark\n\n' +
+        'esp32:\n  board: ' + b.id + '\n  flash_size: ' + $('flash').value + '\n  framework:\n    type: esp-idf\n\n' +
+        (b.psram && k === 'colour' ? 'psram:\n  mode: quad\n\n' : '') +
+        'external_components:\n  - source:\n      type: git\n      url: https://github.com/Vortitron/after-dark\n' +
+        '      ref: gh-pages\n      path: esphome/components\n    components: [after_dark]\n\n' +
+        'logger:\n\nwifi:\n  ssid: !secret wifi_ssid\n  password: !secret wifi_password\n\napi:\nota:\n  - platform: esphome\n\n' +
+        'time:\n  - platform: sntp\n    id: sntp_time\n\n';
+      if (scr.bus === 'spi') {
+        y += scr.block(p);
+      } else {
+        y += 'i2c:\n  sda: ' + p.sda + '\n  scl: ' + p.scl + '\n  frequency: ' + (k === 'text' ? '100kHz' : '400kHz') + '\n\n';
+        if (k === 'text') {
+          y += 'display:\n  - platform: lcd_pcf8574\n    id: lcd\n    dimensions: ' + scr.dims +
+            '\n    address: 0x27   # some backpacks are 0x3F\n    update_interval: never     # after_dark pushes the frames\n';
+        } else {
+          y += 'display:\n  - platform: ssd1306_i2c\n    id: screen\n    model: ' + scr.model +
+            '\n    address: 0x3C\n    update_interval: never     # after_dark pushes the frames\n    auto_clear_enabled: false\n';
+        }
+      }
+      y += '\nafter_dark:\n  ' + (k === 'text' ? 'lcd_id: lcd' : 'display_id: screen') + '\n  time_id: sntp_time\n';
+      if (names.length) {
+        y += '  savers:\n';
+        names.forEach(function (n) {
+          var s = data.savers[n];
+          if (s.option && k !== 'text') {
+            var v = option[n] || defaultOption(n);
+            y += '    - ' + n + ':\n        ' + s.option.key + ': ' + (s.option.many ? '[' + v.join(', ') + ']' : v) + '\n';
+          } else {
+            y += '    - ' + n + '\n';
+          }
+        });
+        y += '  saver: ' + ($('start').value || names[0]) + '\n';
+      } else {
+        y += '  # tick at least one saver above\n';
+      }
+      y += '\nselect:\n  - platform: after_dark\n    name: Screensaver\n';
+      return y;
+    }
+
+    $('copy').addEventListener('click', function () {
+      var text = $('yaml').value, status = $('status');
+      function fallback() { $('yaml').focus(); $('yaml').select(); status.textContent = 'Selected: press Ctrl+C to copy.'; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { status.textContent = 'Copied.'; }, fallback);
+      } else {
+        fallback();
+      }
+    });
+    $('all').addEventListener('click', function () { Object.keys(data.savers).forEach(function (n) { chosen[n] = true; }); update(); });
+    $('none').addEventListener('click', function () { chosen = {}; update(); });
+    ['board', 'flash', 'screen'].forEach(function (id) {
+      $(id).addEventListener('change', function () {
+        if (id === 'screen') {
+          option = {};  // defaults differ between colour and 1-bit
+          Array.prototype.forEach.call(document.querySelectorAll('.opts'), function (b) { delete b.dataset.kind; });
+        }
+        update();
+      });
+    });
+    $('start').addEventListener('change', function () { $('yaml').value = yaml(picked()); });
+
+    fetch('esphome-savers.json').then(function (r) { return r.json(); }).then(function (d) {
+      data = d;
+      /* A start that fits a 4 MB board with room to spare. */
+      ['toasters', 'warp', 'starry_night', 'messages', 'zot', 'fishpro', 'clocks', 'nocturne'].forEach(function (n) { chosen[n] = true; });
+      buildList();
+      $('board').value = 'esp32c3';
+      $('screen').value = 'sh1106';
+      update();
+    }).catch(function () {
+      $('list').textContent = 'The list of savers didn\u2019t load. Reload the page to try again.';
+    });
+  }());
+  </script>
+</body>
+
+</html>
