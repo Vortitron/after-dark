@@ -24,7 +24,10 @@ CONFIG_SCHEMA = (
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_AFTER_DARK_ID])
-    options = available_savers(CORE.config["after_dark"]) + ["off"]
+    conf = CORE.config["after_dark"]
+    options = available_savers(conf) + ["off"]
+    if conf.get("mode") == "screensaver":
+        options = ["random"] + options
     var = await select.new_select(config, options=options)
     await cg.register_component(var, config)
     cg.add(var.set_parent(parent))

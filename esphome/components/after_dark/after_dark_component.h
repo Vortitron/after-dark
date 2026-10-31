@@ -32,6 +32,16 @@
 namespace esphome {
 namespace after_dark {
 
+/* The display's own drawing, which screensaver mode moves aside while a
+   saver runs and puts back after. They are protected; a pointer to member
+   formed in a derived class reaches them without changing the display. */
+struct DisplayInternals : display::Display {
+  using Writer = decltype(writer_);
+  static auto writer() { return &DisplayInternals::writer_; }
+  static auto page() { return &DisplayInternals::page_; }
+  static auto auto_clear() { return &DisplayInternals::auto_clear_enabled_; }
+};
+
 class DisplaySurface : public ::adcore::Surface {
  public:
   void attach(display::Display *d) {
@@ -66,6 +76,16 @@ class AfterDarkComponent : public Component {
   void set_time(time::RealTimeClock *time) { time_ = time; }
 #endif
   void set_fps(int fps) { fps_ = fps; }
+  /* Screensaver mode: the display stays the YAML's own until start(). */
+  void set_screensaver_mode(bool on) { screensaver_mode_ = on; }
+  /* Character LCD: while this returns lines, they are shown instead. */
+  void set_overlay(std::function<std::vector<std::string>()> &&f) { overlay_ = std::move(f); }
+
+  /* Screensaver mode. start() runs the selected saver (a random one for
+     "random"), stop() gives the display back and redraws it. */
+  void start();
+  void stop();
+  bool is_running() const { return running_; }
 
   /* DOS Shell's live commands: a command, then the entities it prints. Empty
      strings for attribute, label and unit mean the state, the friendly name
@@ -74,6 +94,15 @@ class AfterDarkComponent : public Component {
   void add_shell_entity(const std::string &entity_id, const std::string &attribute, const std::string &label,
                         const std::string &unit);
   void set_shell_classic(bool classic) { ::adcore::shell_classic = classic; }
+  /* A line worked out when it is printed, a command's lines from a lambda,
+     and when a command is due; each applies to the last command added. */
+  void add_shell_text(std::function<std::string()> &&f);
+  void set_shell_lines(std::function<std::vector<std::string>()> &&f);
+  void set_shell_when(std::function<bool()> &&f);
+  void set_shell_prompt(const std::string &p) { ::adcore::set_live(::adcore::shell_style.prompt, p); }
+  void add_shell_banner(const std::string &line) { ::adcore::shell_style.banner.push_back(line); }
+  void set_shell_bad_command(const std::string &f) { ::adcore::shell_style.bad_command = f; }
+  void set_shell_lowercase(bool on) { ::adcore::shell_style.lowercase = on; }
   void set_initial_saver(const std::string &name) { initial_ = name; }
 
   void setup() override;
@@ -82,13 +111,17 @@ class AfterDarkComponent : public Component {
   /* After the display has its buffer. */
   float get_setup_priority() const override { return setup_priority::LATE; }
 
-  /* Switch saver; "off" blanks the screen and stops drawing. */
+  /* Switch saver; "off" blanks the screen and stops drawing. In
+     screensaver mode it chooses what start() runs ("random", or "off" for
+     nothing) and switches a running one over. */
   bool set_saver(const std::string &name);
   const std::string &get_saver() const { return current_; }
   void add_on_saver_callback(std::function<void(const std::string &)> &&cb) { callback_.add(std::move(cb)); }
 
  protected:
   bool text_mode_() const { return lcd_cols_ > 0; }
+  bool run_(const std::string &name);
+  std::string pick_random_();
   void blank_();
   void push_();
 
@@ -116,6 +149,14 @@ class AfterDarkComponent : public Component {
   std::vector<ShellEntity> shell_entities_;
   void subscribe_shell_();
   uint32_t last_ms_{0};
+  bool screensaver_mode_{false}, running_{false};
+  DisplayInternals::Writer saved_writer_{};
+  display::DisplayPage *saved_page_{nullptr};
+  bool saved_auto_clear_{true};
+  std::string last_random_;
+  std::function<std::vector<std::string>()> overlay_;
+  bool overlay_shown_{false};
+  std::vector<std::string> last_overlay_;
   HighFrequencyLoopRequester high_freq_;
   CallbackManager<void(const std::string &)> callback_;
 };

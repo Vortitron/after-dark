@@ -79,6 +79,7 @@ Rect draw_frame(Surface &s, const Art &art, const Sequence &seq, int index, floa
 
 std::vector<LiveCommand> shell_commands;
 bool shell_classic = false;
+ShellStyle shell_style;
 
 void set_live(std::string &dst, const std::string &text) {
   dst.clear();

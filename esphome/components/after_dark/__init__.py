@@ -34,11 +34,35 @@ Saver options (see SAVER_OPTIONS):
                          unit: "°C"
                  classic: true    # mix the module's own commands in too
 
-The display should have no lambda or pages; this draws into it directly.
+      mode: screensaver          # the display keeps its own lambda until
+                                 # after_dark.start; after_dark.stop gives it
+                                 # back (saver: random picks a new one each time)
+      overlay: |-                # character LCD: lines shown instead while
+        return {};               # this returns any (a button's message)
+
+In the default mode (always) the display should have no lambda or pages; this
+draws into it directly. In screensaver mode it keeps them.
+
+DOS Shell can also be given a Unix look and lines worked out in lambdas:
+  - dosshell:
+      style: unix                # prompt, banner and errors to match
+      prompt: "loft$ "           # $P directory, $G >, $T time, $D date
+      banner: ["Linux loft 6.6.51"]
+      bad_command: "-sh: %s: not found"
+      commands:
+        - name: weather
+          lines:
+            - lambda: 'return "Out " + to_string(id(outside).state);'
+        - name: cal
+          lambda: 'return id(event_titles);'   # std::vector<std::string>
+        - name: bins
+          when: 'return id(bins_due);'           # typed only while true
+          lines: [...]
 """
 from pathlib import Path
 import re
 
+from esphome import automation
 import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.final_validate as fv
@@ -54,6 +78,8 @@ CONF_SAVERS = "savers"
 CONF_SAVER = "saver"
 CONF_FPS = "fps"
 CONF_AFTER_DARK_ID = "after_dark_id"
+CONF_MODE = "mode"
+CONF_OVERLAY = "overlay"
 CLOCKS_FACES = ["melting_digital", "classic", "modern", "art_deco", "mutating"]
 FISH_SPECIES = [
     "yellow_tang", "red_clown", "blue_tanger", "trigger_fish", "pink_squirrel",
@@ -68,10 +94,10 @@ def _find_savers():
     name -> {"text": whether it has a character LCD version}. Each is built
     only when asked for, behind -DAD_SAVER_<NAME>."""
     found = {}
-    pattern = re.compile(r'^AD_REGISTER_SAVER\("(\w+)",\s*\w+,\s*(\w+)\)', re.M)
+    pattern = re.compile(r'^AD_REGISTER_SAVER\("(\w+)",\s*(\w+),\s*(\w+)\)', re.M)
     for path in sorted(Path(__file__).parent.glob("ad_*.cpp")):
-        for name, make_text in pattern.findall(path.read_text()):
-            found[name] = {"text": make_text != "nullptr"}
+        for name, make, make_text in pattern.findall(path.read_text()):
+            found[name] = {"text": make_text != "nullptr", "make": make}
     return dict(sorted(found.items()))
 
 
@@ -79,15 +105,20 @@ SAVERS = _find_savers()
 
 after_dark_ns = cg.esphome_ns.namespace("after_dark")
 AfterDarkComponent = after_dark_ns.class_("AfterDarkComponent", cg.Component)
+StartAction = after_dark_ns.class_("StartAction", automation.Action)
+StopAction = after_dark_ns.class_("StopAction", automation.Action)
+IsRunningCondition = after_dark_ns.class_("IsRunningCondition", automation.Condition)
 LCDDisplay = cg.esphome_ns.namespace("lcd_base").class_("LCDDisplay", cg.PollingComponent)
 RealTimeClock = cg.esphome_ns.namespace("time").class_("RealTimeClock", cg.PollingComponent)
 
 
 def _shell_entity(value):
-    """An entity for a DOS Shell command: its id, or the id with a label,
-    attribute or unit of its own."""
+    """A line of a DOS Shell command: an entity's id, the id with a label,
+    attribute or unit of its own, or a lambda returning the whole line."""
     if isinstance(value, str):
         value = {"entity_id": value}
+    if isinstance(value, dict) and "lambda" in value:
+        return cv.Schema({cv.Required("lambda"): cv.returning_lambda})(value)
     return cv.Schema(
         {
             cv.Required("entity_id"): cv.entity_id,
@@ -113,16 +144,26 @@ SAVER_OPTIONS = {
         {
             cv.Optional("commands"): cv.All(
                 cv.ensure_list(
-                    cv.Schema(
-                        {
-                            cv.Required("name"): cv.All(cv.string_strict, cv.Length(min=1, max=12)),
-                            cv.Required("entities"): cv.All(cv.ensure_list(_shell_entity), cv.Length(min=1)),
-                        }
+                    cv.All(
+                        cv.Schema(
+                            {
+                                cv.Required("name"): cv.All(cv.string_strict, cv.Length(min=1, max=12)),
+                                cv.Optional("lines"): cv.All(cv.ensure_list(_shell_entity), cv.Length(min=1)),
+                                cv.Optional("entities"): cv.All(cv.ensure_list(_shell_entity), cv.Length(min=1)),
+                                cv.Optional("lambda"): cv.returning_lambda,
+                                cv.Optional("when"): cv.returning_lambda,
+                            }
+                        ),
+                        cv.has_at_least_one_key("lines", "entities", "lambda"),
                     )
                 ),
                 cv.Length(min=1),
             ),
-            cv.Optional("classic", default=False): cv.boolean,
+            cv.Optional("classic"): cv.boolean,
+            cv.Optional("style", default="dos"): cv.one_of("dos", "unix", lower=True),
+            cv.Optional("prompt"): cv.string,
+            cv.Optional("banner"): cv.ensure_list(cv.string),
+            cv.Optional("bad_command"): cv.string,
         }
     ),
 }
@@ -160,6 +201,17 @@ def available_savers(config):
 
 
 def _check(config):
+    screensaver = config[CONF_MODE] == "screensaver"
+    if screensaver and CONF_LCD_ID in config:
+        raise cv.Invalid("screensaver mode is for pixel displays (display_id)", [CONF_MODE])
+    if CONF_OVERLAY in config and CONF_LCD_ID not in config:
+        raise cv.Invalid("overlay is for character LCDs (lcd_id)", [CONF_OVERLAY])
+    if screensaver:
+        saver = config.get(CONF_SAVER, "random")
+        if saver not in ("random", "off") and saver not in available_savers(config):
+            raise cv.Invalid(f"'{saver}' isn't built: {available_savers(config)}", [CONF_SAVER])
+        config[CONF_SAVER] = saver
+        return config
     if CONF_LCD_ID in config and not available_savers(config):
         raise cv.Invalid("none of these savers has a character LCD version", [CONF_SAVERS])
     saver = config.get(CONF_SAVER, available_savers(config)[0])
@@ -176,7 +228,9 @@ CONFIG_SCHEMA = cv.All(
             cv.Exclusive(CONF_DISPLAY_ID, "screen"): cv.use_id(display.Display),
             cv.Exclusive(CONF_LCD_ID, "screen"): cv.use_id(LCDDisplay),
             cv.Optional(CONF_SAVERS, default=list(SAVERS)): _savers,
-            cv.Optional(CONF_SAVER): cv.one_of(*SAVERS, "off", lower=True),
+            cv.Optional(CONF_SAVER): cv.one_of(*SAVERS, "off", "random", lower=True),
+            cv.Optional(CONF_MODE, default="always"): cv.one_of("always", "screensaver", lower=True),
+            cv.Optional(CONF_OVERLAY): cv.returning_lambda,
             cv.Optional(CONF_FPS): cv.int_range(min=1, max=60),
             cv.Optional(CONF_TIME_ID): cv.use_id(RealTimeClock),
         }
@@ -210,6 +264,65 @@ def _final_validate(config):
 FINAL_VALIDATE_SCHEMA = _final_validate
 
 
+# What `style: unix` means, unless the options say otherwise.
+def _unix_style(name):
+    return {
+        "prompt": f"{name}$ ",
+        "banner": [f"Linux {name} 6.6.51 armv6l", "", f"{name} login: pi", "Last login: on ttyS0"],
+        "bad_command": "-sh: %s: not found",
+    }
+
+
+async def _shell_to_code(var, options):
+    unix = options["style"] == "unix"
+    style = _unix_style(CORE.name) if unix else {}
+    for key in ("prompt", "banner", "bad_command"):
+        if key in options:
+            style[key] = options[key]
+    if "prompt" in style:
+        cg.add(var.set_shell_prompt(style["prompt"]))
+    for line in style.get("banner", []):
+        cg.add(var.add_shell_banner(line))
+    if "bad_command" in style:
+        cg.add(var.set_shell_bad_command(style["bad_command"]))
+    if unix:
+        cg.add(var.set_shell_lowercase(True))
+    cg.add(var.set_shell_classic(options.get("classic", not unix and not options.get("commands"))))
+    for command in options.get("commands", []):
+        cg.add(var.add_shell_command(command["name"]))
+        for line in command.get("lines", []) + command.get("entities", []):
+            if "lambda" in line:
+                text = await cg.process_lambda(line["lambda"], [], return_type=cg.std_string)
+                cg.add(var.add_shell_text(text))
+            else:
+                cg.add(var.add_shell_entity(line["entity_id"], line.get("attribute", ""),
+                                            line.get("label", ""), line.get("unit", "")))
+        if "lambda" in command:
+            lines = await cg.process_lambda(command["lambda"], [], return_type=cg.std_vector.template(cg.std_string))
+            cg.add(var.set_shell_lines(lines))
+        if "when" in command:
+            when = await cg.process_lambda(command["when"], [], return_type=cg.bool_)
+            cg.add(var.set_shell_when(when))
+
+
+AFTER_DARK_ACTION_SCHEMA = automation.maybe_simple_id({cv.GenerateID(): cv.use_id(AfterDarkComponent)})
+
+
+@automation.register_action("after_dark.start", StartAction, AFTER_DARK_ACTION_SCHEMA)
+@automation.register_action("after_dark.stop", StopAction, AFTER_DARK_ACTION_SCHEMA)
+async def after_dark_action_to_code(config, action_id, template_arg, args):
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var
+
+
+@automation.register_condition("after_dark.is_running", IsRunningCondition, AFTER_DARK_ACTION_SCHEMA)
+async def after_dark_condition_to_code(config, condition_id, template_arg, args):
+    var = cg.new_Pvariable(condition_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var
+
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -236,8 +349,19 @@ async def to_code(config):
         cg.add_build_flag("-DAD_USE_TIME")
         cg.add(var.set_time(await cg.get_variable(config[CONF_TIME_ID])))
     cg.add(var.set_initial_saver(config[CONF_SAVER]))
+    if config[CONF_MODE] == "screensaver":
+        cg.add(var.set_screensaver_mode(True))
+    if CONF_OVERLAY in config:
+        overlay = await cg.process_lambda(
+            config[CONF_OVERLAY], [], return_type=cg.std_vector.template(cg.std_string)
+        )
+        cg.add(var.set_overlay(overlay))
     for saver, options in config[CONF_SAVERS].items():
         cg.add_build_flag(f"-DAD_SAVER_{saver.upper()}")
+        # Refer to the saver, or an ESP-IDF build's linker leaves it out.
+        make = SAVERS[saver]["make"]
+        cg.add_global(cg.RawStatement(f"namespace adcore {{ void ad_link_{make}(); }}"))
+        cg.add(cg.RawExpression(f"::adcore::ad_link_{make}()"))
         if saver == "fishpro":
             species = options.get("species", FISH_SPECIES if mono else FISH_COLOUR_DEFAULT)
             cg.add_build_flag("-DAD_FISHPRO_PICKED")
@@ -246,9 +370,7 @@ async def to_code(config):
         elif saver == "clocks" and "face" in options:
             cg.add_build_flag(f"-DAD_CLOCKS_TYPE={CLOCKS_FACES.index(options['face'])}")
         elif saver == "dosshell":
-            for command in options.get("commands", []):
-                cg.add(var.add_shell_command(command["name"]))
-                for entity in command["entities"]:
-                    cg.add(var.add_shell_entity(entity["entity_id"], entity.get("attribute", ""),
-                                                entity.get("label", ""), entity.get("unit", "")))
-            cg.add(var.set_shell_classic(options.get("classic", False)))
+            if options.get("commands"):
+                cg.add_build_flag("-DAD_SHELL_LIVE")
+                cg.add_define("USE_API_HOMEASSISTANT_STATES")
+            await _shell_to_code(var, options)

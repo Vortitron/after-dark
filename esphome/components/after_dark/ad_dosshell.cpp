@@ -225,8 +225,7 @@ class Shell {
           clear();
           break;
         case PROMPT:
-          write(DISK[cwd_].path);
-          write(">");
+          write_prompt();
           break;
         case OUT:
           write(pool_ + a.arg);
@@ -331,6 +330,20 @@ class Shell {
     wait_ = 0;
     counting_ = false;
     reset_queue();
+    if (!shell_style.banner.empty()) {
+      /* A banner of the YAML's own instead of the BIOS and AD-DOS. */
+      for (const std::string &line : shell_style.banner) {
+        std::string l1;
+        set_live(l1, line);
+        out(l1.c_str(), false, true, 0.6f);
+      }
+      if (compact_)
+        push(HOLD).wait = 2;
+      else
+        out("\n", true, false);
+      push(PROMPT);
+      return;
+    }
     push(COUNT).arg = 640;
     wait(0.1f);
     static const char *const BANNER[] = {"", "", "Toaster-BIOS v1.3.02.P0100137 3/25/94 rev.A-A1", "Copyright(c)BSI",
@@ -503,6 +516,58 @@ class Shell {
     row.p[0] = 0;
   }
 
+  /* The prompt, from the style's pattern: $P the directory, $G >, $T the
+     time, $D the date, $$ a $; any other $ stands for itself. */
+  void write_prompt() {
+    const std::string &p = shell_style.prompt;
+    char buf[96];
+    Out o(buf, sizeof buf);
+    for (size_t i = 0; i < p.size(); i++) {
+      char t = i + 1 < p.size() && p[i] == '$' ? p[i + 1] : 0;
+      if (t == 'P' || t == 'p') {
+        o.s(DISK[cwd_].path);
+      } else if (t == 'G' || t == 'g') {
+        o.c('>');
+      } else if (t == 'T' || t == 't' || t == 'D' || t == 'd') {
+        Clock k;
+        if (local_time(k)) {
+          if (t == 'T' || t == 't')
+            o.rnum(k.hour, 2, '0').c(':').rnum(k.minute, 2, '0');
+          else
+            o.rnum(k.year, 4).c('-').rnum(k.month, 2, '0').c('-').rnum(k.day, 2, '0');
+        }
+      } else if (t == '$') {
+        o.c('$');
+      } else {
+        o.c(p[i]);
+        continue;
+      }
+      i++;
+    }
+    write(buf);
+  }
+
+  /* What the shell says to a mistyped command; %s is the word typed. */
+  void bad_command(const char *cmd) {
+    const std::string &f = shell_style.bad_command;
+    char word[24];
+    int n = 0;
+    while (cmd[n] && cmd[n] != ' ' && n < 23) {
+      word[n] = cmd[n];
+      n++;
+    }
+    word[n] = 0;
+    std::string msg;
+    size_t at = f.find("%s");
+    if (at == std::string::npos)
+      msg = f;
+    else
+      msg = f.substr(0, at) + word + f.substr(at + 2);
+    std::string l1;
+    set_live(l1, msg);
+    out(l1.c_str(), false, true);
+  }
+
   /* One live line: the label on the left, the value and unit on the right,
      across at most 40 columns (compact, one short of the screen, leaving the
      corner block its cell). */
@@ -529,8 +594,19 @@ class Shell {
 
   /* A live command typed and answered, as plan() does the module's own. */
   void plan_live() {
-    const LiveCommand &lc = shell_commands[next_live_ % shell_commands.size()];
-    next_live_++;
+    /* The next command that is due; if none is, look again in a while. */
+    const LiveCommand *pick = nullptr;
+    for (size_t tries = 0; tries < shell_commands.size() && !pick; tries++) {
+      const LiveCommand &c = shell_commands[next_live_ % shell_commands.size()];
+      next_live_++;
+      if (!c.when || c.when())
+        pick = &c;
+    }
+    if (!pick) {
+      wait(3);
+      return;
+    }
+    const LiveCommand &lc = *pick;
     char cmd[48];
     Out(cmd, sizeof cmd).s(lc.name.c_str());
     bool wrong = mistype(cmd);
@@ -540,12 +616,24 @@ class Shell {
     wait(rand_range(0.2f, 0.5f));
     out("\n", true, false);
     if (wrong) {
-      out("Bad command or file name", false, true);
+      bad_command(cmd);
     } else {
       char line[96];
+      std::string text;
       for (const LiveLine &l : lc.lines) {
+        if (l.text) {
+          set_live(text, l.text());
+          out(text.c_str(), false, true);
+          continue;
+        }
         live_line(l, line, sizeof line);
         out(line, false, true);
+      }
+      if (lc.lines_fn) {
+        for (const std::string &t : lc.lines_fn()) {
+          set_live(text, t);
+          out(text.c_str(), false, true);
+        }
       }
     }
     finish_answer();
@@ -561,7 +649,8 @@ class Shell {
     if (!word)
       return false;
     int at = rng.below(word);
-    char ch = 'A' + rng.below(26);
+    bool lower = shell_style.lowercase || (cmd[at] >= 'a' && cmd[at] <= 'z');
+    char ch = (lower ? 'a' : 'A') + rng.below(26);
     if (ch == cmd[at])
       return false;
     cmd[at] = ch;
@@ -720,7 +809,7 @@ class Shell {
     wait(rand_range(0.2f, 0.5f));
     out("\n", true, false);
     if (wrong) {
-      out("Bad command or file name", false, true);
+      bad_command(cmd);
     } else {
       if (listing)
         dir(wide);

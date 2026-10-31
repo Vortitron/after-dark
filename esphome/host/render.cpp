@@ -22,6 +22,7 @@
 #include <cstring>
 #include <ctime>
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace adcore;
@@ -189,9 +190,36 @@ void shell_demo() {
   }
 }
 
+/* AD_SHELL_DEMO=unix: the Loft's look, with lines worked out by lambdas, a
+   list of them, and a command that is only sometimes due. */
+void shell_demo_unix() {
+  shell_style.prompt = "loft$ ";
+  shell_style.banner = {"Linux loft 6.6.51 armv6l", "", "loft login: pi", "Last login: Fri Oct 30"};
+  shell_style.bad_command = "-sh: %s: not found";
+  shell_style.lowercase = true;
+  LiveCommand weather;
+  weather.name = "weather";
+  LiveLine a, b;
+  a.text = [] { return std::string("Out  7.2  In 21.4"); };
+  b.text = [] { return std::string("D 10.2 pcloudy"); };
+  weather.lines = {a, b};
+  LiveCommand cal;
+  cal.name = "cal";
+  cal.lines_fn = [] { return std::vector<std::string>{"17:30 Swimming", "Sat 10:00 Football", "Sun Grandma's birthday"}; };
+  LiveCommand bins;
+  bins.name = "bins";
+  bins.when = [] { return clock_elapsed > 20; };
+  bins.lines_fn = [] { return std::vector<std::string>{"Empty tomorrow", "C1 paper plastic metal clear glass"}; };
+  shell_commands = {weather, cal, bins};
+}
+
 int main(int argc, char **argv) {
-  if (getenv("AD_SHELL_DEMO") && *getenv("AD_SHELL_DEMO"))
-    shell_demo();
+  if (getenv("AD_SHELL_DEMO") && *getenv("AD_SHELL_DEMO")) {
+    if (std::string(getenv("AD_SHELL_DEMO")) == "unix")
+      shell_demo_unix();
+    else
+      shell_demo();
+  }
   if (getenv("AD_EVERY"))
     every = atoi(getenv("AD_EVERY")) > 0 ? atoi(getenv("AD_EVERY")) : 1;
   clock_start = getenv("AD_TIME") ? (time_t) atoll(getenv("AD_TIME")) : time(nullptr);

@@ -22,6 +22,8 @@ void TextScreen::mark_sent() {
   glyph_dirty_ = 0;
 }
 
+void TextScreen::invalidate() { memset(sent_, 0, sizeof sent_); }
+
 void TextScreen::put(int col, int row, uint8_t code) {
   if (col < 0 || row < 0 || col >= cols_ || row >= rows_)
     return;

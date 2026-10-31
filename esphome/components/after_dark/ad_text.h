@@ -31,6 +31,8 @@ class TextScreen {
   /* Since mark_sent(): savers may clear and redraw every frame. */
   bool changed() const;
   void mark_sent();
+  /* Something else wrote to the panel: send everything again next time. */
+  void invalidate();
 
  private:
   int cols_ = 16, rows_ = 2;

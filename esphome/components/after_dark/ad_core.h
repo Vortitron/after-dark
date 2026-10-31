@@ -124,9 +124,14 @@ struct SaverRegistrar {
 #else
 #define AD_PIXEL_SAVER(make) make
 #endif
+/* ad_link_<make>() is there to be called: ESP-IDF builds link components
+   from static libraries, which leave out any object nothing refers to, and
+   a registrar alone is not referred to. The ESPHome component calls the link
+   function of every saver in the build (see __init__.py). */
 #define AD_REGISTER_SAVER(name, make, make_text) \
   static ::adcore::SaverEntry ad_entry_##make{name, AD_PIXEL_SAVER(make), make_text, nullptr}; \
-  static ::adcore::SaverRegistrar ad_registrar_##make(&ad_entry_##make);
+  static ::adcore::SaverRegistrar ad_registrar_##make(&ad_entry_##make); \
+  void ad_link_##make() {}
 
 /* The savers in this build, in name order. */
 const SaverEntry *first_saver();

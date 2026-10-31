@@ -1,5 +1,8 @@
 #pragma once
-/* A select for choosing the saver from Home Assistant (or "off"). */
+/* A select for choosing the saver from Home Assistant (or "off"). Only when
+   the YAML has one: a header for select that isn't there won't compile. */
+#include "esphome/core/defines.h"
+#ifdef USE_SELECT
 #include "esphome/core/component.h"
 #include "esphome/components/select/select.h"
 
@@ -24,3 +27,4 @@ class AfterDarkSelect : public select::Select, public Component {
 
 }  // namespace after_dark
 }  // namespace esphome
+#endif  // USE_SELECT

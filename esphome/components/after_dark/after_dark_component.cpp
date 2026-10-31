@@ -57,10 +57,18 @@ void AfterDarkComponent::setup() {
   }
 #endif
   if (!text_mode_()) {
-    display_->stop_poller();
-    /* Savers erase what they drew; a clear before each push would undo that. */
-    display_->set_auto_clear(false);
     surface_.attach(display_);
+    if (!screensaver_mode_) {
+      display_->stop_poller();
+      /* Savers erase what they drew; a clear before each push would undo that. */
+      display_->set_auto_clear(false);
+    }
+  }
+  if (screensaver_mode_) {
+    /* Nothing to draw until start(); remember what to run then. */
+    if (!set_saver(initial_))
+      set_saver("random");
+    return;
   }
   if (!set_saver(initial_))
     set_saver("off");
@@ -85,26 +93,47 @@ void AfterDarkComponent::add_shell_entity(const std::string &entity_id, const st
                              !label.empty(), !unit.empty()});
 }
 
-/* Home Assistant sends each state as it changes, once it has connected. */
+void AfterDarkComponent::add_shell_text(std::function<std::string()> &&f) {
+  if (::adcore::shell_commands.empty())
+    return;
+  ::adcore::LiveLine line;
+  line.text = std::move(f);
+  ::adcore::shell_commands.back().lines.push_back(line);
+}
+
+void AfterDarkComponent::set_shell_lines(std::function<std::vector<std::string>()> &&f) {
+  if (!::adcore::shell_commands.empty())
+    ::adcore::shell_commands.back().lines_fn = std::move(f);
+}
+
+void AfterDarkComponent::set_shell_when(std::function<bool()> &&f) {
+  if (!::adcore::shell_commands.empty())
+    ::adcore::shell_commands.back().when = std::move(f);
+}
+
+/* Home Assistant sends each state as it changes, once it has connected.
+   AD_SHELL_LIVE is set when DOS Shell has commands; it also asks ESPHome for
+   the state subscriptions, which 2025.10 and later leave out unless asked. */
 void AfterDarkComponent::subscribe_shell_() {
-#ifdef USE_API
+#if defined(USE_API) && defined(AD_SHELL_LIVE)
+  using Set = std::function<void(const std::string &)>;
   for (const ShellEntity &e : shell_entities_) {
     size_t c = e.command, l = e.line;
     optional<std::string> attribute;
     if (!e.attribute.empty())
       attribute = e.attribute;
-    api::global_api_server->subscribe_home_assistant_state(e.entity_id, attribute, [c, l](const std::string &state) {
-      ::adcore::set_live(::adcore::shell_commands[c].lines[l].value, state);
-    });
+    api::global_api_server->subscribe_home_assistant_state(e.entity_id, attribute, Set([c, l](const std::string &v) {
+      ::adcore::set_live(::adcore::shell_commands[c].lines[l].value, v);
+    }));
     if (!e.own_label)
       api::global_api_server->subscribe_home_assistant_state(
           e.entity_id, std::string("friendly_name"),
-          [c, l](const std::string &name) { ::adcore::set_live(::adcore::shell_commands[c].lines[l].label, name); });
+          Set([c, l](const std::string &v) { ::adcore::set_live(::adcore::shell_commands[c].lines[l].label, v); }));
     /* An attribute's unit isn't the entity's, so only the state gets one. */
     if (!e.own_unit && e.attribute.empty())
       api::global_api_server->subscribe_home_assistant_state(
           e.entity_id, std::string("unit_of_measurement"),
-          [c, l](const std::string &unit) { ::adcore::set_live(::adcore::shell_commands[c].lines[l].unit, unit); });
+          Set([c, l](const std::string &v) { ::adcore::set_live(::adcore::shell_commands[c].lines[l].unit, v); }));
   }
 #endif
 }
@@ -147,33 +176,101 @@ void AfterDarkComponent::push_() {
   display_->update();
 }
 
-bool AfterDarkComponent::set_saver(const std::string &name) {
+/* Make and start saver `name` on this screen. */
+bool AfterDarkComponent::run_(const std::string &name) {
   saver_.reset();
   text_saver_.reset();
-  if (name == "off") {
-    blank_();
-    high_freq_.stop();
+  const ::adcore::SaverEntry *e = ::adcore::find_saver(name.c_str());
+  if (e == nullptr || (text_mode_() ? e->make_text == nullptr : e->make == nullptr)) {
+    ESP_LOGW(TAG, "No saver called '%s' for this screen in this build", name.c_str());
+    return false;
+  }
+  if (text_mode_()) {
+    text_saver_.reset(e->make_text());
+    text_saver_->start(text_);
   } else {
-    const ::adcore::SaverEntry *e = ::adcore::find_saver(name.c_str());
-    if (e == nullptr || (text_mode_() && e->make_text == nullptr)) {
-      ESP_LOGW(TAG, "No saver called '%s' for this screen in this build", name.c_str());
+    saver_.reset(e->make());
+    saver_->start(surface_);
+  }
+  ESP_LOGD(TAG, "Running %s", name.c_str());
+  push_();
+  last_ms_ = millis();
+  high_freq_.start();
+  return true;
+}
+
+/* Any saver in the build for this screen but the last one picked. */
+std::string AfterDarkComponent::pick_random_() {
+  std::vector<const char *> names;
+  for (const ::adcore::SaverEntry *e = ::adcore::first_saver(); e; e = e->next)
+    if ((text_mode_() ? e->make_text != nullptr : e->make != nullptr) && last_random_ != e->name)
+      names.push_back(e->name);
+  if (names.empty() && !last_random_.empty())
+    return last_random_;  // the only one there is
+  last_random_ = names.empty() ? std::string() : std::string(names[::adcore::rng.below(names.size())]);
+  return last_random_;
+}
+
+bool AfterDarkComponent::set_saver(const std::string &name) {
+  if (screensaver_mode_) {
+    if (name != "random" && name != "off" && ::adcore::find_saver(name.c_str()) == nullptr) {
+      ESP_LOGW(TAG, "No saver called '%s' in this build", name.c_str());
       return false;
     }
-    if (text_mode_()) {
-      text_saver_.reset(e->make_text());
-      text_saver_->start(text_);
-    } else {
-      saver_.reset(e->make());
-      saver_->start(surface_);
+    current_ = name;
+    callback_.call(current_);
+    if (running_) {
+      if (name == "off")
+        stop();
+      else
+        run_(name == "random" ? pick_random_() : name);
     }
-    push_();
-    last_ms_ = millis();
-    high_freq_.start();
+    return true;
   }
-  ESP_LOGD(TAG, "Saver: %s", name.c_str());
+  if (name == "off") {
+    saver_.reset();
+    text_saver_.reset();
+    blank_();
+    high_freq_.stop();
+  } else if (!run_(name)) {
+    return false;
+  }
   current_ = name;
   callback_.call(current_);
   return true;
+}
+
+void AfterDarkComponent::start() {
+  if (!screensaver_mode_ || running_ || text_mode_() || current_ == "off")
+    return;
+  /* Move the display's own drawing aside, so its updates (timed, or asked
+     for by the YAML) push our frames instead of drawing over them. */
+  auto *d = static_cast<display::Display *>(display_);
+  saved_writer_ = std::move(d->*DisplayInternals::writer());
+  d->*DisplayInternals::writer() = DisplayInternals::Writer{};
+  saved_page_ = d->*DisplayInternals::page();
+  d->*DisplayInternals::page() = nullptr;
+  saved_auto_clear_ = d->*DisplayInternals::auto_clear();
+  d->set_auto_clear(false);
+  running_ = true;
+  if (!run_(current_ == "random" ? pick_random_() : current_))
+    stop();
+}
+
+void AfterDarkComponent::stop() {
+  if (!running_)
+    return;
+  saver_.reset();
+  text_saver_.reset();
+  high_freq_.stop();
+  auto *d = static_cast<display::Display *>(display_);
+  d->*DisplayInternals::writer() = std::move(saved_writer_);
+  saved_writer_ = DisplayInternals::Writer{};
+  d->*DisplayInternals::page() = saved_page_;
+  d->set_auto_clear(saved_auto_clear_);
+  running_ = false;
+  ESP_LOGD(TAG, "Stopped; the display is its own again");
+  d->update();
 }
 
 void AfterDarkComponent::loop() {
@@ -190,6 +287,30 @@ void AfterDarkComponent::loop() {
     text_saver_->frame(text_, dt);
   else
     saver_->frame(surface_, dt);
+#ifdef AD_USE_LCD
+  /* The YAML's own messages (a button's "Lights off") take the panel while
+     they last; the saver carries on underneath. */
+  if (text_mode_() && overlay_) {
+    std::vector<std::string> lines = overlay_();
+    if (!lines.empty()) {
+      if (!overlay_shown_ || lines != last_overlay_) {
+        for (int r = 0; r < lcd_rows_; r++) {
+          std::string row = r < (int) lines.size() ? lines[r] : std::string();
+          row.resize(lcd_cols_, ' ');
+          lcd_->print(0, r, row.c_str());
+        }
+        lcd_->display();
+        last_overlay_ = lines;
+      }
+      overlay_shown_ = true;
+      return;
+    }
+    if (overlay_shown_) {
+      overlay_shown_ = false;
+      text_.invalidate();
+    }
+  }
+#endif
   push_();
 }
 

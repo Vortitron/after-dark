@@ -137,6 +137,47 @@ goes in:
   lines, answers one row a second, and a pause on the last one with the
   block blinking in the corner before the next prompt.
 
+  Lines can also be worked out in a lambda (`- lambda: 'return ...;'`), a
+  command can take all its lines from one (`lambda:` returning a
+  `std::vector<std::string>`, for a calendar or a list of notifications),
+  and `when:` types a command only while its lambda says so. `style: unix`
+  gives it a Unix look (a `name$ ` prompt, a Linux login banner, `-sh: x: not
+  found`), and `prompt:` (`$P` directory, `$G` >, `$T` time, `$D` date),
+  `banner:` and `bad_command:` (`%s` is the word typed) set each part.
+
+### As a screensaver
+
+With `mode: screensaver` the display keeps its own lambda or pages, and the
+savers only take over between `after_dark.start` and `after_dark.stop`; while
+one runs, the display's own drawing is moved aside, and `stop` puts it back
+and redraws it. `saver: random` picks a different one each time, and
+`after_dark.is_running` tells the YAML which is showing:
+
+```yaml
+after_dark:
+  id: saver
+  display_id: oled_display
+  mode: screensaver
+  saver: random
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            and:
+              - lambda: 'return millis() - id(last_input_ms) > 30000;'
+              - not:
+                  after_dark.is_running: saver
+          then:
+            - after_dark.start: saver
+```
+
+and `after_dark.stop: saver` on any input. On a character LCD, `overlay:`
+does the opposite job: a lambda returning lines to show instead of the saver
+while it has any (a button's status message), with the saver carrying on
+underneath.
+
 ### Flash
 
 The build leaves out what the screen can't show: a character LCD build has
