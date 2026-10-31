@@ -1,6 +1,9 @@
 #include "after_dark_component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
+#ifdef USE_API
+#include "esphome/components/api/api_server.h"
+#endif
 
 #include <cstring>
 
@@ -41,6 +44,7 @@ static bool esphome_time(::adcore::Clock &c) {
 
 void AfterDarkComponent::setup() {
   ::adcore::rng.seed(random_uint32());
+  subscribe_shell_();
 #ifdef AD_USE_TIME
   clock_ = time_;
   ::adcore::time_source = esphome_time;
@@ -60,6 +64,49 @@ void AfterDarkComponent::setup() {
   }
   if (!set_saver(initial_))
     set_saver("off");
+}
+
+void AfterDarkComponent::add_shell_command(const std::string &name) {
+  ::adcore::LiveCommand c;
+  ::adcore::set_live(c.name, name);
+  ::adcore::shell_commands.push_back(c);
+}
+
+void AfterDarkComponent::add_shell_entity(const std::string &entity_id, const std::string &attribute,
+                                          const std::string &label, const std::string &unit) {
+  if (::adcore::shell_commands.empty())
+    return;
+  auto &lines = ::adcore::shell_commands.back().lines;
+  ::adcore::LiveLine line;
+  ::adcore::set_live(line.label, label.empty() ? entity_id : label);
+  ::adcore::set_live(line.unit, unit);
+  lines.push_back(line);
+  shell_entities_.push_back({::adcore::shell_commands.size() - 1, lines.size() - 1, entity_id, attribute,
+                             !label.empty(), !unit.empty()});
+}
+
+/* Home Assistant sends each state as it changes, once it has connected. */
+void AfterDarkComponent::subscribe_shell_() {
+#ifdef USE_API
+  for (const ShellEntity &e : shell_entities_) {
+    size_t c = e.command, l = e.line;
+    optional<std::string> attribute;
+    if (!e.attribute.empty())
+      attribute = e.attribute;
+    api::global_api_server->subscribe_home_assistant_state(e.entity_id, attribute, [c, l](const std::string &state) {
+      ::adcore::set_live(::adcore::shell_commands[c].lines[l].value, state);
+    });
+    if (!e.own_label)
+      api::global_api_server->subscribe_home_assistant_state(
+          e.entity_id, std::string("friendly_name"),
+          [c, l](const std::string &name) { ::adcore::set_live(::adcore::shell_commands[c].lines[l].label, name); });
+    /* An attribute's unit isn't the entity's, so only the state gets one. */
+    if (!e.own_unit && e.attribute.empty())
+      api::global_api_server->subscribe_home_assistant_state(
+          e.entity_id, std::string("unit_of_measurement"),
+          [c, l](const std::string &unit) { ::adcore::set_live(::adcore::shell_commands[c].lines[l].unit, unit); });
+  }
+#endif
 }
 
 void AfterDarkComponent::blank_() {
@@ -154,6 +201,8 @@ void AfterDarkComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "  Screen: %dx%d%s at up to %d fps", surface_.width(), surface_.height(),
                   surface_.mono() ? " (1-bit)" : "", fps_);
   ESP_LOGCONFIG(TAG, "  Saver: %s", current_.c_str());
+  for (const auto &c : ::adcore::shell_commands)
+    ESP_LOGCONFIG(TAG, "  DOS Shell command: %s (%u lines)", c.name.c_str(), (unsigned) c.lines.size());
   for (const ::adcore::SaverEntry *e = ::adcore::first_saver(); e; e = e->next)
     ESP_LOGCONFIG(TAG, "  Built in: %s%s", e->name, e->make_text ? "" : " (not on a character LCD)");
 }

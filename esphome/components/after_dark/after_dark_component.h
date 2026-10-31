@@ -11,6 +11,7 @@
  * The savers themselves are in the ad_*.cpp files and know nothing of ESPHome.
  */
 #include "esphome/core/component.h"
+#include "esphome/core/defines.h"
 #include "esphome/core/helpers.h"
 #include "esphome/components/display/display.h"
 #ifdef AD_USE_LCD
@@ -21,10 +22,12 @@
 #endif
 
 #include "ad_core.h"
+#include "ad_live.h"
 #include "ad_text.h"
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace esphome {
 namespace after_dark {
@@ -63,6 +66,14 @@ class AfterDarkComponent : public Component {
   void set_time(time::RealTimeClock *time) { time_ = time; }
 #endif
   void set_fps(int fps) { fps_ = fps; }
+
+  /* DOS Shell's live commands: a command, then the entities it prints. Empty
+     strings for attribute, label and unit mean the state, the friendly name
+     and the unit of measurement, as Home Assistant sends them. */
+  void add_shell_command(const std::string &name);
+  void add_shell_entity(const std::string &entity_id, const std::string &attribute, const std::string &label,
+                        const std::string &unit);
+  void set_shell_classic(bool classic) { ::adcore::shell_classic = classic; }
   void set_initial_saver(const std::string &name) { initial_ = name; }
 
   void setup() override;
@@ -97,6 +108,13 @@ class AfterDarkComponent : public Component {
   std::string initial_;
   std::string current_;
   int fps_{30};
+  struct ShellEntity {
+    size_t command, line;
+    std::string entity_id, attribute;
+    bool own_label, own_unit;
+  };
+  std::vector<ShellEntity> shell_entities_;
+  void subscribe_shell_();
   uint32_t last_ms_{0};
   HighFrequencyLoopRequester high_freq_;
   CallbackManager<void(const std::string &)> callback_;

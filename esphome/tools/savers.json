@@ -37,7 +37,7 @@
   "title": "DOS Shell",
   "module": "DOSSHELL.AD",
   "page": "dosshell.html",
-  "about": "A PC typing to itself at the C:\\> prompt."
+  "about": "A PC typing to itself at the C:\\> prompt, or typing your Home Assistant data as commands."
  },
  "einstein": {
   "title": "Einstein",

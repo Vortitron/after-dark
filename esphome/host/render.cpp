@@ -14,6 +14,7 @@
  */
 #include "../components/after_dark/ad_core.h"
 #include "../components/after_dark/ad_text.h"
+#include "../components/after_dark/ad_live.h"
 #include "font5x8.h"
 
 #include <cstdio>
@@ -160,7 +161,37 @@ int run_lcd(const SaverEntry *e, int cols, int rows, int frames, const char *dir
   return 0;
 }
 
+/* AD_SHELL_DEMO: DOS Shell's live commands, with made-up states, as the
+   ESPHome component would fill them from Home Assistant. */
+void shell_demo() {
+  struct Demo {
+    const char *command;
+    const char *lines[4][3];
+  };
+  static const Demo DEMO[] = {
+      {"TEMP", {{"Living room", "21.5", "°C"}, {"Outside", "8.2", "°C"}, {"Attic", "14.9", "°C"}}},
+      {"DOORS", {{"Front door", "off", ""}, {"Back door", "on", ""}, {"Garage", "off", ""}}},
+      {"POWER", {{"House", "1.42", "kW"}, {"Solar", "0.37", "kW"}}},
+  };
+  for (const Demo &d : DEMO) {
+    LiveCommand c;
+    c.name = d.command;
+    for (const auto &l : d.lines) {
+      if (!l[0])
+        break;
+      LiveLine line;
+      set_live(line.label, l[0]);
+      set_live(line.value, l[1]);
+      set_live(line.unit, l[2]);
+      c.lines.push_back(line);
+    }
+    shell_commands.push_back(c);
+  }
+}
+
 int main(int argc, char **argv) {
+  if (getenv("AD_SHELL_DEMO") && *getenv("AD_SHELL_DEMO"))
+    shell_demo();
   if (getenv("AD_EVERY"))
     every = atoi(getenv("AD_EVERY")) > 0 ? atoi(getenv("AD_EVERY")) : 1;
   clock_start = getenv("AD_TIME") ? (time_t) atoll(getenv("AD_TIME")) : time(nullptr);

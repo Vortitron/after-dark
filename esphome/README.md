@@ -15,7 +15,7 @@ a change.
 | `boris` | Boris (BORIS.AD) | ✓ one cat, hand-drawn poses |
 | `bugs` | Bugs | |
 | `clocks` | Clocks 3.0 (CLOCKS3.AD); pick a `face` | ✓ big 3×2 digits, drifting |
-| `dosshell` | DOS Shell | ✓ the panel is the screen |
+| `dosshell` | DOS Shell; can type your Home Assistant data as commands | ✓ the panel is the screen |
 | `einstein` | Einstein | ✓ lines only |
 | `fishpro` | Fish Pro; pick the `species` | ✓ |
 | `flocks` | Flocks (the birds) | ✓ |
@@ -110,6 +110,32 @@ goes in:
   `mutating` (the module's default: ten photographs, 189 KB). On a 1-bit
   panel the default is `melting_digital`, as the photographs don't read as a
   clock at a third size.
+- `dosshell: commands:` Home Assistant data, typed as DOS commands. Each
+  command is answered with a line an entity: its label on the left (the
+  friendly name unless you give one) and its state on the right with its
+  unit. They come round in order, mistyped now and then like any command;
+  `classic: true` mixes the module's own DIR, TIME and the rest back in. The
+  states come over ESPHome's native API, so the config needs `api:`.
+
+  ```yaml
+  - dosshell:
+      commands:
+        - name: TEMP
+          entities:
+            - sensor.living_room_temperature
+            - entity_id: sensor.outdoor_temperature
+              label: Outside
+        - name: HALL
+          entities:
+            - entity_id: climate.hall
+              attribute: current_temperature
+              unit: "°C"
+      classic: true
+  ```
+
+  On a character LCD (four rows or fewer) the shell goes compact: no blank
+  lines, answers one row a second, and a pause on the last one with the
+  block blinking in the corner before the next prompt.
 
 ### Flash
 
@@ -162,6 +188,7 @@ make -C esphome/host gif SAVER=warp SCREEN=lcd16x2 FPS=8 FRAMES=80
 # -> esphome/host/out/<saver>-<screen>.gif
 
 esphome/host/preview.sh OUTDIR zot ad_zot.cpp   # one saver, every screen, contact sheets
+AD_SHELL_DEMO=1 esphome/host/render dosshell lcd16x2 480 OUTDIR 8   # DOS Shell with made-up live data
 ```
 
 For colour screens the renderer also prints the average box of changed pixels

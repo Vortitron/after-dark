@@ -1,5 +1,7 @@
 #include "ad_core.h"
 #include "ad_art.h"
+#include "ad_font.h"
+#include "ad_live.h"
 
 #include <cstring>
 
@@ -73,6 +75,16 @@ Rect draw_frame(Surface &s, const Art &art, const Sequence &seq, int index, floa
     }
   }
   return s.clip({x0, y0, f.w, f.h});
+}
+
+std::vector<LiveCommand> shell_commands;
+bool shell_classic = false;
+
+void set_live(std::string &dst, const std::string &text) {
+  dst.clear();
+  const char *p = text.c_str();
+  while (*p)
+    dst += (char) next_latin1(p);
 }
 
 }  // namespace adcore

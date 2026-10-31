@@ -6,7 +6,7 @@
   <title>After Dark for ESPHome</title>
   <meta name="description" content="Pick the After Dark screen savers for an ESP32 and its screen, see how much flash they take, and get the ESPHome config.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="../img/favicon.png?v=cb82f29-261030155154" />
+  <link rel="shortcut icon" href="../img/favicon.png?v=8cd0b8c-261031083602" />
   <style>
     /* ------------------------------------------------------------------
        A Windows 95 setup dialog, to sit beside the Display Properties
@@ -173,14 +173,17 @@
     .modal[hidden] { display: none; }
     .modal .window { max-width: 560px; }
     .tabs { display: flex; gap: 2px; padding: 8px 8px 0; flex-wrap: wrap; }
+    /* As Windows 95 drew them: an unselected tab is ordinary black text, a
+       disabled one grey and etched, the selected one bold and raised. */
     .tab {
-      padding: 3px 9px 4px; font: inherit; color: var(--shadow);
+      padding: 3px 9px 4px; font: inherit; color: var(--ink);
       background: var(--face);
       border: 2px solid; border-color: var(--light) var(--dark) var(--face) var(--light);
       border-radius: 3px 3px 0 0; position: relative; top: 2px; cursor: default;
     }
     .tab[aria-selected="true"] { top: 0; padding: 5px 11px 6px; color: var(--ink); font-weight: bold; z-index: 2; }
-    .tab:disabled { color: var(--shadow); text-shadow: 1px 1px 0 var(--light); }
+    .tab:disabled { color: var(--shadow); text-shadow: 1px 1px 0 var(--light); cursor: not-allowed; }
+    .tab:not(:disabled):not([aria-selected="true"]):hover { text-decoration: underline; }
     .tab:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
     .sheet {
       margin: 0 8px 8px; padding: 14px;
@@ -575,6 +578,14 @@
           if (s.option && k !== 'text') {
             var v = option[n] || defaultOption(n);
             y += '    - ' + n + ':\n        ' + s.option.key + ': ' + (s.option.many ? '[' + v.join(', ') + ']' : v) + '\n';
+          } else if (n === 'dosshell') {
+            y += '    - dosshell          # or type Home Assistant data as commands:\n' +
+              '    # - dosshell:\n' +
+              '    #     commands:\n' +
+              '    #       - name: TEMP\n' +
+              '    #         entities: [sensor.living_room_temperature, sensor.outdoor_temperature]\n' +
+              '    #       - name: DOORS\n' +
+              '    #         entities: [binary_sensor.front_door, binary_sensor.back_door]\n';
           } else {
             y += '    - ' + n + '\n';
           }

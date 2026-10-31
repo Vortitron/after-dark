@@ -17,9 +17,18 @@
  * date) at 10:10:00.
  *
  * On a character LCD (DosShellText) the panel is the screen: the same shell,
- * 16 columns by 2 rows, typing at the prompt and scrolling its answers past.
- * The backslash and the block cursor are user glyphs, since the HD44780's ROM
- * has a yen sign where the backslash goes.
+ * 16 columns by 2 rows, typing at the prompt. Four rows or fewer is too few
+ * to scroll a DOS screen past, so there the shell goes compact: no blank
+ * lines, DIR one short line a file, answers one row a second, and a hold on
+ * the last of them with the block blinking in the bottom-right corner before
+ * the next prompt. The backslash and the block cursor are user glyphs, since
+ * the HD44780's ROM has a yen sign where the backslash goes.
+ *
+ * Live data: given commands (ad_live.h, from the YAML's `commands:`), the
+ * shell types those instead and answers each with a line an entity, its
+ * label on the left and its state on the right, as Home Assistant sends them.
+ * They come round in order, mistyped now and then like any command; with
+ * `classic: true` the module's own commands are mixed in.
  */
 #if defined(AD_SAVER_DOSSHELL) || defined(AD_ALL_SAVERS)
 #include "ad_core.h"
@@ -27,6 +36,7 @@
 #include "ad_font.h"
 #include "ad_font_4x6.h"
 #include "ad_font_6x10.h"
+#include "ad_live.h"
 
 #include <cstring>
 #include <vector>
@@ -159,6 +169,10 @@ class Shell {
   void begin(int cols, int rows) {
     cols_ = cols < 1 ? 1 : cols;
     rows_ = rows < 1 ? 1 : rows;
+    compact_ = rows_ <= 4;
+    pending_nl_ = false;
+    hold_until_ = -1;
+    next_live_ = 0;
     text_.assign((rows_ + 1) * cols_, ' ');
     len_.assign(rows_ + 1, 0);
     keys_ = KEYS[speed];
@@ -218,7 +232,11 @@ class Shell {
           write(pool_ + a.arg);
           if (!a.raw)
             write("\n");
-          wait_ += a.fast ? 0.02f : 0.1f;
+          wait_ += a.wait > 0 ? a.wait : a.fast ? 0.02f : 0.1f;
+          break;
+        case HOLD:
+          hold_until_ = t_ + a.wait;
+          wait_ += a.wait;
           break;
       }
     }
@@ -229,15 +247,19 @@ class Shell {
   char at(int r, int c) const { return text_[r * cols_ + c]; }
   /* The block cursor: 0.3 s on, 0.3 s off, on again at each key. */
   bool cursor_on() const { return fmodf((t_ - blink_) / 0.3f, 2) < 1; }
+  /* Holding on an answer (compact): the block blinks in the bottom-right
+     corner instead, 0.4 s on, 0.4 s off. */
+  bool holding() const { return t_ < hold_until_; }
+  bool corner_on() const { return fmodf((hold_until_ - t_) / 0.4f, 2) >= 1; }
 
  private:
-  enum Op : uint8_t { WAIT, KEY, COUNT, CD, CLEAR, PROMPT, OUT };
+  enum Op : uint8_t { WAIT, KEY, COUNT, CD, CLEAR, PROMPT, OUT, HOLD };
   struct Act {
     Op op;
     bool raw, fast;
     char key;
     int arg;  // a count, a directory, or where the text is in the pool
-    float wait;
+    float wait;  // WAIT, HOLD; for OUT, the pause after it (0: the usual)
   };
   static const int QUEUE = 128;
   static const int POOL = 3072;
@@ -253,7 +275,43 @@ class Shell {
     return a;
   }
   void wait(float s) { push(WAIT).wait = s; }
-  void out(const char *t, bool raw, bool fast) {
+  /* A line of output. Compact, a line is cut into rows that come `pace`
+     seconds apart, and blank ones are left out. */
+  void out(const char *t, bool raw, bool fast, float pace = 1.0f) {
+    if (compact_ && !raw) {
+      int n = strlen(t);
+      if (!n)
+        return;
+      /* Wrapped at spaces where a word allows it. */
+      char row[128];
+      int step = cols_ < 127 ? cols_ : 127;
+      for (int at = 0; at < n;) {
+        while (at < n && t[at] == ' ')
+          at++;
+        if (at >= n)
+          break;
+        int k = n - at < step ? n - at : step;
+        if (at + k < n && t[at + k] != ' ') {
+          int b = k;
+          while (b > 0 && t[at + b] != ' ')
+            b--;
+          if (b > 0)
+            k = b;
+        }
+        int e = k;
+        while (e > 0 && t[at + e - 1] == ' ')
+          e--;
+        for (int i = 0; i < e; i++)
+          row[i] = t[at + i];
+        row[e] = 0;
+        put_out(row, false, fast, pace);
+        at += k;
+      }
+      return;
+    }
+    put_out(t, raw, fast, 0);
+  }
+  void put_out(const char *t, bool raw, bool fast, float pace) {
     int n = strlen(t);
     if (used_ + n + 1 > POOL)
       return;
@@ -262,6 +320,7 @@ class Shell {
     a.arg = used_;
     a.raw = raw;
     a.fast = fast;
+    a.wait = pace;
     used_ += n + 1;
   }
 
@@ -278,7 +337,13 @@ class Shell {
                                          "", "", "AfterDark DOS Shell version 2.7(Win)",
                                          "Copyright(c) 1993,94 Berkeley Systems, Inc.  All rights reserved.", "", "",
                                          "Welcome to AD-DOS.", ""};
+    if (compact_)
+      out("\n", true, true);  // off the memory count's line
     for (int i = 0; i < 12; i++) {
+      if (compact_) {
+        out(BANNER[i], false, true, 0.6f);
+        continue;
+      }
       char line[80];
       Out o(line, sizeof line);
       if (i)
@@ -286,6 +351,8 @@ class Shell {
       o.s(BANNER[i]);
       out(line, true, true);
     }
+    if (compact_)
+      push(HOLD).wait = 2;
     out("\n", true, false);
     push(PROMPT);
   }
@@ -307,11 +374,20 @@ class Shell {
   void write(const char *t) {
     for (; *t; t++) {
       if (*t == '\n') {
-        new_line();
+        /* Compact, a newline waits for the next character, so the last row
+           is never left blank and blank lines don't happen. */
+        if (compact_)
+          pending_nl_ = pending_nl_ || len_[n_ - 1] > 0;
+        else
+          new_line();
         continue;
       }
-      if (len_[n_ - 1] >= cols_)
+      if (pending_nl_) {
         new_line();
+        pending_nl_ = false;
+      } else if (len_[n_ - 1] >= cols_) {
+        new_line();
+      }
       int r = n_ - 1;
       text_[r * cols_ + len_[r]++] = *t;
     }
@@ -325,6 +401,7 @@ class Shell {
   void clear() {
     n_ = 1;
     len_[0] = 0;
+    pending_nl_ = false;
     if (rng.uniform() < 0.3f)
       cwd_ = 1 + rng.below(DIRS - 1);
   }
@@ -338,6 +415,10 @@ class Shell {
 
   void dir(bool wide) {
     const Dir &d = DISK[cwd_];
+    if (compact_) {
+      dir_compact(d);
+      return;
+    }
     out("Volume in drive C has no label.", false, true);
     char line[96];
     Out(line, sizeof line).s("Directory of ").s(d.path);
@@ -389,6 +470,30 @@ class Shell {
     f.rnum((long) round_half_up(rand_range(8, 60)) * 32768, 28).s(" bytes free");
     out(line, false, true);
   }
+  /* DIR on a few short rows: NAME.EXT with its size in K, or <DIR>. */
+  void dir_compact(const Dir &d) {
+    char line[48];
+    for (int i = 0; i < d.n; i++) {
+      const File &f = d.files[i];
+      char nm[16], sz[12];
+      Out n(nm, sizeof nm);
+      name_of(f, n);
+      Out z(sz, sizeof z);
+      if (f.size < 0)
+        z.s("<DIR>");
+      else
+        z.rnum((f.size + 1023) / 1024, 1).c('K');
+      Out o(line, sizeof line);
+      /* One column short, so the corner block during the hold has a cell. */
+      int gap = cols_ - 1 - (int) strlen(nm) - (int) strlen(sz);
+      o.s(nm);
+      for (int k = 0; k < (gap > 1 ? gap : 1); k++)
+        o.c(' ');
+      o.s(sz);
+      out(line, false, true);
+    }
+  }
+
   void flush_row(Out &row) {
     while (row.n > 0 && row.p[row.n - 1] == ' ')
       row.n--;
@@ -398,9 +503,94 @@ class Shell {
     row.p[0] = 0;
   }
 
+  /* One live line: the label on the left, the value and unit on the right,
+     across at most 40 columns (compact, one short of the screen, leaving the
+     corner block its cell). */
+  void live_line(const LiveLine &l, char *buf, int cap) {
+    int width = compact_ ? cols_ - 1 : cols_ < 40 ? cols_ : 40;
+    std::string v = l.value.empty() ? std::string("----") : l.value;
+    if (!l.unit.empty() && !l.value.empty()) {
+      unsigned char u = (unsigned char) l.unit[0];
+      if (u != 0xB0 && u != '%')  // 21.5°C and 40%, but 3.2 kW
+        v += ' ';
+      v += l.unit;
+    }
+    int room = width - (int) v.size() - 1;
+    Out o(buf, cap);
+    if (room > 0) {
+      int k = 0;
+      for (; k < (int) l.label.size() && k < room; k++)
+        o.c(l.label[k]);
+      for (; k < room + 1; k++)
+        o.c(' ');
+    }
+    o.s(v.c_str());
+  }
+
+  /* A live command typed and answered, as plan() does the module's own. */
+  void plan_live() {
+    const LiveCommand &lc = shell_commands[next_live_ % shell_commands.size()];
+    next_live_++;
+    char cmd[48];
+    Out(cmd, sizeof cmd).s(lc.name.c_str());
+    bool wrong = mistype(cmd);
+    wait(rand_range(1, compact_ ? 2.5f : 5));
+    for (int i = 0; cmd[i]; i++)
+      push(KEY).key = cmd[i];
+    wait(rand_range(0.2f, 0.5f));
+    out("\n", true, false);
+    if (wrong) {
+      out("Bad command or file name", false, true);
+    } else {
+      char line[96];
+      for (const LiveLine &l : lc.lines) {
+        live_line(l, line, sizeof line);
+        out(line, false, true);
+      }
+    }
+    finish_answer();
+  }
+
+  /* A slip of the finger goes in as typed. */
+  bool mistype(char *cmd) {
+    if (rng.uniform() >= typo_)
+      return false;
+    int word = 0;
+    while (cmd[word] && cmd[word] != ' ')
+      word++;
+    if (!word)
+      return false;
+    int at = rng.below(word);
+    char ch = 'A' + rng.below(26);
+    if (ch == cmd[at])
+      return false;
+    cmd[at] = ch;
+    return true;
+  }
+
+  /* After an answer: a blank line, now and then a clean screen, the prompt.
+     Compact, a hold on the last row first. */
+  void finish_answer() {
+    out("\n", true, true);
+    if (compact_)
+      push(HOLD).wait = 2.5f;
+    if (rng.uniform() < 0.08f) {
+      wait(rand_range(0.5f, 2));
+      push(CLEAR);
+    }
+    push(PROMPT);
+  }
+
   /* What gets typed next and what comes back. */
   void plan() {
     reset_queue();
+    /* Live commands, if there are any (now and then one of the module's own,
+       with `classic`). The live data can change between reads, so it is read
+       as each command is planned. */
+    if (!shell_commands.empty() && !(shell_classic && rng.uniform() < 0.3f)) {
+      plan_live();
+      return;
+    }
     static const char *const COMMANDS[] = {"DIR", "DIR /W", "VOL", "COPY", "CD", "TIME", "DATE", "PROMPT $P$G", "VER"};
     int what = rng.below(9);
     char cmd[48];
@@ -523,20 +713,8 @@ class Shell {
         fixed = {{"AfterDark DOS Shell version 2.7(Win)", nullptr, nullptr}, 1};
         break;
     }
-    /* A slip of the finger goes in as typed. */
-    bool wrong = false;
-    if (rng.uniform() < typo_) {
-      int word = 0;
-      while (cmd[word] && cmd[word] != ' ')
-        word++;
-      int at = rng.below(word);
-      char ch = 'A' + rng.below(26);
-      if (ch != cmd[at]) {
-        cmd[at] = ch;
-        wrong = true;
-      }
-    }
-    wait(rand_range(1, 5));
+    bool wrong = mistype(cmd);
+    wait(rand_range(1, compact_ ? 2.5f : 5));
     for (int i = 0; cmd[i]; i++)
       push(KEY).key = cmd[i];
     wait(rand_range(0.2f, 0.5f));
@@ -551,16 +729,13 @@ class Shell {
       if (cd_to >= 0)
         push(CD).arg = cd_to;
     }
-    out("\n", true, true);
-    /* Now and then a clean screen. */
-    if (rng.uniform() < 0.08f) {
-      wait(rand_range(0.5f, 2));
-      push(CLEAR);
-    }
-    push(PROMPT);
+    finish_answer();
   }
 
   int cols_ = 1, rows_ = 1;
+  bool compact_ = false, pending_nl_ = false;
+  float hold_until_ = -1;
+  unsigned next_live_ = 0;
   std::vector<char> text_;
   std::vector<uint8_t> len_;
   int n_ = 1;
@@ -621,11 +796,13 @@ class DosShell : public Saver {
 
   void draw(Surface &s) {
     int n = shell.lines();
-    bool cur = shell.cursor_on();
+    bool hold = shell.holding();
+    bool cur = hold ? shell.corner_on() : shell.cursor_on();
+    int cur_c = hold ? cols_ - 1 : shell.length(n - 1);
     for (int r = 0; r < rows_; r++)
       for (int c = 0; c < cols_; c++) {
         char want = r < n && c < shell.length(r) ? shell.at(r, c) : ' ';
-        if (cur && r == n - 1 && c == shell.length(r))
+        if (cur && r == n - 1 && c == cur_c)
           want = CURSOR;
         char &have = shown_[r * cols_ + c];
         if (want == have)
@@ -636,7 +813,13 @@ class DosShell : public Saver {
         if (want == CURSOR) {
           s.fill_rect(x, y + top_ * 2, cw_, ch_ - top_ * 2, ink_);
         } else if (want != ' ') {
-          char t[2] = {want, 0};
+          /* The shell holds Latin-1; draw_text reads UTF-8. */
+          uint8_t u = (uint8_t) want;
+          char t[3] = {want, 0, 0};
+          if (u >= 0x80) {
+            t[0] = (char) (0xC0 | (u >> 6));
+            t[1] = (char) (0x80 | (u & 0x3F));
+          }
           draw_text(s, *font_, x, y + top_, t, ink_);
         }
       }
@@ -676,17 +859,29 @@ class DosShellText : public TextSaver {
  private:
   static const uint8_t BACKSLASH = 0, BLOCK = 1;
 
+  /* Latin-1 to the HD44780's A00 ROM: its own degree sign, user glyphs for
+     the backslash, and '?' for what it lacks. */
+  static uint8_t rom(char ch) {
+    uint8_t c = (uint8_t) ch;
+    if (c == '\\')
+      return BACKSLASH;
+    if (c == 0xB0)
+      return 0xDF;
+    return c < 0x80 ? c : '?';
+  }
+
   void draw(TextScreen &t) {
     t.clear();
     int n = shell.lines();
-    for (int r = 0; r < n && r < t.rows(); r++) {
-      for (int c = 0; c < shell.length(r); c++) {
-        char ch = shell.at(r, c);
-        t.put(c, r, ch == '\\' ? BACKSLASH : (uint8_t) ch);
-      }
-    }
-    if (shell.cursor_on())
+    for (int r = 0; r < n && r < t.rows(); r++)
+      for (int c = 0; c < shell.length(r); c++)
+        t.put(c, r, rom(shell.at(r, c)));
+    if (shell.holding()) {
+      if (shell.corner_on())
+        t.put(t.cols() - 1, n - 1, BLOCK);
+    } else if (shell.cursor_on()) {
       t.put(shell.length(n - 1), n - 1, BLOCK);
+    }
   }
 };
 

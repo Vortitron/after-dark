@@ -35,6 +35,8 @@ for code in range(256):
                     bits[y] |= 0x10 >> x
     elif code == 0xFF:
         bits = [0x1F] * 8  # the ROM's solid block
+    if code == 0xDF:
+        bits = [0x1C, 0x14, 0x1C, 0, 0, 0, 0, 0]  # the A00 ROM's degree sign
     if code == ord('.'):
         bits = [0, 0, 0, 0, 0, 0x0C, 0x0C, 0]  # the HD44780's square dot, not X11's little cross
     rows.append(bits)

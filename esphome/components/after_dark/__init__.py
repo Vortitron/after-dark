@@ -20,6 +20,19 @@ Saver options (see SAVER_OPTIONS):
   clocks:  face - melting_digital, classic, modern, art_deco or mutating.
            Default: mutating (ten photographs, 189 KB) on colour,
            melting_digital on a 1-bit panel.
+  dosshell: commands - typed instead of DIR and the rest, each answered with
+           a line per Home Assistant entity (needs `api:`):
+             - dosshell:
+                 commands:
+                   - name: TEMP
+                     entities:
+                       - sensor.living_room_temperature
+                       - entity_id: sensor.outdoor_temperature
+                         label: Outside
+                       - entity_id: climate.hall
+                         attribute: current_temperature
+                         unit: "°C"
+                 classic: true    # mix the module's own commands in too
 
 The display should have no lambda or pages; this draws into it directly.
 """
@@ -28,6 +41,7 @@ import re
 
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome.components import display
 from esphome.const import CONF_DIMENSIONS, CONF_ID, CONF_TIME_ID
 from esphome.core import CORE
@@ -69,7 +83,22 @@ LCDDisplay = cg.esphome_ns.namespace("lcd_base").class_("LCDDisplay", cg.Polling
 RealTimeClock = cg.esphome_ns.namespace("time").class_("RealTimeClock", cg.PollingComponent)
 
 
-# Build-time options, under a saver's name in `savers:`. Each becomes -D flags
+def _shell_entity(value):
+    """An entity for a DOS Shell command: its id, or the id with a label,
+    attribute or unit of its own."""
+    if isinstance(value, str):
+        value = {"entity_id": value}
+    return cv.Schema(
+        {
+            cv.Required("entity_id"): cv.entity_id,
+            cv.Optional("label"): cv.string,
+            cv.Optional("attribute"): cv.string,
+            cv.Optional("unit"): cv.string,
+        }
+    )(value)
+
+
+# Build-time options, under a saver's name in `savers:`. Most become -D flags
 # in to_code, so the saver compiles in only the art it needs.
 SAVER_OPTIONS = {
     "fishpro": cv.Schema(
@@ -80,6 +109,22 @@ SAVER_OPTIONS = {
         }
     ),
     "clocks": cv.Schema({cv.Optional("face"): cv.one_of(*CLOCKS_FACES, lower=True, space="_")}),
+    "dosshell": cv.Schema(
+        {
+            cv.Optional("commands"): cv.All(
+                cv.ensure_list(
+                    cv.Schema(
+                        {
+                            cv.Required("name"): cv.All(cv.string_strict, cv.Length(min=1, max=12)),
+                            cv.Required("entities"): cv.All(cv.ensure_list(_shell_entity), cv.Length(min=1)),
+                        }
+                    )
+                ),
+                cv.Length(min=1),
+            ),
+            cv.Optional("classic", default=False): cv.boolean,
+        }
+    ),
 }
 
 
@@ -155,6 +200,16 @@ def _display_conf(display_id):
     raise cv.Invalid(f"can't find display '{display_id}'")
 
 
+def _final_validate(config):
+    shell = config[CONF_SAVERS].get("dosshell") or {}
+    if shell.get("commands") and "api" not in fv.full_config.get():
+        raise cv.Invalid("DOS Shell's commands get their data from Home Assistant through `api:`; add it")
+    return config
+
+
+FINAL_VALIDATE_SCHEMA = _final_validate
+
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -190,3 +245,10 @@ async def to_code(config):
                 cg.add_build_flag(f"-DAD_FISHPRO_{fish.upper()}")
         elif saver == "clocks" and "face" in options:
             cg.add_build_flag(f"-DAD_CLOCKS_TYPE={CLOCKS_FACES.index(options['face'])}")
+        elif saver == "dosshell":
+            for command in options.get("commands", []):
+                cg.add(var.add_shell_command(command["name"]))
+                for entity in command["entities"]:
+                    cg.add(var.add_shell_entity(entity["entity_id"], entity.get("attribute", ""),
+                                                entity.get("label", ""), entity.get("unit", "")))
+            cg.add(var.set_shell_classic(options.get("classic", False)))
