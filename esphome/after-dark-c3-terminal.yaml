@@ -1,0 +1,98 @@
+# A 1602 character LCD as a Home Assistant terminal: After Dark's DOS Shell
+# with a Unix look, typing a command for each thing you want to see and
+# printing the answer a row a second. Fumbled keys get backspaced, and a
+# mistyped command gets "command not found" and is typed again.
+#
+#   esphome run esphome/after-dark-c3-terminal.yaml
+#
+# The hardware and wiring are those of after-dark-c3-lcd.yaml (an ESP32-C3
+# Super Mini and a PCF8574 backpack). Change the entity ids below to yours,
+# and add the device to Home Assistant: the states come over its API.
+
+esphome:
+  name: terminal
+  friendly_name: Terminal
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/Vortitron/after-dark
+      ref: gh-pages
+      path: esphome/components
+    components: [after_dark]
+
+logger:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+ota:
+  - platform: esphome
+
+time:
+  - platform: homeassistant
+    id: ha_time
+
+i2c:
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 100kHz
+
+display:
+  - platform: lcd_pcf8574
+    id: lcd
+    dimensions: 16x2
+    address: 0x27
+    update_interval: never
+
+# Only what a lambda reads needs declaring; `entities:` lines below fetch
+# their own states.
+binary_sensor:
+  - platform: homeassistant
+    id: bins_tomorrow
+    entity_id: input_boolean.bins_tomorrow
+
+after_dark:
+  lcd_id: lcd
+  time_id: ha_time
+  fps: 5
+  savers:
+    - dosshell:
+        style: unix              # a name$ prompt, a Linux banner, bash's errors
+        prompt: "home$ "
+        commands:
+          # Whole lines from lambdas, worked out as they are typed.
+          - name: date
+            lines:
+              - lambda: 'return id(ha_time).now().strftime("%a %e %b %Y");'
+              - lambda: 'return id(ha_time).now().strftime("%H:%M:%S");'
+          # A line an entity: the label on the left, the state on the right.
+          # 16 columns, one kept for the blinking block.
+          - name: weather
+            entities:
+              - entity_id: sensor.outdoor_temperature
+                label: Out
+              - entity_id: weather.home
+                label: Sky
+          - name: sensors
+            entities:
+              - entity_id: sensor.living_room_temperature
+                label: Temp
+              - entity_id: sensor.living_room_humidity
+                label: Humid
+          # Typed only while its `when` says so.
+          - name: bins
+            when: 'return id(bins_tomorrow).state;'
+            lines:
+              - lambda: 'return std::string("Bins out tonight");'
+
+select:
+  - platform: after_dark
+    name: Screensaver

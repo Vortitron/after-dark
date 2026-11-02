@@ -149,6 +149,69 @@ goes in:
   found`), and `prompt:` (`$P` directory, `$G` >, `$T` time, `$D` date),
   `banner:` and `bad_command:` (`%s` is the word typed) set each part.
 
+### A Home Assistant terminal on a two-line LCD
+
+![DOS Shell on a 1602 LCD in Unix style: it logs in, types date with a slip it
+backspaces, mistypes weather and gets "command not found", tab-completes it,
+then shows the weather, sensors and calendar](docs/dosshell-unix.gif)
+
+DOS Shell can turn a 16×2 character LCD into a little terminal that types
+out your Home Assistant data. Every so often a key slips and gets
+backspaced. Now and then a whole command goes in wrong; it gets
+`command not found`, and the right one is typed again with a tab completion.
+The complete config is [`after-dark-c3-terminal.yaml`](after-dark-c3-terminal.yaml).
+To set one up:
+
+1. **Wire the LCD.** Use a 1602 with a PCF8574 I2C backpack, wired as in
+   [`after-dark-c3-lcd.yaml`](after-dark-c3-lcd.yaml). The panel needs 5 V,
+   and the C3's I2C pins need protecting from the backpack's 5 V pull-ups.
+2. **Set up the display.** Give `display:` the LCD with `update_interval:
+   never` and no `lambda:`, so After Dark is the only thing drawing on it.
+3. **Add the shell.** Under `after_dark:`, use `lcd_id:` and a `dosshell`
+   saver with `style: unix`. Write one entry under `commands:` for each
+   screenful you want to see:
+   - `entities:` prints a line for each entity, with its label on the left
+     and its state on the right.
+   - `lines:` with `- lambda:` builds a line from anything the device
+     knows, such as the date from `time_id`.
+   - `when:` types the command only while its lambda returns true, for a
+     reminder such as bin day.
+4. **Keep lines short.** Each line has 15 columns, because the 16th holds
+   the blinking block. Longer lines wrap at a space onto the next row.
+5. **Connect it to Home Assistant.** Flash the device, then add it in Home
+   Assistant. The states come over ESPHome's API. Until a state arrives, its
+   line shows `----`.
+
+```yaml
+after_dark:
+  lcd_id: lcd
+  time_id: ha_time
+  fps: 5
+  savers:
+    - dosshell:
+        style: unix
+        prompt: "home$ "
+        commands:
+          - name: date
+            lines:
+              - lambda: 'return id(ha_time).now().strftime("%a %e %b %Y");'
+              - lambda: 'return id(ha_time).now().strftime("%H:%M:%S");'
+          - name: weather
+            entities:
+              - entity_id: sensor.outdoor_temperature
+                label: Out
+              - entity_id: weather.home
+                label: Sky
+          - name: bins
+            when: 'return id(bins_tomorrow).state;'   # a homeassistant binary_sensor
+            lines:
+              - lambda: 'return std::string("Bins out tonight");'
+```
+
+To show a status message over the shell for a moment (a button press, say),
+give `after_dark:` an `overlay:` lambda that returns the lines to show
+instead, or `{}` to let the shell carry on.
+
 ### As a screensaver
 
 With `mode: screensaver` the display keeps its own lambda or pages, and the
@@ -236,6 +299,10 @@ esphome/host/preview.sh OUTDIR zot ad_zot.cpp   # one saver, every screen, conta
 AD_SHELL_DEMO=1 esphome/host/render dosshell lcd16x2 480 OUTDIR 8   # DOS Shell with made-up live data
 AD_LCD_TEXT=1 AD_SHELL_DEMO=unix esphome/host/render dosshell lcd16x2 1200 - 20   # the panel as text, each change
 ```
+
+`docs/dosshell-unix.gif` is `AD_TIME=1793000000 AD_SHELL_DEMO=unix
+host/render dosshell lcd16x2 300 OUTDIR 8 116`, made into a GIF with the
+`ffmpeg` line in `tools/previews.sh`.
 
 For colour screens the renderer also prints the average box of changed pixels
 per frame. That box is what the ILI9xxx driver sends over SPI, so it gives a

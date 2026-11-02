@@ -208,27 +208,35 @@ void shell_demo() {
   }
 }
 
-/* AD_SHELL_DEMO=unix: the Loft's look, with lines worked out by lambdas, a
-   list of them, and a command that is only sometimes due. */
+/* AD_SHELL_DEMO=unix: the Loft's look and its commands, with lines worked
+   out by lambdas, a list of them, and a command that is only sometimes due. */
 void shell_demo_unix() {
   shell_style.prompt = "loft$ ";
-  shell_style.banner = {"Linux loft 6.6.51 armv6l", "", "loft login: pi", "Last login: Fri Oct 30"};
+  shell_style.banner = {"Linux loft 6.6.51 armv6l", "", "loft login: pi", "Last login: on ttyS0"};
   shell_style.bad_command = "%s: command not found";
   shell_style.lowercase = true;
+  auto text = [](const char *t) {
+    LiveLine l;
+    l.text = [t] { return std::string(t); };
+    return l;
+  };
+  LiveCommand date;
+  date.name = "date";
+  date.lines = {text("Mon 2 Nov 2026"), text("14:10:35")};
   LiveCommand weather;
   weather.name = "weather";
-  LiveLine a, b;
-  a.text = [] { return std::string("Out  7.2  In 21.4"); };
-  b.text = [] { return std::string("D 10.2 pcloudy"); };
-  weather.lines = {a, b};
+  weather.lines = {text("Out 7.2 In 21.4"), text("D  10.2 rain")};
+  LiveCommand sensors;
+  sensors.name = "sensors";
+  sensors.lines = {text("T 21.4C H 44.9%"), text("Smoke 0.0%")};
   LiveCommand cal;
   cal.name = "cal";
-  cal.lines_fn = [] { return std::vector<std::string>{"17:30 Swimming", "Sat 10:00 Football", "Sun Grandma's birthday"}; };
+  cal.lines_fn = [] { return std::vector<std::string>{"15:00 Matilda", "16:30 Felix", "riding"}; };
   LiveCommand bins;
   bins.name = "bins";
   bins.when = [] { return clock_elapsed > 20; };
-  bins.lines_fn = [] { return std::vector<std::string>{"Empty tomorrow", "C1 paper plastic metal clear glass"}; };
-  shell_commands = {weather, cal, bins};
+  bins.lines_fn = [] { return std::vector<std::string>{"Thu: paper", "plastic, glass"}; };
+  shell_commands = {date, weather, sensors, cal, bins};
 }
 
 int main(int argc, char **argv) {
