@@ -115,6 +115,8 @@ goes in:
   friendly name unless you give one) and its state on the right with its
   unit. They come round in order, mistyped now and then like any command,
   and about one in three slips on a key and backspaces it as a person would.
+  A mistyped one is answered with the error and typed again at once (Unix
+  style, three letters and a tab).
   On a panel of four rows or fewer the typing starts as the prompt comes up.
   `classic: true` mixes the module's own DIR, TIME and the rest back in. The
   states come over ESPHome's native API, so the config needs `api:`.
@@ -143,7 +145,7 @@ goes in:
   command can take all its lines from one (`lambda:` returning a
   `std::vector<std::string>`, for a calendar or a list of notifications),
   and `when:` types a command only while its lambda says so. `style: unix`
-  gives it a Unix look (a `name$ ` prompt, a Linux login banner, `-sh: x: not
+  gives it a Unix look (a `name$ ` prompt, a Linux login banner, `x: command not
   found`), and `prompt:` (`$P` directory, `$G` >, `$T` time, `$D` date),
   `banner:` and `bad_command:` (`%s` is the word typed) set each part.
 

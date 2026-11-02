@@ -1,2 +1,2 @@
 /* Auto-stamped by tools/stamp.sh — run that before you push. */
-window.AFTER_DARK_BUILD = {"rev": "21ebd4e", "time": "2026-11-02T10:05:54Z", "label": "02 Nov 10:05 UTC", "v": "21ebd4e-261102100554"};
+window.AFTER_DARK_BUILD = {"rev": "0906770", "time": "2026-11-02T13:09:01Z", "label": "02 Nov 13:09 UTC", "v": "0906770-261102130901"};

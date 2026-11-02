@@ -48,7 +48,7 @@ DOS Shell can also be given a Unix look and lines worked out in lambdas:
       style: unix                # prompt, banner and errors to match
       prompt: "loft$ "           # $P directory, $G >, $T time, $D date
       banner: ["Linux loft 6.6.51"]
-      bad_command: "-sh: %s: not found"
+      bad_command: "%s: command not found"
       commands:
         - name: weather
           lines:
@@ -270,7 +270,7 @@ def _unix_style(name):
     return {
         "prompt": f"{name}$ ",
         "banner": [f"Linux {name} 6.6.51 armv6l", "", f"{name} login: pi", "Last login: on ttyS0"],
-        "bad_command": "-sh: %s: not found",
+        "bad_command": "%s: command not found",
     }
 
 

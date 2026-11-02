@@ -32,7 +32,9 @@
  * slip: about one in three gets a neighbouring key, a key or two more, then
  * backspaces and the right one, as a person types (the module's own commands
  * keep the module's typing). Compact, a live command starts as the prompt
- * comes up, the way a key brings a terminal back to its last line.
+ * comes up, the way a key brings a terminal back to its last line. A live
+ * command that went in mistyped is put right straight away: the error, the
+ * prompt, and the command again (Unix style, three letters and a tab).
  */
 #if defined(AD_SAVER_DOSSHELL) || defined(AD_ALL_SAVERS)
 #include "ad_core.h"
@@ -636,8 +638,19 @@ class Shell {
     wait(rand_range(0.2f, 0.5f));
     out("\n", true, false);
     if (wrong) {
+      /* No hold: the prompt, and the command it should have been. */
       bad_command(cmd);
-    } else {
+      out("\n", true, true);
+      push(PROMPT);
+      Out(cmd, sizeof cmd).s(lc.name.c_str());
+      if (!compact_)
+        wait(rand_range(0.4f, 1));
+      retype(cmd);
+      wait(rand_range(0.2f, 0.5f));
+      out("\n", true, false);
+      wrong = false;
+    }
+    if (!wrong) {
       char line[96];
       std::string text;
       for (const LiveLine &l : lc.lines) {
@@ -691,6 +704,28 @@ class Shell {
     }
   }
   static bool letter(char ch) { return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'); }
+  /* A command typed again after a mistake. Unix style, its first three
+     letters and a tab that completes the word (with the space a shell adds);
+     at a DOS prompt, every key. */
+  void retype(const char *cmd) {
+    int word = 0;
+    while (cmd[word] && cmd[word] != ' ')
+      word++;
+    if (!shell_style.lowercase || word <= 3) {
+      type_keys(cmd, false);
+      return;
+    }
+    char head[4] = {cmd[0], cmd[1], cmd[2], 0};
+    type_keys(head, false);
+    wait(rand_range(0.2f, 0.4f));
+    char rest[48];
+    Out(rest, sizeof rest).s(cmd + 3);
+    rest[word - 3] = ' ';
+    rest[word - 2] = 0;
+    put_out(rest, true, true, 0);
+    if (cmd[word])
+      type_keys(cmd + word + 1, false);
+  }
   /* A letter's neighbour on a QWERTY row, in the same case; anything else is
      itself. */
   static char neighbour(char ch) {

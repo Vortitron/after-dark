@@ -213,7 +213,7 @@ void shell_demo() {
 void shell_demo_unix() {
   shell_style.prompt = "loft$ ";
   shell_style.banner = {"Linux loft 6.6.51 armv6l", "", "loft login: pi", "Last login: Fri Oct 30"};
-  shell_style.bad_command = "-sh: %s: not found";
+  shell_style.bad_command = "%s: command not found";
   shell_style.lowercase = true;
   LiveCommand weather;
   weather.name = "weather";
