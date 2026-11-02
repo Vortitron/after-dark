@@ -150,6 +150,24 @@ int run_lcd(const SaverEntry *e, int cols, int rows, int frames, const char *dir
       for (int g = 0; g < TextScreen::GLYPHS; g++)
         glyphs += t.glyph_changed(g);
     }
+    /* AD_LCD_TEXT: each change of the panel printed as text instead, with
+       the time, glyphs 0-7 as '#'. */
+    if (getenv("AD_LCD_TEXT")) {
+      if (t.changed()) {
+        printf("%7.2f", clock_elapsed);
+        for (int r = 0; r < rows; r++) {
+          printf(" |");
+          for (int c = 0; c < cols; c++) {
+            uint8_t ch = t.at(c, r);
+            putchar(ch < 8 ? '#' : ch);
+          }
+          printf("|");
+        }
+        printf("\n");
+      }
+      t.mark_sent();
+      continue;
+    }
     snprintf(path, sizeof path, "%s/%04d.ppm", dir, i);
     if (keep(i, frames) && !write_lcd(t, path)) {
       fprintf(stderr, "cannot write %s\n", path);

@@ -113,7 +113,9 @@ goes in:
 - `dosshell: commands:` Home Assistant data, typed as DOS commands. Each
   command is answered with a line an entity: its label on the left (the
   friendly name unless you give one) and its state on the right with its
-  unit. They come round in order, mistyped now and then like any command;
+  unit. They come round in order, mistyped now and then like any command,
+  and about one in three slips on a key and backspaces it as a person would.
+  On a panel of four rows or fewer the typing starts as the prompt comes up.
   `classic: true` mixes the module's own DIR, TIME and the rest back in. The
   states come over ESPHome's native API, so the config needs `api:`.
 
@@ -230,6 +232,7 @@ make -C esphome/host gif SAVER=warp SCREEN=lcd16x2 FPS=8 FRAMES=80
 
 esphome/host/preview.sh OUTDIR zot ad_zot.cpp   # one saver, every screen, contact sheets
 AD_SHELL_DEMO=1 esphome/host/render dosshell lcd16x2 480 OUTDIR 8   # DOS Shell with made-up live data
+AD_LCD_TEXT=1 AD_SHELL_DEMO=unix esphome/host/render dosshell lcd16x2 1200 - 20   # the panel as text, each change
 ```
 
 For colour screens the renderer also prints the average box of changed pixels

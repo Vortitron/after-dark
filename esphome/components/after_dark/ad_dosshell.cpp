@@ -28,7 +28,11 @@
  * shell types those instead and answers each with a line an entity, its
  * label on the left and its state on the right, as Home Assistant sends them.
  * They come round in order, mistyped now and then like any command; with
- * `classic: true` the module's own commands are mixed in.
+ * `classic: true` the module's own commands are mixed in. Live commands also
+ * slip: about one in three gets a neighbouring key, a key or two more, then
+ * backspaces and the right one, as a person types (the module's own commands
+ * keep the module's typing). Compact, a live command starts as the prompt
+ * comes up, the way a key brings a terminal back to its last line.
  */
 #if defined(AD_SAVER_DOSSHELL) || defined(AD_ALL_SAVERS)
 #include "ad_core.h"
@@ -54,6 +58,8 @@ const Rgb SCHEMES[4][2] = {{{128, 128, 0}, {0, 0, 0}},
 const float KEYS[] = {1.2f, 2.5f, 3.5f, 8};
 /* The chance a command goes in mistyped, for Low .. Perfect accuracy. */
 const float TYPO[] = {0.5f, 0.25f, 0.06f, 0};
+/* The chance a live command has a slip that gets backspaced. */
+const float SLIP = 0.3f;
 
 float rand_range(float a, float b) { return a + rng.uniform() * (b - a); }
 
@@ -237,6 +243,12 @@ class Shell {
           hold_until_ = t_ + a.wait;
           wait_ += a.wait;
           break;
+        case BKSP:
+          rub_out();
+          blink_ = t_;
+          /* Quicker than typing: it's the same key again and again. */
+          wait_ += rand_range(0.4f, 0.7f) / keys_;
+          break;
       }
     }
   }
@@ -252,7 +264,7 @@ class Shell {
   bool corner_on() const { return fmodf((hold_until_ - t_) / 0.4f, 2) >= 1; }
 
  private:
-  enum Op : uint8_t { WAIT, KEY, COUNT, CD, CLEAR, PROMPT, OUT, HOLD };
+  enum Op : uint8_t { WAIT, KEY, COUNT, CD, CLEAR, PROMPT, OUT, HOLD, BKSP };
   struct Act {
     Op op;
     bool raw, fast;
@@ -404,6 +416,14 @@ class Shell {
       int r = n_ - 1;
       text_[r * cols_ + len_[r]++] = *t;
     }
+  }
+  /* A backspace: the last character goes, back up a row if the command had
+     wrapped. */
+  void rub_out() {
+    if (len_[n_ - 1] == 0 && n_ > 1)
+      n_--;
+    if (len_[n_ - 1] > 0)
+      len_[n_ - 1]--;
   }
   void set_last(const char *t) {
     int r = n_ - 1, i = 0;
@@ -610,9 +630,9 @@ class Shell {
     char cmd[48];
     Out(cmd, sizeof cmd).s(lc.name.c_str());
     bool wrong = mistype(cmd);
-    wait(rand_range(1, compact_ ? 2.5f : 5));
-    for (int i = 0; cmd[i]; i++)
-      push(KEY).key = cmd[i];
+    if (!compact_)
+      wait(rand_range(1, 5));
+    type_keys(cmd, !wrong && rng.uniform() < SLIP);
     wait(rand_range(0.2f, 0.5f));
     out("\n", true, false);
     if (wrong) {
@@ -637,6 +657,55 @@ class Shell {
       }
     }
     finish_answer();
+  }
+
+  /* `cmd` typed key by key; with `slip`, one letter first comes out as a key
+     beside it, a key or two more go in before that's noticed, and they're
+     backspaced. */
+  void type_keys(const char *cmd, bool slip) {
+    int n = strlen(cmd), at = -1;
+    if (slip) {
+      int letters = 0;
+      for (int i = 0; i < n; i++)
+        letters += letter(cmd[i]);
+      if (letters) {
+        int k = rng.below(letters);
+        for (int i = 0; i < n && at < 0; i++)
+          if (letter(cmd[i]) && k-- == 0)
+            at = i;
+      }
+    }
+    for (int i = 0; i < n; i++) {
+      if (i == at) {
+        int more = rng.below(3);
+        if (more > n - 1 - i)
+          more = n - 1 - i;
+        push(KEY).key = neighbour(cmd[i]);
+        for (int j = 1; j <= more; j++)
+          push(KEY).key = cmd[i + j];
+        wait(rand_range(0.25f, 0.6f));
+        for (int j = 0; j <= more; j++)
+          push(BKSP);
+      }
+      push(KEY).key = cmd[i];
+    }
+  }
+  static bool letter(char ch) { return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'); }
+  /* A letter's neighbour on a QWERTY row, in the same case; anything else is
+     itself. */
+  static char neighbour(char ch) {
+    static const char *const ROWS[] = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
+    bool upper = ch >= 'A' && ch <= 'Z';
+    char lc = upper ? ch + 32 : ch;
+    for (const char *row : ROWS) {
+      const char *p = strchr(row, lc);
+      if (!p)
+        continue;
+      int len = strlen(row), i = p - row;
+      int j = i == 0 ? 1 : i == len - 1 ? i - 1 : i + (rng.below(2) ? 1 : -1);
+      return upper ? row[j] - 32 : row[j];
+    }
+    return ch;
   }
 
   /* A slip of the finger goes in as typed. */

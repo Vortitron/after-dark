@@ -59,6 +59,7 @@ DOS Shell can also be given a Unix look and lines worked out in lambdas:
           when: 'return id(bins_due);'           # typed only while true
           lines: [...]
 """
+import inspect
 from pathlib import Path
 import re
 
@@ -307,9 +308,13 @@ async def _shell_to_code(var, options):
 
 AFTER_DARK_ACTION_SCHEMA = automation.maybe_simple_id({cv.GenerateID(): cv.use_id(AfterDarkComponent)})
 
+# Both actions finish inside play(). ESPHome 2026 wants that said; earlier
+# releases have no such argument.
+_SYNC = {"synchronous": True} if "synchronous" in inspect.signature(automation.register_action).parameters else {}
 
-@automation.register_action("after_dark.start", StartAction, AFTER_DARK_ACTION_SCHEMA)
-@automation.register_action("after_dark.stop", StopAction, AFTER_DARK_ACTION_SCHEMA)
+
+@automation.register_action("after_dark.start", StartAction, AFTER_DARK_ACTION_SCHEMA, **_SYNC)
+@automation.register_action("after_dark.stop", StopAction, AFTER_DARK_ACTION_SCHEMA, **_SYNC)
 async def after_dark_action_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
