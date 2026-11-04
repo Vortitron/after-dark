@@ -12,7 +12,3 @@ external_components:
   - source: github://Vortitron/after-dark-esphome@v1.0.0
     components: [after_dark]
 ```
-
-`components/after_dark` stays here for now, at the v1.0.0 code, so devices
-that still point at this repo (`path: esphome/components`) keep building. It
-gets no more changes and will be removed once they have moved.
